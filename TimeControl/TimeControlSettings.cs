@@ -18,16 +18,15 @@ namespace TimeControl
     public class Settings : MonoBehaviour
     {
         //Plugin Configuration
-        PluginConfiguration config = PluginConfiguration.CreateForType<TimeControl>();
-        //ConfigNode config = new ConfigNode();
+        ConfigNode config;
 
         //Window Positions
-        public static Rect flightWindowPosition = new Rect();
-        public static Rect menuWindowPosition = new Rect();
-        public static Rect settingsWindowPosition = new Rect();
+        public static Rect flightWindowPosition = new Rect(1,1,1,1);
+        public static Rect menuWindowPosition = new Rect(1,1,1,1);
+        public static Rect settingsWindowPosition = new Rect(1,1,1,1);
 
         //FPS Display
-        public static Rect fpsPosition = new Rect(0, 0, 100, 100);
+        public static Rect fpsPosition = new Rect(155, 0, 100, 100);
         public static string fpsX = "155";
         public static string fpsY = "0";
 
@@ -37,7 +36,7 @@ namespace TimeControl
 
         //Options
         public static int mode = 0;
-        public static Boolean camFix = false;
+        public static Boolean camFix = true;
         public static Boolean showFPS = false;
         public static Boolean fpsKeeperActive = false;
         public static int fpsMinSlider = 5;
@@ -70,10 +69,20 @@ namespace TimeControl
 
         public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None) };
 
+        private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
+
         private void Start()
         {
-            //config.load();
-            //loadData();
+            config = ConfigNode.Load(path);
+            if (config == null)//file does not exist
+            {
+                buildConfig();
+                loadConfig();
+            }
+            else
+            {
+                loadConfig();
+            }
         }
         private void Awake()
         {
@@ -81,79 +90,193 @@ namespace TimeControl
         }
         private void Update()
         {
-            if ((int)Time.realtimeSinceStartup % 5 == 0) //save every 5 seconds
+            if ((int)Time.realtimeSinceStartup % 10 == 0) //save every 10 seconds
             {
                 GameSettings.PHYSICS_FRAME_DT_LIMIT = maxDeltaTimeSlider;
                 GameSettings.SaveSettings();
-                //saveData();
-                //config.save();
+
+                saveConfig();
             }
         }
-        private void loadData()
+
+        private void buildConfig()
         {
-            minimized = config.GetValue<Boolean>("Minimized", false);
-            visible = config.GetValue<Boolean>("Toolbar-Visible", true);
+            config = new ConfigNode();
 
-            flightWindowPosition = config.GetValue<Rect>("Flight Window Position");
-            menuWindowPosition = config.GetValue<Rect>("Menu Window Position");
-            settingsWindowPosition = config.GetValue<Rect>("Settings Window Position");
-            fpsPosition = config.GetValue<Rect>("FPS Position");
+            config.AddValue("minimized", minimized);
+            config.AddValue("visible", visible);
 
-            mode = config.GetValue<int>("Mode", 0);
-            camFix = config.GetValue<Boolean>("Cam Fix", false);
-            fpsKeeperActive = config.GetValue<Boolean>("FPS Keeper", false);
-            fpsMinSlider = config.GetValue<int>("FPS Keeper Setting", 5);
-            showFPS = config.GetValue<Boolean>("Show FPS", false);
-            //maxDeltaTimeSlider = config.GetValue<float>("MaxDelta", GameSettings.PHYSICS_FRAME_DT_LIMIT);
+            ConfigNode flightWindowPositionNode = config.AddNode("flightWindowPosition");
+            flightWindowPositionNode.AddValue("xMin", flightWindowPosition.xMin);
+            flightWindowPositionNode.AddValue("xMax", flightWindowPosition.xMax);
+            flightWindowPositionNode.AddValue("yMin", flightWindowPosition.yMin);
+            flightWindowPositionNode.AddValue("yMax", flightWindowPosition.yMax);
 
-            for (int i = 0; i < 6; i++)
+            ConfigNode menuWindowPositionNode = config.AddNode("menuWindowPosition");
+            menuWindowPositionNode.AddValue("xMin", menuWindowPosition.xMin);
+            menuWindowPositionNode.AddValue("xMax", menuWindowPosition.xMax);
+            menuWindowPositionNode.AddValue("yMin", menuWindowPosition.yMin);
+            menuWindowPositionNode.AddValue("yMax", menuWindowPosition.yMax);
+
+            ConfigNode settingsWindowPositionNode = config.AddNode("settingsWindowPosition");
+            settingsWindowPositionNode.AddValue("xMin", settingsWindowPosition.xMin);
+            settingsWindowPositionNode.AddValue("xMax", settingsWindowPosition.xMax);
+            settingsWindowPositionNode.AddValue("yMin", settingsWindowPosition.yMin);
+            settingsWindowPositionNode.AddValue("yMax", settingsWindowPosition.yMax);
+
+            ConfigNode fpsPositionNode = config.AddNode("fpsPosition");
+            fpsPositionNode.AddValue("xMin", fpsPosition.xMin);
+            fpsPositionNode.AddValue("xMax", fpsPosition.xMax);
+            fpsPositionNode.AddValue("yMin", fpsPosition.yMin);
+            fpsPositionNode.AddValue("yMax", fpsPosition.yMax);
+
+            config.AddValue("mode", mode);
+            config.AddValue("camFix", camFix);
+            config.AddValue("fpsKeeperActive", fpsKeeperActive);
+            config.AddValue("fpsMinSlider", fpsMinSlider);
+            config.AddValue("showFPS", showFPS);
+
+            ConfigNode keyBindsNode = config.AddNode("keyBinds");
+            for (int i = 0; i < keyBinds.Length; i++)
             {
-                keyBinds[i] = new KeyBinding(config.GetValue<KeyCode>("Key Setting " + i.ToString(), KeyCode.None));
+                keyBindsNode.AddValue("keyBind"+i, keyBinds[i].primary);
             }
 
-            //rails data
-            for (int i = 0; i < 8; i++)
+            ConfigNode customWarpRatesNode = config.AddNode("customWarpRates");
+            for (int i = 0; i < standardWarpRates.Length; i++)
             {
-                customWarpRates[i] = config.GetValue<string>("Warp Rate " + i.ToString(), standardWarpRates[i]);
+                customWarpRatesNode.AddValue("customWarpRate" + i, standardWarpRates[i]);
+            }
 
-                for (int j = 0; j < 17; j++)
+            ConfigNode customAltitudeLimitsNode = config.AddNode("customAltitudeLimits");
+            for (int i = 0; i < standardAltitudeLimits.GetLength(0); i++)
+            {
+                ConfigNode celestial = customAltitudeLimitsNode.AddNode("celestial" + i);
+                for (int j = 0; j < standardAltitudeLimits.GetLength(1); j++)
                 {
-                    customAltitudeLimits[j, i] = config.GetValue<string>("Body " + j.ToString() + " Altitude Limit " + i.ToString(), standardAltitudeLimits[j, i]);
+                    celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i, j]);
+                }
+            }
+
+            config.Save(path);
+        }
+        private void loadConfig()
+        {
+            config = ConfigNode.Load(path);
+
+            minimized = bool.Parse(config.GetValue("minimized"));
+            visible = bool.Parse(config.GetValue("visible"));
+
+            ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
+            flightWindowPosition.xMin = float.Parse(flightWindowPositionNode.GetValue("xMin"));
+            flightWindowPosition.xMax = float.Parse(flightWindowPositionNode.GetValue("xMax"));
+            flightWindowPosition.yMin = float.Parse(flightWindowPositionNode.GetValue("yMin"));
+            flightWindowPosition.yMax = float.Parse(flightWindowPositionNode.GetValue("yMax"));
+
+            ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
+            menuWindowPosition.xMin = float.Parse(menuWindowPositionNode.GetValue("xMin"));
+            menuWindowPosition.xMax = float.Parse(menuWindowPositionNode.GetValue("xMax"));
+            menuWindowPosition.yMin = float.Parse(menuWindowPositionNode.GetValue("yMin"));
+            menuWindowPosition.yMax = float.Parse(menuWindowPositionNode.GetValue("yMax"));
+
+            ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
+            settingsWindowPosition.xMin = float.Parse(settingsWindowPositionNode.GetValue("xMin"));
+            settingsWindowPosition.xMax = float.Parse(settingsWindowPositionNode.GetValue("xMax"));
+            settingsWindowPosition.yMin = float.Parse(settingsWindowPositionNode.GetValue("yMin"));
+            settingsWindowPosition.yMax = float.Parse(settingsWindowPositionNode.GetValue("yMax"));
+
+            ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
+            fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("xMin"));
+            fpsPosition.xMax = float.Parse(fpsPositionNode.GetValue("xMax"));
+            fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("yMin"));
+            fpsPosition.yMax = float.Parse(fpsPositionNode.GetValue("yMax"));
+
+            mode = int.Parse(config.GetValue("mode"));
+            camFix = bool.Parse(config.GetValue("camFix"));
+            fpsKeeperActive = bool.Parse(config.GetValue("fpsKeeperActive"));
+            fpsMinSlider = int.Parse(config.GetValue("fpsMinSlider"));
+            showFPS = bool.Parse(config.GetValue("showFPS"));
+
+            ConfigNode keyBindsNode = config.GetNode("keyBinds");
+            for (int i = 0; i < keyBinds.Length; i++)
+            {
+                keyBinds[i].primary = (KeyCode)Enum.Parse(typeof(KeyCode), keyBindsNode.GetValue("keyBind" + i));
+            }
+
+            ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
+            for (int i = 0; i < customWarpRates.Length; i++)
+            {
+                customWarpRates[i] = customWarpRatesNode.GetValue("customWarpRate" + i);
+            }
+
+            ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
+            for (int i = 0; i < customAltitudeLimits.GetLength(0); i++)
+            {
+                ConfigNode celestial = customAltitudeLimitsNode.GetNode("celestial" + i);
+                for (int j = 0; j < customAltitudeLimits.GetLength(1); j++)
+                {
+                    customAltitudeLimits[i,j] = celestial.GetValue("customAltitudeLimit" + j);
                 }
             }
         }
-        private void saveData()
+        private void saveConfig()
         {
-            config.SetValue("Minimized", minimized);
-            config.SetValue("Toolbar-Visible", visible);
+            config.SetValue("minimized", minimized.ToString());
+            config.SetValue("visible", visible.ToString());
 
-            config.SetValue("Flight Window Position", flightWindowPosition);
-            config.SetValue("Menu Window Position", menuWindowPosition);
-            config.SetValue("Settings Window Position", settingsWindowPosition);
-            config.SetValue("FPS Position", fpsPosition);
+            ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
+            flightWindowPositionNode.SetValue("xMin", flightWindowPosition.xMin.ToString());
+            flightWindowPositionNode.SetValue("xMax", flightWindowPosition.xMax.ToString());
+            flightWindowPositionNode.SetValue("yMin", flightWindowPosition.yMin.ToString());
+            flightWindowPositionNode.SetValue("yMax", flightWindowPosition.yMax.ToString());
 
-            config.SetValue("Mode", mode);
-            config.SetValue("Cam Fix", camFix);
-            config.SetValue("FPS Keeper", fpsKeeperActive);
-            config.SetValue("FPS Keeper Setting", fpsMinSlider);
-            config.SetValue("Show FPS", showFPS);
-            //config.SetValue("MaxDelta", maxDeltaTimeSlider);
+            ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
+            menuWindowPositionNode.SetValue("xMin", menuWindowPosition.xMin.ToString());
+            menuWindowPositionNode.SetValue("xMax", menuWindowPosition.xMax.ToString());
+            menuWindowPositionNode.SetValue("yMin", menuWindowPosition.yMin.ToString());
+            menuWindowPositionNode.SetValue("yMax", menuWindowPosition.yMax.ToString());
 
-            for (int i = 0; i < 6; i++)
+            ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
+            settingsWindowPositionNode.SetValue("xMin", settingsWindowPosition.xMin.ToString());
+            settingsWindowPositionNode.SetValue("xMax", settingsWindowPosition.xMax.ToString());
+            settingsWindowPositionNode.SetValue("yMin", settingsWindowPosition.yMin.ToString());
+            settingsWindowPositionNode.SetValue("yMax", settingsWindowPosition.yMax.ToString());
+
+            ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
+            fpsPositionNode.SetValue("xMin", fpsPosition.xMin.ToString());
+            fpsPositionNode.SetValue("xMax", fpsPosition.xMax.ToString());
+            fpsPositionNode.SetValue("yMin", fpsPosition.yMin.ToString());
+            fpsPositionNode.SetValue("yMax", fpsPosition.yMax.ToString());
+
+            config.SetValue("mode", mode.ToString());
+            config.SetValue("camFix", camFix.ToString());
+            config.SetValue("fpsKeeperActive", fpsKeeperActive.ToString());
+            config.SetValue("fpsMinSlider", fpsMinSlider.ToString());
+            config.SetValue("showFPS", showFPS.ToString());
+
+            ConfigNode keyBindsNode = config.GetNode("keyBinds");
+            for (int i = 0; i < keyBinds.Length; i++)
             {
-                config.SetValue("Key Setting " + i.ToString(), keyBinds[i].primary);
+                keyBindsNode.SetValue("keyBind" + i, keyBinds[i].primary.ToString());
             }
 
-            //rails data
-            for (int i = 0; i < 8; i++)
+            ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
+            for (int i = 0; i < customWarpRates.Length; i++)
             {
-                config.SetValue("Warp Rate " + i.ToString(), customWarpRates[i]);
+                customWarpRatesNode.SetValue("customWarpRate" + i, customWarpRates[i]);
+            }
 
-                for (int j = 0; j < 17; j++)
+            ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
+            for (int i = 0; i < customAltitudeLimits.GetLength(0); i++)
+            {
+                ConfigNode celestial = customAltitudeLimitsNode.GetNode("celestial" + i);
+                for (int j = 0; j < customAltitudeLimits.GetLength(1); j++)
                 {
-                    config.SetValue("Body " + j.ToString() + " Altitude Limit " + i.ToString(), customAltitudeLimits[j, i]);
+                    celestial.SetValue("customAltitudeLimit" + j, customAltitudeLimits[i, j]);
                 }
             }
+
+            config.Save(path);
         }
     }
 }

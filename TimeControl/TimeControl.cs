@@ -18,6 +18,7 @@ namespace TimeControl
     public class TimeControl : MonoBehaviour
     {
         public static Boolean updateAvailable = false;
+        public static string updateNumber = "?";
         private Boolean operational;
         ScreenMessage msg;
         ScreenMessages warpText;
@@ -115,6 +116,7 @@ namespace TimeControl
                 if (latest.friendly_version != Assembly.GetExecutingAssembly().GetName().Version.ToString(2))
                 {
                     TimeControl.updateAvailable = true;
+                    TimeControl.updateNumber = latest.friendly_version;
                 }
             });
 
@@ -170,12 +172,16 @@ namespace TimeControl
                 toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
             }
         }
-        private void onPartDestroyed(Part p)//TODO make hyperwarp cancel more reliable
+        private void onPartDestroyed(Part p)//TODO make hyperwarp cancel more reliable (or work at all)
         {
-            if (p.vessel == FlightGlobals.ActiveVessel)
+            try
             {
-                exitHyper();
+                if (p.vessel == FlightGlobals.ActiveVessel)
+                {
+                    exitHyper();
+                }
             }
+            catch { }
         }
         private void onTimeWarpRateChanged()
         {
@@ -213,16 +219,16 @@ namespace TimeControl
             if (timeWarp == null)
                 return;
 
-            //TODO key support
-            //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
-            //{
-            //    Settings.visible = !Settings.visible;
-            //}
-
-            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T)) //Ctrl-Alt-T opens debug
+            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
             {
-                showDebugGUI = true;
+                Settings.visible = !Settings.visible;
+                toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
             }
+
+            //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T)) //Ctrl-Alt-T opens debug
+            //{
+            //    showDebugGUI = true;
+            //}
 
             if (HighLogic.CurrentGame != null)
             {
@@ -268,14 +274,17 @@ namespace TimeControl
         }
         private void UpdateFlight()
         {
+            if (fld == null)
+            {
+                fld = FindObjectOfType<FlightResultsDialog>();
+            }
             if (supressFlightResultsDialog)
             {
-                if (fld == null)
-                {
-                    fld = FindObjectOfType<FlightResultsDialog>();
-                }
-                //fld.display = false;
                 fld.enabled = false;
+            }
+            else
+            {
+                fld.enabled = true;
             }
 
             currentSOI = getPlanetaryID(FlightGlobals.ActiveVessel.mainBody.name);
@@ -755,7 +764,13 @@ namespace TimeControl
 
                 GUILayout.BeginVertical();
                 {
-                    GUILayout.Label("Current SOI: " + FlightGlobals.ActiveVessel.mainBody.name);
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label("Current SOI: " + FlightGlobals.ActiveVessel.mainBody.name);
+                        GUILayout.FlexibleSpace();
+                        GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
+                    }
+                    GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
                     {
@@ -900,7 +915,13 @@ namespace TimeControl
                 if (updateAvailable)
                 {
                     GUILayout.Label("", GUILayout.Height(5));
-                    GUILayout.Label("Update Available:");
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        GUILayout.Label("Update Available: ");
+                        GUILayout.Label(Assembly.GetExecutingAssembly().GetName().Version.ToString(2) + " -> " + updateNumber);
+                    }
+                    GUILayout.EndHorizontal();
 
                     GUILayout.BeginHorizontal();
                     {
@@ -939,7 +960,6 @@ namespace TimeControl
             {
                 GUILayout.Label("Version: " + Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
                 GUILayout.Label("Update Available: " + updateAvailable);
-                GUILayout.Label("Current Game: " + HighLogic.CurrentGame);
                 GUILayout.Label("Minimized: " + Settings.minimized);
                 GUILayout.Label("Visible (toolbar): " + Settings.visible);
                 GUILayout.Label("Operational: " + operational);

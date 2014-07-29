@@ -55,7 +55,11 @@ namespace TimeControl
             {
                 ptrRollingAvg.Dequeue();
             }
-            ptr = ptrRollingAvg.Average<double>(num => Convert.ToDouble(num));
+            try //TODO dont be a tool
+            {
+                ptr = ptrRollingAvg.Average<double>(num => Convert.ToDouble(num));//calling when empty?
+            }
+            catch { }
         }
         private void Awake()
         {
