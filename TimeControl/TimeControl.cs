@@ -1180,47 +1180,18 @@ namespace TimeControl
             a.z = temp;
             return a;
         }
-        private int getPlanetaryID(string s) //ID from name
-        {
-            int a = -1;
-
-            if (s == "Sun")
-                a = 0;
-            if (s == "Moho")
-                a = 4;
-            if (s == "Eve")
-                a = 5;
-            if (s == "Gilly")
-                a = 13;
-            if (s == "Kerbin")
-                a = 1;
-            if (s == "Mun")
-                a = 2;
-            if (s == "Minmus")
-                a = 3;
-            if (s == "Duna")
-                a = 6;
-            if (s == "Ike")
-                a = 7;
-            if (s == "Dres")
-                a = 15;
-            if (s == "Jool")
-                a = 8;
-            if (s == "Laythe")
-                a = 9;
-            if (s == "Vall")
-                a = 10;
-            if (s == "Tylo")
-                a = 12;
-            if (s == "Bop")
-                a = 11;
-            if (s == "Pol")
-                a = 14;
-            if (s == "Eeloo")
-                a = 16;
-
-            return a;
-        }
+		private int getPlanetaryID(string s) //ID from name
+		{
+			// 
+			// Change by Nathaniel R. Lewis (aka Teknoman117) (linux.robotdude@gmail.com)
+			//
+			// This method previously hard coded the reference IDs for each planet.  PSystemManager.Instance.localBodies is
+			// a list of the celestial bodies active in KSP.  The index of the body in this list *IS* the reference id.
+			// Method modified to return the reference ID with a predicate search this list.  Enables automatic compatibility
+			// with future planets added by Squad or by planet adding mods such as the upcoming Kopernicus mod.
+			//
+			return PSystemManager.Instance.localBodies.FindIndex (p => p.bodyName.Equals(s));  
+		}
         private float convertToExponential(float a) //1-64 exponential curve
         {
             return Mathf.Clamp(Mathf.Floor(Mathf.Pow(64, a)), 1, 64);
