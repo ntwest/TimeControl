@@ -224,6 +224,10 @@ namespace TimeControl
             {
                 Settings.visible = !Settings.visible;
                 toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
+                if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
+                {
+                    FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup(KSPActionGroup.SAS);
+                }
             }
 
             //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T)) //Ctrl-Alt-T opens debug
