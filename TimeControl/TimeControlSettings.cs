@@ -32,7 +32,7 @@ namespace TimeControl
 
         //Display
         public static Boolean minimized = false; //small mode
-        public static Boolean visible = false; //toolbar and hiding when appropriate
+        public static Boolean visible = false; //toolbar and hiding
 
         //Options
         public static int mode = 0;
@@ -48,7 +48,8 @@ namespace TimeControl
         public static string[] standardWarpRates = { "1", "5", "10", "50", "100", "1000", "10000", "100000" };
 		public static string[,] standardAltitudeLimits = null;
 
-        public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None) };
+        public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None) };
+        public static float customKeySlider = 0f;
 
         private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
 
@@ -152,6 +153,7 @@ namespace TimeControl
             config.AddValue("fpsKeeperActive", fpsKeeperActive);
             config.AddValue("fpsMinSlider", fpsMinSlider);
             config.AddValue("showFPS", showFPS);
+            config.AddValue("customKeySlider", customKeySlider);
 
             ConfigNode keyBindsNode = config.AddNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)
@@ -214,6 +216,7 @@ namespace TimeControl
 			fpsKeeperActive = bool.Parse(config.GetValue("fpsKeeperActive"));
 			fpsMinSlider = int.Parse(config.GetValue("fpsMinSlider"));
 			showFPS = bool.Parse(config.GetValue("showFPS"));
+            customKeySlider = float.Parse(config.GetValue("customKeySlider"));
 
 			ConfigNode keyBindsNode = config.GetNode("keyBinds");
 			for (int i = 0; i < keyBinds.Length; i++)
@@ -304,6 +307,7 @@ namespace TimeControl
             config.SetValue("fpsKeeperActive", fpsKeeperActive.ToString());
             config.SetValue("fpsMinSlider", fpsMinSlider.ToString());
             config.SetValue("showFPS", showFPS.ToString());
+            config.SetValue("customKeySlider", customKeySlider.ToString());
 
             ConfigNode keyBindsNode = config.GetNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)

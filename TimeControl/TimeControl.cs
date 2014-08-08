@@ -29,6 +29,7 @@ namespace TimeControl
         private Boolean supressFlightResultsDialog = false;
         private FlightResultsDialog fld;
         private Boolean fpsVisible = true;
+        private Boolean tempInvisible = false;
 
         //GUI
         private static Rect minimizeButton = new Rect(5, 5, 10, 10);
@@ -57,8 +58,8 @@ namespace TimeControl
         private int currentSOI;
 
         //KEYS
-        private Boolean[] keySet = new Boolean[6];
-        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Pause: ", "Step: " };
+        private Boolean[] keySet = new Boolean[7];
+        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Pause: ", "Step: ", "Custom-#x: " };
 
         //HYPERWARP
         private Boolean hyperWarping = false;
@@ -143,7 +144,7 @@ namespace TimeControl
             operational = false;
             hyperWarping = false;
             autoWarping = false;
-            Settings.visible = false;
+            tempInvisible = true;
         }
         private void onGamePause()
         {
@@ -155,17 +156,17 @@ namespace TimeControl
         }
         private void onHideUI()
         {
-            Settings.visible = false;
+            tempInvisible = true;
             fpsVisible = false;
         }
         private void onShowUI()
         {
-            Settings.visible = true;
+            tempInvisible = false;
             fpsVisible = true;
         }
         private void onLevelWasLoaded(GameScenes gs)
         {
-            Settings.visible = true;
+            tempInvisible = false;
 
             if (ToolbarManager.ToolbarAvailable)
             {
@@ -363,7 +364,7 @@ namespace TimeControl
                 debugWindowPosition = constrain(GUILayout.Window(9001, debugWindowPosition, onDebugGUI, "Time Control: Debug"));
             }
 
-            if (Settings.visible)
+            if (Settings.visible && !tempInvisible)
             {
                 if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
@@ -887,7 +888,7 @@ namespace TimeControl
 
                 //Keys
                 Color c = GUI.contentColor;
-                for (int i = 0; i < 6; i++)
+                for (int i = 0; i < keyLabels.Length; i++)
                 {
                     if (keySet[i])
                     {
@@ -897,7 +898,8 @@ namespace TimeControl
                     {
                         GUI.contentColor = c;
                     }
-                    if (GUILayout.Button(keyLabels[i] + Settings.keyBinds[i].primary.ToString()))
+                    string pos = (convertToExponential(Settings.customKeySlider) != 1) ? ("1/" + convertToExponential(Settings.customKeySlider).ToString()) : (convertToExponential(Settings.customKeySlider).ToString());
+                    if (GUILayout.Button(keyLabels[i].Replace("#", pos)  + Settings.keyBinds[i].primary.ToString()))
                     {
                         if (keySet[i])
                         {
@@ -911,7 +913,11 @@ namespace TimeControl
                     }
                 }
                 GUI.contentColor = c;
+                
+                //custom setting keybind
+                Settings.customKeySlider = GUILayout.HorizontalSlider(Settings.customKeySlider, 0f, 1f);
 
+                //update checker
                 if (updateAvailable)
                 {
                     GUILayout.Label("", GUILayout.Height(5));
@@ -962,6 +968,7 @@ namespace TimeControl
                 GUILayout.Label("Update Available: " + updateAvailable);
                 GUILayout.Label("Minimized: " + Settings.minimized);
                 GUILayout.Label("Visible (toolbar): " + Settings.visible);
+                GUILayout.Label("Temp Invisible: " + tempInvisible);
                 GUILayout.Label("Operational: " + operational);
                 GUILayout.Label("TimeWarp: " + timeWarp);
                 GUILayout.Label("Flight Window: " + Settings.flightWindowPosition);
@@ -1102,7 +1109,7 @@ namespace TimeControl
         }
         private void keyManager()
         {
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < Settings.keyBinds.Length; i++)
             {
                 if (keySet[i])
                 {
@@ -1139,6 +1146,10 @@ namespace TimeControl
             {
                 timePaused = false;
                 pauseOnNextFixedUpdate = true;
+            }
+            if (Settings.keyBinds[6].GetKeyDown())
+            {
+                timeSlider = Settings.customKeySlider;
             }
 
         }
