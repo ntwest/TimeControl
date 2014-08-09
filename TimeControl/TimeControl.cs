@@ -131,6 +131,7 @@ namespace TimeControl
             GameEvents.onLevelWasLoaded.Add(this.onLevelWasLoaded);
             GameEvents.onTimeWarpRateChanged.Add(this.onTimeWarpRateChanged);
             GameEvents.onPartDestroyed.Add(this.onPartDestroyed);
+            GameEvents.onVesselDestroy.Add(this.onVesselDestroy);
         }
 
         //EVENT MANAGERS
@@ -173,16 +174,12 @@ namespace TimeControl
                 toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
             }
         }
-        private void onPartDestroyed(Part p)//TODO make hyperwarp cancel more reliable (or work at all)
+        private void onPartDestroyed(Part p)//TODO fix nullref
         {
-            try
+            if (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel)
             {
-                if (p.vessel == FlightGlobals.ActiveVessel)
-                {
-                    exitHyper();
-                }
+                exitHyper();
             }
-            catch { }
         }
         private void onTimeWarpRateChanged()
         {
@@ -194,6 +191,10 @@ namespace TimeControl
             {
                 operational = true;
             }
+        }
+        private void onVesselDestroy(Vessel v)
+        {
+            exitHyper();
         }
 
         //UPDATE FUNCTIONS
@@ -738,7 +739,7 @@ namespace TimeControl
                     }
                     GUILayout.EndHorizontal();
 
-                    hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");
+                    hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");//TODO paused indicator
 
                     if (GUILayout.Button("Timed Warp"))
                     {
