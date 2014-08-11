@@ -43,10 +43,11 @@ namespace TimeControl
         public static float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
 
         //Rails warp stuff
-        public static string[] customWarpRates = new string[8];
-		public static string[,] customAltitudeLimits = null;
+        public static int warpLevels = 8;
         public static string[] standardWarpRates = { "1", "5", "10", "50", "100", "1000", "10000", "100000" };
-		public static string[,] standardAltitudeLimits = null;
+        public static List<string> customWarpRates = new List<string>(standardWarpRates);
+        public static string[][] standardAltitudeLimits = null;
+        public static List<List<string>> customAltitudeLimits = new List<List<string>>();
 
         public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None) };
         public static float customKeySlider = 0f;
@@ -68,26 +69,34 @@ namespace TimeControl
 		private void Awake()
 		{
 			// Don't go away on scene changes
-			UnityEngine.Object.DontDestroyOnLoad(this); 
+			UnityEngine.Object.DontDestroyOnLoad(this);
 
 			// Allocate here to account for custom worlds
-			customAltitudeLimits = new string[PSystemManager.Instance.localBodies.Count, 8];
-			standardAltitudeLimits = new string[PSystemManager.Instance.localBodies.Count, 8];
+			standardAltitudeLimits = new string[PSystemManager.Instance.localBodies.Count][];
+            for (int i = 0; i < PSystemManager.Instance.localBodies.Count; i++)
+            {
+                standardAltitudeLimits[i] = new string[warpLevels];
+            }
 
 			// Load standard altitude limits from worlds
 			int referenceId = 0;
-			foreach (CelestialBody celestialBody in PSystemManager.Instance.localBodies) 
+			foreach (CelestialBody celestialBody in PSystemManager.Instance.localBodies)
 			{
 				// We need to convert the altitude limits into strings
 				int index = 0;
 				foreach (float limit in celestialBody.timeWarpAltitudeLimits)
 				{
-					standardAltitudeLimits[referenceId, index++] = Convert.ToInt64(limit).ToString();
+					standardAltitudeLimits[referenceId][index++] = Convert.ToInt64(limit).ToString();
 				}
 
 				// Increment reference id
 				referenceId++;
 			}
+
+            for (int i = 0; i < PSystemManager.Instance.localBodies.Count; i++)
+            {
+                customAltitudeLimits.Add(new List<string>(standardAltitudeLimits[i]));
+            }
 
 			// Load config
 			config = ConfigNode.Load(path);
@@ -173,7 +182,7 @@ namespace TimeControl
                 ConfigNode celestial = customAltitudeLimitsNode.AddNode("celestial" + i);
                 for (int j = 0; j < standardAltitudeLimits.GetLength(1); j++)
                 {
-                    celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i, j]);
+                    celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
                 }
             }
 
@@ -225,7 +234,7 @@ namespace TimeControl
 			}
 
 			ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
-			for (int i = 0; i < customWarpRates.Length; i++)
+			for (int i = 0; i < warpLevels; i++)
 			{
 				customWarpRates[i] = customWarpRatesNode.GetValue("customWarpRate" + i);
 			}
@@ -243,7 +252,7 @@ namespace TimeControl
 			// worlds from Squad and from planet adding mods such as the upcoming Kopernicus mod.
 			// 
 			ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
-			for (int i = 0; i < customAltitudeLimits.GetLength(0); i++)
+			for (int i = 0; i < customAltitudeLimits.Count; i++)
 			{
 				string celestialName = ("celestial" + i);
 
@@ -251,9 +260,9 @@ namespace TimeControl
 				if(customAltitudeLimitsNode.HasNode(celestialName))
 				{
 					ConfigNode celestial = customAltitudeLimitsNode.GetNode(celestialName);
-					for (int j = 0; j < customAltitudeLimits.GetLength(1); j++)
+					for (int j = 0; j < customAltitudeLimits[0].Count; j++)
 					{
-						customAltitudeLimits[i,j] = celestial.GetValue("customAltitudeLimit" + j);
+						customAltitudeLimits[i][j] = celestial.GetValue("customAltitudeLimit" + j);
 					}
 				}
 
@@ -262,10 +271,10 @@ namespace TimeControl
 				{
 					updatedConfig = true;
 					ConfigNode celestial = customAltitudeLimitsNode.AddNode(celestialName);
-					for (int j = 0; j < customAltitudeLimits.GetLength(1); j++)
+					for (int j = 0; j < customAltitudeLimits[1].Count; j++)
 					{
-						customAltitudeLimits[i,j] = standardAltitudeLimits[i,j];
-						celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i,j]);
+						customAltitudeLimits[i][j] = standardAltitudeLimits[i][j];
+						celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
 					}
 				}
 			}
@@ -316,18 +325,18 @@ namespace TimeControl
             }
 
             ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
-            for (int i = 0; i < customWarpRates.Length; i++)
+            for (int i = 0; i < warpLevels; i++)
             {
                 customWarpRatesNode.SetValue("customWarpRate" + i, customWarpRates[i]);
             }
 
             ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
-            for (int i = 0; i < customAltitudeLimits.GetLength(0); i++)
+            for (int i = 0; i < customAltitudeLimits.Count; i++)
             {
                 ConfigNode celestial = customAltitudeLimitsNode.GetNode("celestial" + i);
-                for (int j = 0; j < customAltitudeLimits.GetLength(1); j++)
+                for (int j = 0; j < customAltitudeLimits[0].Count; j++)
                 {
-                    celestial.SetValue("customAltitudeLimit" + j, customAltitudeLimits[i, j]);
+                    celestial.SetValue("customAltitudeLimit" + j, customAltitudeLimits[i][j]);
                 }
             }
 
