@@ -125,7 +125,7 @@ namespace TimeControl
                 saveConfig();
             }
         }
-
+        //TODO update configs for multi-warp rates
         private void buildConfig()
         {
             config = new ConfigNode();

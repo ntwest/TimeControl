@@ -30,6 +30,8 @@ namespace TimeControl
         private FlightResultsDialog fld;
         private Boolean fpsVisible = true;
         private Boolean tempInvisible = false;
+        private int currentSOI;
+        private int selectedSOI = -1;
 
         //GUI
         private static Rect minimizeButton = new Rect(5, 5, 10, 10);
@@ -41,6 +43,7 @@ namespace TimeControl
         private Boolean showDebugGUI = false;
         private Boolean settingsOpen = false;
         private string setUT = "0";
+        private Vector2 warpScroll;
 
         //PHYSICS
         private float defaultDeltaTime = Time.fixedDeltaTime; //0.02
@@ -55,7 +58,6 @@ namespace TimeControl
         private int fpsKeeperFactor = 0;
         private float throttleSlider = 0f;
         private Boolean throttleToggle;
-        private int currentSOI;
 
         //KEYS
         private Boolean[] keySet = new Boolean[7];
@@ -224,6 +226,11 @@ namespace TimeControl
             if (timeWarp == null)
                 return;
 
+            if (timeWarp.current_rate_index >= Settings.warpLevels && timeWarp.Mode == TimeWarp.Modes.HIGH)
+            {
+                TimeWarp.SetRate(Settings.warpLevels - 1, false);
+            }
+
             if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
             {
                 Settings.visible = !Settings.visible;
@@ -266,6 +273,7 @@ namespace TimeControl
                 if (hyperPauseOnTimeReached)
                 {
                     pauseOnNextFixedUpdate = true;
+                    this.msg = ScreenMessages.PostScreenMessage("PAUSED", .5f, ScreenMessageStyle.UPPER_CENTER);
                 }
             }
             if (pauseOnNextFixedUpdate)
@@ -300,7 +308,7 @@ namespace TimeControl
             for (int i = 0; i < Settings.warpLevels; i++)
             {
                 timeWarp.warpRates[i] = parseSTOI(Settings.customWarpRates[i]);
-                FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits[i] = parseSTOI(Settings.customAltitudeLimits[currentSOI][i]);
+                FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits[i] = parseSTOI(Settings.customAltitudeLimits[currentSOI][i]); //only bother to update the current soi's data
             }
 
             warpText.textStyles[1].normal.textColor = warpTextColor; //ensures the warp text color goes back to default
@@ -742,7 +750,7 @@ namespace TimeControl
                     }
                     GUILayout.EndHorizontal();
 
-                    hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");//TODO paused indicator
+                    hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");
 
                     if (GUILayout.Button("Timed Warp"))
                     {
@@ -769,6 +777,16 @@ namespace TimeControl
             }
             private void modeRails()
             {
+                int SOI;
+                if (selectedSOI == -1)
+                {
+                    SOI = currentSOI;
+                }
+                else
+                {
+                    SOI = selectedSOI;
+                }
+
                 GUI.enabled = true;
 
                 GUILayout.BeginVertical();
@@ -777,95 +795,97 @@ namespace TimeControl
                     {
                         GUILayout.Label("Current SOI: " + FlightGlobals.ActiveVessel.mainBody.name);
                         GUILayout.FlexibleSpace();
-                        if (GUILayout.Button("+"))
-                        {
-                            Settings.warpLevels++;
-                            Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
-                            Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.Add(s[Settings.customAltitudeLimits.Count - 1]);
-                            }
-                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
-                        }
-                        if (GUILayout.Button("-"))
-                        {
-                            Settings.warpLevels--;
-                            Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
-                            Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.RemoveAt(Settings.customAltitudeLimits.Count - 1);
-                            }
-                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
-                        }
                         GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
                     }
                     GUILayout.EndHorizontal();
 
+                    GUILayout.Label("", GUILayout.Height(5));
+
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.BeginVertical();
+                        GUILayout.Label("Warp Rate", GUILayout.Width(175));
+                        GUILayout.Label("Altitude Limit");
+                        GUILayout.FlexibleSpace();
+                        warpLevelsButtons();
+                    }
+                    GUILayout.EndHorizontal();
+
+                    warpScroll = GUILayout.BeginScrollView(warpScroll, GUILayout.Height(203));
+                    {
+                        GUILayout.BeginHorizontal();
                         {
-                            GUILayout.BeginHorizontal();
-                            {
-                                GUI.enabled = false;
-                                GUILayout.Label("Warp Rate " + (0 + 1).ToString() + ":");
-                                Settings.customWarpRates[0] = GUILayout.TextField(Settings.customWarpRates[0], 20, GUILayout.Width(100));
-                                GUI.enabled = true;
-                            }
-                            GUILayout.EndHorizontal();
-
-                            for (int i = 1; i < Settings.warpLevels; i++)
-                            {
-                                GUILayout.BeginHorizontal();
-                                {
-                                    GUILayout.Label("Warp Rate " + (i + 1).ToString() + ":");
-                                    Settings.customWarpRates[i] = GUILayout.TextField(Settings.customWarpRates[i], 20, GUILayout.Width(100));
-                                }
-                                GUILayout.EndHorizontal();
-                            }
-
-                            if (GUILayout.Button("Reset warp rates"))
+                            GUILayout.BeginVertical(GUILayout.Width(20));
                             {
                                 for (int i = 0; i < Settings.warpLevels; i++)
                                 {
-                                    Settings.customWarpRates[i] = Settings.standardWarpRates[i];
+                                    GUILayout.Label(i + 1 + ":");
                                 }
                             }
-                        }
-                        GUILayout.EndVertical();
+                            GUILayout.EndVertical();
 
-                        GUILayout.BeginVertical();
-                        {
-                            GUILayout.BeginHorizontal();
-                            {
-                                GUI.enabled = false;
-                                GUILayout.Label("Altitude Limit " + (0 + 1).ToString() + ":");
-                                Settings.customAltitudeLimits[currentSOI][0] = GUILayout.TextField(Settings.customAltitudeLimits[currentSOI][0], GUILayout.Width(100));
-                                GUI.enabled = true;
-                            }
-                            GUILayout.EndHorizontal();
-
-                            for (int i = 1; i < Settings.warpLevels; i++)
+                            GUILayout.BeginVertical(GUILayout.Width(150));
                             {
                                 GUILayout.BeginHorizontal();
                                 {
-                                    GUILayout.Label("Altitude Limit " + (i + 1).ToString() + ":");
-                                    Settings.customAltitudeLimits[currentSOI][i] = GUILayout.TextField(Settings.customAltitudeLimits[currentSOI][i], GUILayout.Width(100));
+                                    GUI.enabled = false;
+                                    Settings.customWarpRates[0] = GUILayout.TextField(Settings.customWarpRates[0], 10);
+                                    GUI.enabled = true;
                                 }
                                 GUILayout.EndHorizontal();
-                            }
 
-                            if (GUILayout.Button("Reset body altitude limits"))
-                            {
-                                for (int i = 0; i < Settings.warpLevels; i++)
+                                for (int i = 1; i < Settings.warpLevels; i++)
                                 {
-                                    Settings.customAltitudeLimits[currentSOI][i] = Settings.standardAltitudeLimits[currentSOI][i];
+                                    GUILayout.BeginHorizontal();
+                                    {
+                                        Settings.customWarpRates[i] = GUILayout.TextField(Settings.customWarpRates[i], 10);
+                                    }
+                                    GUILayout.EndHorizontal();
                                 }
                             }
+                            GUILayout.EndVertical();
+
+                            GUILayout.BeginVertical(GUILayout.Width(150));
+                            {
+                                GUILayout.BeginHorizontal();
+                                {
+                                    GUI.enabled = false;
+                                    Settings.customAltitudeLimits[SOI][0] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][0]);
+                                    GUI.enabled = true;
+                                }
+                                GUILayout.EndHorizontal();
+
+                                for (int i = 1; i < Settings.warpLevels; i++)
+                                {
+                                    GUILayout.BeginHorizontal();
+                                    {
+                                        Settings.customAltitudeLimits[SOI][i] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][i]);
+                                    }
+                                    GUILayout.EndHorizontal();
+                                }
+                            }
+                            GUILayout.EndVertical();
                         }
-                        GUILayout.EndVertical();
+                        GUILayout.EndHorizontal();
+                    }
+                    GUILayout.EndScrollView();
+
+                    GUILayout.BeginHorizontal();
+                    {
+                        if (GUILayout.Button("Reset warp rates", GUILayout.Width(174)))
+                        {
+                            for (int i = 0; i < Settings.warpLevels; i++)
+                            {
+                                Settings.customWarpRates[i] = Settings.standardWarpRates[i];
+                            }
+                        }
+
+                        if (GUILayout.Button("Reset body altitude limits"))
+                        {
+                            for (int i = 0; i < Settings.warpLevels; i++)
+                            {
+                                Settings.customAltitudeLimits[SOI][i] = Settings.standardAltitudeLimits[SOI][i];
+                            }
+                        }
                     }
                     GUILayout.EndHorizontal();
 
@@ -1014,7 +1034,9 @@ namespace TimeControl
                 GUILayout.Label("Warp Text: " + warpText);
                 GUILayout.Label("FPS Keeper Factor: " + fpsKeeperFactor);
                 GUILayout.Label("UT: " + Planetarium.GetUniversalTime());
+                GUILayout.Label("rates:" + Settings.customWarpRates.Count);
                 GUILayout.Label("limits:" + Settings.customAltitudeLimits.Count);
+                GUILayout.Label("limits[0]:" + Settings.customAltitudeLimits[0].Count);
                 GUILayout.Label("levels:" + Settings.warpLevels);
 
                 GUILayout.BeginHorizontal();
@@ -1035,6 +1057,11 @@ namespace TimeControl
                 Event.current.Use();
             GUI.DragWindow();
         }
+        private void onSOISelect(int windowId)
+        {
+
+        }
+
         private void onWarpTo()
         {
             GUI.enabled = (TimeWarp.CurrentRateIndex == 0);
@@ -1057,7 +1084,7 @@ namespace TimeControl
 
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button("Auto Warp"))
+                if (GUILayout.Button("Auto Warp", GUILayout.Width(174)))
                 {
                     int years = parseSTOI(warpYears);
                     warpYears = "0";
@@ -1084,6 +1111,7 @@ namespace TimeControl
                         timeWarp.WarpTo(warpTime);
                     }
                 }
+
                 GUI.enabled = true;
                 if (GUILayout.Button("Cancel Warp"))
                 {
@@ -1093,6 +1121,37 @@ namespace TimeControl
                 }
             }
             GUILayout.EndHorizontal();
+        }
+        private void warpLevelsButtons()
+        {
+            if (GUILayout.Button("+"))
+            {
+                if (Settings.warpLevels < 99)
+                {
+                    Settings.warpLevels++;
+                    Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
+                    Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
+                    foreach (List<string> s in Settings.customAltitudeLimits)
+                    {
+                        s.Add(s[s.Count - 1]);
+                    }
+                    Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
+                }
+            }
+            if (GUILayout.Button("-", GUILayout.Width(20)))
+            {
+                if (Settings.warpLevels > 8)
+                {
+                    Settings.warpLevels--;
+                    Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
+                    Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
+                    foreach (List<string> s in Settings.customAltitudeLimits)
+                    {
+                        s.RemoveAt(Settings.customAltitudeLimits.Count - 1);
+                    }
+                    Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
+                }
+            }
         }
 
         //HELPER FUNCTIONS
@@ -1210,7 +1269,7 @@ namespace TimeControl
                     break;
                 case 2:
                     Settings.flightWindowPosition.height = 0;
-                    Settings.flightWindowPosition.width = 400;
+                    Settings.flightWindowPosition.width = 375;
                     break;
             }
 
