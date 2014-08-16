@@ -134,6 +134,7 @@ namespace TimeControl
             GameEvents.onTimeWarpRateChanged.Add(this.onTimeWarpRateChanged);
             GameEvents.onPartDestroyed.Add(this.onPartDestroyed);
             GameEvents.onVesselDestroy.Add(this.onVesselDestroy);
+            GameEvents.onVesselGoOffRails.Add(this.onVesselGoOffRails);
         }
 
         //EVENT MANAGERS
@@ -144,8 +145,8 @@ namespace TimeControl
         }
         private void onGameSceneLoadRequested(GameScenes gs)
         {
+            exitHyper();
             operational = false;
-            hyperWarping = false;
             autoWarping = false;
             tempInvisible = true;
         }
@@ -176,9 +177,9 @@ namespace TimeControl
                 toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
             }
         }
-        private void onPartDestroyed(Part p)//TODO fix nullref
+        private void onPartDestroyed(Part p)
         {
-            if (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel)
+            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
             {
                 exitHyper();
             }
@@ -196,10 +197,18 @@ namespace TimeControl
         }
         private void onVesselDestroy(Vessel v)
         {
-            if (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel)
+            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
             {
                 exitHyper();
             }
+        }
+        private void onVesselGoOffRails(Vessel v)
+        {
+            //print("KRAKEN!!!!");
+            //foreach (Part p in FlightGlobals.ActiveVessel.Parts)
+            //{
+            //    p.collider.enabled = false;
+            //}
         }
 
         //UPDATE FUNCTIONS
@@ -248,7 +257,7 @@ namespace TimeControl
 
             if (HighLogic.CurrentGame != null)
             {
-                if (hyperWarping || autoWarping)
+                if (hyperWarping || autoWarping)//TODO replace this with full timewarp override?
                 {
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = false;
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = false;
@@ -291,6 +300,8 @@ namespace TimeControl
         }
         private void UpdateFlight()
         {
+            UpdateCollision();
+
             if (fld == null)
             {
                 fld = FindObjectOfType<FlightResultsDialog>();
@@ -325,7 +336,7 @@ namespace TimeControl
                 FlightInputHandler.state.mainThrottle = throttleSlider;
             }
 
-            if (operational)
+            if (operational && !(TimeWarp.CurrentRate > 1))
             {
                 keyManager(); //handles keybindings
 
@@ -1033,12 +1044,14 @@ namespace TimeControl
                 GUILayout.Label("AutoWarping: " + autoWarping);
                 GUILayout.Label("Warp Text: " + warpText);
                 GUILayout.Label("FPS Keeper Factor: " + fpsKeeperFactor);
-                GUILayout.Label("UT: " + Planetarium.GetUniversalTime());
                 GUILayout.Label("rates:" + Settings.customWarpRates.Count);
                 GUILayout.Label("limits:" + Settings.customAltitudeLimits.Count);
                 GUILayout.Label("limits[0]:" + Settings.customAltitudeLimits[0].Count);
                 GUILayout.Label("levels:" + Settings.warpLevels);
+                GUILayout.Label("kraken: " + Krakensbane.GetFrameVelocity());
+                GUILayout.Label("last: " + Krakensbane.GetLastCorrection());
 
+                GUILayout.Label("UT: " + Planetarium.GetUniversalTime());
                 GUILayout.BeginHorizontal();
                 {
                     GUILayout.Label("UT:");
@@ -1060,7 +1073,7 @@ namespace TimeControl
         private void onSOISelect(int windowId)
         {
 
-        }
+        }//TODO make SOI selection menu
 
         private void onWarpTo()
         {
@@ -1346,5 +1359,42 @@ namespace TimeControl
             return new Rect(r1.xMin + r2.xMin, r1.yMin + r2.yMin, r1.width, r1.height);
         }
 
+        //Kragrathea's fix
+        private GameObject FindLocal(string name)
+        {
+            try
+            {
+                return (LocalSpace.Transform.FindChild(name).gameObject);
+            }
+            catch
+            {
+            }
+            return null;
+        }
+        private void SetLocalCollision(string planetName, bool enabled = true)
+        {
+            var localPlanet = FindLocal(planetName);
+            var cols = localPlanet.GetComponentsInChildren<Collider>();
+            foreach (var c in cols)
+            {
+                if (c.enabled != enabled)
+                {
+                    print("Updating collision " + c.gameObject.name + "=" + enabled);
+                    c.enabled = enabled;
+                }
+            }
+        }
+        private string currentBodyName;
+        private void UpdateCollision()
+        {
+            if (FlightGlobals.currentMainBody != null && FlightGlobals.currentMainBody.bodyName != currentBodyName)
+            {
+                print("Body change " + currentBodyName + " to " + FlightGlobals.currentMainBody.bodyName);
+                if (currentBodyName != null)
+                    SetLocalCollision(currentBodyName, false);
+                currentBodyName = FlightGlobals.currentMainBody.bodyName;
+                SetLocalCollision(currentBodyName, true);
+            }
+        }
     }
 }

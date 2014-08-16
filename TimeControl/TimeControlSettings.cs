@@ -32,7 +32,7 @@ namespace TimeControl
 
         //Display
         public static Boolean minimized = false; //small mode
-        public static Boolean visible = false; //toolbar and hiding
+        public static Boolean visible = true; //toolbar and hiding
 
         //Options
         public static int mode = 0;
@@ -125,7 +125,7 @@ namespace TimeControl
                 saveConfig();
             }
         }
-        //TODO update configs for multi-warp rates
+
         private void buildConfig()
         {
             config = new ConfigNode();
@@ -177,17 +177,17 @@ namespace TimeControl
             }
 
             ConfigNode customAltitudeLimitsNode = config.AddNode("customAltitudeLimits");
-            for (int i = 0; i < standardAltitudeLimits.GetLength(0); i++)
+            for (int i = 0; i < standardAltitudeLimits.Length; i++)
             {
                 ConfigNode celestial = customAltitudeLimitsNode.AddNode("celestial" + i);
-                for (int j = 0; j < standardAltitudeLimits.GetLength(1); j++)
+                for (int j = 0; j < standardAltitudeLimits[i].Length; j++)
                 {
                     celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
                 }
             }
 
             config.Save(path);
-        }
+        }//TODO update configs for multi-warp rates
 		private bool loadConfig()
 		{
 			config = ConfigNode.Load(path);
@@ -281,7 +281,7 @@ namespace TimeControl
 
 			// Return whether we updated the config (added more bodies)
 			return updatedConfig;
-		}
+		}//TODO change configs to use tryparse
         private void saveConfig()
         {
             config.SetValue("minimized", minimized.ToString());
@@ -342,5 +342,6 @@ namespace TimeControl
 
             config.Save(path);
         }
+
     }
 }
