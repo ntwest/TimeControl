@@ -54,42 +54,25 @@ namespace TimeControl
 
         private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
 
-		//
-		// Change by Nathaniel R. Lewis (aka Teknoman117) (linux.robotdude@gmail.com)
-		// 
-		// I didn't want to tweak too much of the existing code, but since this object is 
-		// invoked as a behavior and not a singleton on first use, we need to guarentee that
-		// the config data is alive before anything makes an attempt to access it.  Putting 
-		// the config loader in Awake() achieves this (for now).
-		//
-		// The custom and standard altitude limit objects are also allocated in Awake() to adjust 
-		// dynamically for future worlds from Squad and from planet adding mods such as the
-		// upcoming Kopernicus mod.
-		// 
-		private void Awake()
+		private void Start()
 		{
-			// Don't go away on scene changes
 			UnityEngine.Object.DontDestroyOnLoad(this);
 
-			// Allocate here to account for custom worlds
 			standardAltitudeLimits = new string[PSystemManager.Instance.localBodies.Count][];
             for (int i = 0; i < PSystemManager.Instance.localBodies.Count; i++)
             {
                 standardAltitudeLimits[i] = new string[warpLevels];
             }
 
-			// Load standard altitude limits from worlds
 			int referenceId = 0;
 			foreach (CelestialBody celestialBody in PSystemManager.Instance.localBodies)
 			{
-				// We need to convert the altitude limits into strings
 				int index = 0;
 				foreach (float limit in celestialBody.timeWarpAltitudeLimits)
 				{
 					standardAltitudeLimits[referenceId][index++] = Convert.ToInt64(limit).ToString();
 				}
 
-				// Increment reference id
 				referenceId++;
 			}
 
@@ -98,7 +81,7 @@ namespace TimeControl
                 customAltitudeLimits.Add(new List<string>(standardAltitudeLimits[i]));
             }
 
-			// Load config
+			//LOAD CONFIG
 			config = ConfigNode.Load(path);
 			if (config == null)//file does not exist
 			{
@@ -107,11 +90,7 @@ namespace TimeControl
 			}
 			else
 			{
-				if(loadConfig())
-				{
-					// Config structure was changed, need to save changes
-					saveConfig();
-				}
+                loadConfig();
 			}
 		}
 
@@ -130,52 +109,51 @@ namespace TimeControl
         {
             config = new ConfigNode();
 
-            config.AddValue("minimized", minimized);
+            //INTERNAL
             config.AddValue("visible", visible);
+            config.AddValue("minimized", minimized);
+            config.AddValue("mode", mode);
 
+            //WINDOW POSITIONS
             ConfigNode flightWindowPositionNode = config.AddNode("flightWindowPosition");
             flightWindowPositionNode.AddValue("xMin", flightWindowPosition.xMin);
-            flightWindowPositionNode.AddValue("xMax", flightWindowPosition.xMax);
             flightWindowPositionNode.AddValue("yMin", flightWindowPosition.yMin);
-            flightWindowPositionNode.AddValue("yMax", flightWindowPosition.yMax);
 
             ConfigNode menuWindowPositionNode = config.AddNode("menuWindowPosition");
             menuWindowPositionNode.AddValue("xMin", menuWindowPosition.xMin);
-            menuWindowPositionNode.AddValue("xMax", menuWindowPosition.xMax);
             menuWindowPositionNode.AddValue("yMin", menuWindowPosition.yMin);
-            menuWindowPositionNode.AddValue("yMax", menuWindowPosition.yMax);
 
             ConfigNode settingsWindowPositionNode = config.AddNode("settingsWindowPosition");
             settingsWindowPositionNode.AddValue("xMin", settingsWindowPosition.xMin);
-            settingsWindowPositionNode.AddValue("xMax", settingsWindowPosition.xMax);
             settingsWindowPositionNode.AddValue("yMin", settingsWindowPosition.yMin);
-            settingsWindowPositionNode.AddValue("yMax", settingsWindowPosition.yMax);
 
-            ConfigNode fpsPositionNode = config.AddNode("fpsPosition");
-            fpsPositionNode.AddValue("xMin", fpsPosition.xMin);
-            fpsPositionNode.AddValue("xMax", fpsPosition.xMax);
-            fpsPositionNode.AddValue("yMin", fpsPosition.yMin);
-            fpsPositionNode.AddValue("yMax", fpsPosition.yMax);
-
-            config.AddValue("mode", mode);
+            //USER
             config.AddValue("camFix", camFix);
             config.AddValue("fpsKeeperActive", fpsKeeperActive);
             config.AddValue("fpsMinSlider", fpsMinSlider);
-            config.AddValue("showFPS", showFPS);
-            config.AddValue("customKeySlider", customKeySlider);
 
+            config.AddValue("showFPS", showFPS);
+            ConfigNode fpsPositionNode = config.AddNode("fpsPosition");
+            fpsPositionNode.AddValue("xMin", fpsPosition.xMin);
+            fpsPositionNode.AddValue("yMin", fpsPosition.yMin);
+
+            //KEYBINDS
             ConfigNode keyBindsNode = config.AddNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)
             {
                 keyBindsNode.AddValue("keyBind"+i, keyBinds[i].primary);
             }
+            config.AddValue("customKeySlider", customKeySlider);
 
+            //WARP RATES
+            config.AddValue("warpLevels", warpLevels);
             ConfigNode customWarpRatesNode = config.AddNode("customWarpRates");
             for (int i = 0; i < standardWarpRates.Length; i++)
             {
                 customWarpRatesNode.AddValue("customWarpRate" + i, standardWarpRates[i]);
             }
 
+            //ALTITUDE LIMITS
             ConfigNode customAltitudeLimitsNode = config.AddNode("customAltitudeLimits");
             for (int i = 0; i < standardAltitudeLimits.Length; i++)
             {
@@ -187,149 +165,163 @@ namespace TimeControl
             }
 
             config.Save(path);
-        }//TODO update configs for multi-warp rates
-		private bool loadConfig()
+        }
+		private void loadConfig()
 		{
-			config = ConfigNode.Load(path);
-			bool updatedConfig = false;
+            try
+            {
+                config = ConfigNode.Load(path);
 
-			minimized = bool.Parse(config.GetValue("minimized"));
-			visible = bool.Parse(config.GetValue("visible"));
+                //INTERNAL
+                visible = bool.Parse(config.GetValue("visible"));
+                minimized = bool.Parse(config.GetValue("minimized"));
+                mode = int.Parse(config.GetValue("mode"));
 
-			ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
-			flightWindowPosition.xMin = float.Parse(flightWindowPositionNode.GetValue("xMin"));
-			flightWindowPosition.xMax = float.Parse(flightWindowPositionNode.GetValue("xMax"));
-			flightWindowPosition.yMin = float.Parse(flightWindowPositionNode.GetValue("yMin"));
-			flightWindowPosition.yMax = float.Parse(flightWindowPositionNode.GetValue("yMax"));
+                //WINDOW POSITIONS
+                ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
+                flightWindowPosition.xMin = float.Parse(flightWindowPositionNode.GetValue("xMin"));
+                flightWindowPosition.yMin = float.Parse(flightWindowPositionNode.GetValue("yMin"));
 
-			ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
-			menuWindowPosition.xMin = float.Parse(menuWindowPositionNode.GetValue("xMin"));
-			menuWindowPosition.xMax = float.Parse(menuWindowPositionNode.GetValue("xMax"));
-			menuWindowPosition.yMin = float.Parse(menuWindowPositionNode.GetValue("yMin"));
-			menuWindowPosition.yMax = float.Parse(menuWindowPositionNode.GetValue("yMax"));
+                ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
+                menuWindowPosition.xMin = float.Parse(menuWindowPositionNode.GetValue("xMin"));
+                menuWindowPosition.yMin = float.Parse(menuWindowPositionNode.GetValue("yMin"));
 
-			ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
-			settingsWindowPosition.xMin = float.Parse(settingsWindowPositionNode.GetValue("xMin"));
-			settingsWindowPosition.xMax = float.Parse(settingsWindowPositionNode.GetValue("xMax"));
-			settingsWindowPosition.yMin = float.Parse(settingsWindowPositionNode.GetValue("yMin"));
-			settingsWindowPosition.yMax = float.Parse(settingsWindowPositionNode.GetValue("yMax"));
+                ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
+                settingsWindowPosition.xMin = float.Parse(settingsWindowPositionNode.GetValue("xMin"));
+                settingsWindowPosition.yMin = float.Parse(settingsWindowPositionNode.GetValue("yMin"));
 
-			ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
-			fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("xMin"));
-			fpsPosition.xMax = float.Parse(fpsPositionNode.GetValue("xMax"));
-			fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("yMin"));
-			fpsPosition.yMax = float.Parse(fpsPositionNode.GetValue("yMax"));
+                //USER
+                camFix = bool.Parse(config.GetValue("camFix"));
+                fpsKeeperActive = bool.Parse(config.GetValue("fpsKeeperActive"));
+                fpsMinSlider = int.Parse(config.GetValue("fpsMinSlider"));
 
-			mode = int.Parse(config.GetValue("mode"));
-			camFix = bool.Parse(config.GetValue("camFix"));
-			fpsKeeperActive = bool.Parse(config.GetValue("fpsKeeperActive"));
-			fpsMinSlider = int.Parse(config.GetValue("fpsMinSlider"));
-			showFPS = bool.Parse(config.GetValue("showFPS"));
-            customKeySlider = float.Parse(config.GetValue("customKeySlider"));
+                showFPS = bool.Parse(config.GetValue("showFPS"));
+                ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
+                fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("xMin"));
+                fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("yMin"));
 
-			ConfigNode keyBindsNode = config.GetNode("keyBinds");
-			for (int i = 0; i < keyBinds.Length; i++)
-			{
-				keyBinds[i].primary = (KeyCode)Enum.Parse(typeof(KeyCode), keyBindsNode.GetValue("keyBind" + i));
-			}
+                //KEYBINDS
+                ConfigNode keyBindsNode = config.GetNode("keyBinds");
+                for (int i = 0; i < keyBinds.Length; i++)
+                {
+                    keyBinds[i].primary = (KeyCode)Enum.Parse(typeof(KeyCode), keyBindsNode.GetValue("keyBind" + i));
+                }
+                customKeySlider = float.Parse(config.GetValue("customKeySlider"));
 
-			ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
-			for (int i = 0; i < warpLevels; i++)
-			{
-				customWarpRates[i] = customWarpRatesNode.GetValue("customWarpRate" + i);
-			}
+                //WARP RATES
+                warpLevels = (int)Mathf.Clamp(int.Parse(config.GetValue("warpLevels")), 8, Mathf.Infinity);
+                ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
+                for (int i = 0; i < warpLevels; i++)
+                {
+                    if (customWarpRatesNode.HasValue("customWarpRate" + i))
+                    {
+                        customWarpRates[i] = customWarpRatesNode.GetValue("customWarpRate" + i);
+                    }
+                    else
+                    {
+                        if (i - 1 >= 8)//only bother if its not already there by standard
+                        {
+                            customWarpRates[i] = customWarpRates[i - 1];
+                            customWarpRatesNode.AddValue("customWarpRate" + i, customWarpRates[i]);
+                        }
+                    }
+                }
 
-			//
-			// Change by Nathaniel R. Lewis (aka Teknoman117) (linux.robotdude@gmail.com)
-			// 
-			// Previous implementation of this section of this method based assumed all celestial entries 
-			// would be present.  In the event the planetary system changes between loads of this file,
-			// the loader would break attempting to parse a non-existant node.
-			//
-			// New implementation checks if the desired altitude limit node is present.  If not, it loads
-			// the standard limit for that body.  When this occurs, the flag "updatedConfig" is set to 
-			// indicate that the config file needs to be saved.  This ensures compatibility with future 
-			// worlds from Squad and from planet adding mods such as the upcoming Kopernicus mod.
-			// 
-			ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
-			for (int i = 0; i < customAltitudeLimits.Count; i++)
-			{
-				string celestialName = ("celestial" + i);
+                //ALTITUDE LIMITS
+                //TODO properly set up altitude limits
+                ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
+                for (int i = 0; i < customAltitudeLimits.Count; i++)
+                {
+                    string celestialName = ("celestial" + i);
 
-				// If the config file has an entry for this celestial body, load it
-				if(customAltitudeLimitsNode.HasNode(celestialName))
-				{
-					ConfigNode celestial = customAltitudeLimitsNode.GetNode(celestialName);
-					for (int j = 0; j < customAltitudeLimits[0].Count; j++)
-					{
-						customAltitudeLimits[i][j] = celestial.GetValue("customAltitudeLimit" + j);
-					}
-				}
-
-				// Otherwise we need to load it from the defaults and set the updatedConfig flag (handle planet changing)
-				else
-				{
-					updatedConfig = true;
-					ConfigNode celestial = customAltitudeLimitsNode.AddNode(celestialName);
-					for (int j = 0; j < customAltitudeLimits[1].Count; j++)
-					{
-						customAltitudeLimits[i][j] = standardAltitudeLimits[i][j];
-						celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
-					}
-				}
-			}
-
-			// Return whether we updated the config (added more bodies)
-			return updatedConfig;
-		}//TODO change configs to use tryparse
+                    if (customAltitudeLimitsNode.HasNode(celestialName))
+                    {
+                        ConfigNode celestialLimitsNode = customAltitudeLimitsNode.GetNode(celestialName);
+                        for (int j = 0; j < customAltitudeLimits[0].Count; j++)
+                        {
+                            customAltitudeLimits[i][j] = celestialLimitsNode.GetValue("customAltitudeLimit" + j);
+                        }
+                    }
+                    else
+                    {
+                        ConfigNode celestialLimitsNode = customAltitudeLimitsNode.AddNode(celestialName);
+                        for (int j = 0; j < warpLevels; j++)
+                        {
+                            customAltitudeLimits[i][j] = standardAltitudeLimits[i][j];
+                            celestialLimitsNode.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
+                        }
+                    }
+                }
+                saveConfig();
+            }
+            catch (Exception e)
+            {
+                if (e is ArgumentNullException || e is NullReferenceException)
+                {
+                    print("Time Control: config load failed, rebuilding");
+                    buildConfig();
+                }
+                else
+                {
+                    print("Time Control: something went horribly wrong");
+                    throw e;
+                }
+            }
+		}
         private void saveConfig()
         {
-            config.SetValue("minimized", minimized.ToString());
+            //INTERNAL
             config.SetValue("visible", visible.ToString());
+            config.SetValue("minimized", minimized.ToString());
+            config.SetValue("mode", mode.ToString());
 
+            //WINDOW POSITIONS
             ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
             flightWindowPositionNode.SetValue("xMin", flightWindowPosition.xMin.ToString());
-            flightWindowPositionNode.SetValue("xMax", flightWindowPosition.xMax.ToString());
             flightWindowPositionNode.SetValue("yMin", flightWindowPosition.yMin.ToString());
-            flightWindowPositionNode.SetValue("yMax", flightWindowPosition.yMax.ToString());
 
             ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
             menuWindowPositionNode.SetValue("xMin", menuWindowPosition.xMin.ToString());
-            menuWindowPositionNode.SetValue("xMax", menuWindowPosition.xMax.ToString());
             menuWindowPositionNode.SetValue("yMin", menuWindowPosition.yMin.ToString());
-            menuWindowPositionNode.SetValue("yMax", menuWindowPosition.yMax.ToString());
 
             ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
             settingsWindowPositionNode.SetValue("xMin", settingsWindowPosition.xMin.ToString());
-            settingsWindowPositionNode.SetValue("xMax", settingsWindowPosition.xMax.ToString());
             settingsWindowPositionNode.SetValue("yMin", settingsWindowPosition.yMin.ToString());
-            settingsWindowPositionNode.SetValue("yMax", settingsWindowPosition.yMax.ToString());
 
-            ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
-            fpsPositionNode.SetValue("xMin", fpsPosition.xMin.ToString());
-            fpsPositionNode.SetValue("xMax", fpsPosition.xMax.ToString());
-            fpsPositionNode.SetValue("yMin", fpsPosition.yMin.ToString());
-            fpsPositionNode.SetValue("yMax", fpsPosition.yMax.ToString());
-
-            config.SetValue("mode", mode.ToString());
+            //USER
             config.SetValue("camFix", camFix.ToString());
             config.SetValue("fpsKeeperActive", fpsKeeperActive.ToString());
             config.SetValue("fpsMinSlider", fpsMinSlider.ToString());
-            config.SetValue("showFPS", showFPS.ToString());
-            config.SetValue("customKeySlider", customKeySlider.ToString());
 
+            config.SetValue("showFPS", showFPS.ToString());
+            ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
+            fpsPositionNode.SetValue("xMin", fpsPosition.xMin.ToString());
+            fpsPositionNode.SetValue("yMin", fpsPosition.yMin.ToString());
+
+            //KEYBINDS
             ConfigNode keyBindsNode = config.GetNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)
             {
                 keyBindsNode.SetValue("keyBind" + i, keyBinds[i].primary.ToString());
             }
+            config.SetValue("customKeySlider", customKeySlider.ToString());
 
+            //WARP RATES
+            config.SetValue("warpLevels", warpLevels.ToString());
             ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
             for (int i = 0; i < warpLevels; i++)
             {
-                customWarpRatesNode.SetValue("customWarpRate" + i, customWarpRates[i]);
+                if (customWarpRatesNode.HasValue("customWarpRate" + i))
+                {
+                    customWarpRatesNode.SetValue("customWarpRate" + i, customWarpRates[i]);
+                }
+                else
+                {
+                    customWarpRatesNode.AddValue("customWarpRate" + i, customWarpRates[i]);
+                }
             }
 
+            //ALTITUDE LIMITS
             ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
             for (int i = 0; i < customAltitudeLimits.Count; i++)
             {
@@ -341,7 +333,7 @@ namespace TimeControl
             }
 
             config.Save(path);
-        }
+        }//TODO rewrite save
 
     }
 }
