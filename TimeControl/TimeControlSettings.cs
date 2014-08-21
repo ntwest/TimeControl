@@ -49,7 +49,14 @@ namespace TimeControl
         public static string[][] standardAltitudeLimits = null;
         public static List<List<string>> customAltitudeLimits = new List<List<string>>();
 
-        public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None), new KeyBinding(KeyCode.None) };
+        public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None),
+                                                new KeyBinding(KeyCode.None) };
         public static float customKeySlider = 0f;
 
         private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
@@ -219,7 +226,7 @@ namespace TimeControl
                     }
                     else
                     {
-                        if (i - 1 >= 8)//only bother if its not already there by standard
+                        if (i > 7)//only bother if its not already there by standard
                         {
                             customWarpRates[i] = customWarpRates[i - 1];
                             customWarpRatesNode.AddValue("customWarpRate" + i, customWarpRates[i]);

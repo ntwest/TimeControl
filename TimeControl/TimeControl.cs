@@ -60,8 +60,8 @@ namespace TimeControl
         private Boolean throttleToggle;
 
         //KEYS
-        private Boolean[] keySet = new Boolean[7];
-        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Pause: ", "Step: ", "Custom-#x: " };
+        private Boolean[] keySet = new Boolean[8];
+        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Custom-#x: ", "Pause: ", "Step: ", "Hyper Warp: "};
 
         //HYPERWARP
         private Boolean hyperWarping = false;
@@ -100,7 +100,7 @@ namespace TimeControl
             {
                 Settings.visible = true;
             }
-        }
+        }//TODO AppToolbar
         private void Awake()
         {
             UnityEngine.Object.DontDestroyOnLoad(this); //Don't go away on scene changes
@@ -183,18 +183,26 @@ namespace TimeControl
         }
         private void onPartDestroyed(Part p)
         {
-            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
+            try
             {
-                exitHyper();
+                if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
+                {
+                    exitHyper();
+                }
             }
-        }
+            catch { }
+        }//TODO fix this properly
         private void onVesselDestroy(Vessel v)
         {
-            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
+            try
             {
-                exitHyper();
+                if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
+                {
+                    exitHyper();
+                }
             }
-        }
+            catch { }
+        }//^^
         private void onTimeWarpRateChanged()
         {
             if (TimeWarp.CurrentRateIndex > 0)
@@ -218,9 +226,25 @@ namespace TimeControl
             }
         }
 
+
         //UPDATE FUNCTIONS
         private void Update()
         {
+            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
+            {
+                Settings.visible = !Settings.visible;
+                toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
+                if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
+                {
+                    FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup(KSPActionGroup.SAS);
+                }
+            }
+
+            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
+            {
+                showDebugGUI = true;
+            }
+
             sizeWindows();
 
             if (timeWarp != null)
@@ -242,38 +266,11 @@ namespace TimeControl
             if (timeWarp == null)
                 return;
 
+            setWarpLevels(Settings.warpLevels);
+
             if (timeWarp.current_rate_index >= Settings.warpLevels && timeWarp.Mode == TimeWarp.Modes.HIGH)
             {
                 TimeWarp.SetRate(Settings.warpLevels - 1, false);
-            }
-
-            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
-            {
-                Settings.visible = !Settings.visible;
-                toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
-                if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
-                {
-                    FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup(KSPActionGroup.SAS);
-                }
-            }
-
-            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T)) //Ctrl-Alt-T opens debug
-            {
-                showDebugGUI = true;
-            }
-
-            if (HighLogic.CurrentGame != null)
-            {
-                if (hyperWarping || autoWarping)//TODO replace this with full timewarp override?
-                {
-                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = false;
-                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = false;
-                }
-                else
-                {
-                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = true;
-                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = true;
-                }
             }
 
             if ((Planetarium.GetUniversalTime() > warpTime || Mathf.Abs((float)Planetarium.GetUniversalTime() - (float)warpTime) < 60) && autoWarping)
@@ -308,6 +305,20 @@ namespace TimeControl
         private void UpdateFlight()
         {
             UpdateCollision();
+
+            if (HighLogic.CurrentGame != null)
+            {
+                if (hyperWarping || autoWarping)//TODO replace this with full timewarp override?
+                {
+                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = false;
+                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = false;
+                }
+                else
+                {
+                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = true;
+                    HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = true;
+                }
+            }
 
             if (fld == null)
             {
@@ -982,13 +993,7 @@ namespace TimeControl
                         if (Settings.warpLevels < 99)
                         {
                             Settings.warpLevels++;
-                            Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
-                            Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.Add(s[s.Count - 1]);
-                            }
-                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
+                            setWarpLevels(Settings.warpLevels);
                         }
                     }
                     if (GUILayout.Button("-", GUILayout.Width(20)))
@@ -996,16 +1001,33 @@ namespace TimeControl
                         if (Settings.warpLevels > 8)
                         {
                             Settings.warpLevels--;
-                            Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
-                            Array.Resize(ref timeWarp.warpRates, Settings.warpLevels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.RemoveAt(Settings.customAltitudeLimits.Count - 1);
-                            }
-                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, Settings.warpLevels);
+                            setWarpLevels(Settings.warpLevels);
                         }
                     }
                 }
+                    private void setWarpLevels(int levels)
+                    {
+                        while (timeWarp.warpRates.Length > levels)//remove
+                        {
+                            Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
+                            Array.Resize(ref timeWarp.warpRates, levels);
+                            foreach (List<string> s in Settings.customAltitudeLimits)
+                            {
+                                s.RemoveAt(s.Count - 1);
+                            }
+                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, levels);
+                        }
+                        while (timeWarp.warpRates.Length < levels)//add
+                        {
+                            Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
+                            Array.Resize(ref timeWarp.warpRates, levels);
+                            foreach (List<string> s in Settings.customAltitudeLimits)
+                            {
+                                s.Add(s[s.Count - 1]);
+                            }
+                            Array.Resize(ref FlightGlobals.ActiveVessel.mainBody.timeWarpAltitudeLimits, levels);
+                        }
+                    }
                 private void onSOISelect(int windowId)
                 {
 
@@ -1063,7 +1085,7 @@ namespace TimeControl
                     {
                         GUI.contentColor = c;
                     }
-                    string pos = (convertToExponential(Settings.customKeySlider) != 1) ? ("1/" + convertToExponential(Settings.customKeySlider).ToString()) : (convertToExponential(Settings.customKeySlider).ToString());
+                    string pos = (convertToExponential(Settings.customKeySlider) != 1) ? ("1/" + convertToExponential(Settings.customKeySlider).ToString()) : "1";
                     if (GUILayout.Button(keyLabels[i].Replace("#", pos)  + Settings.keyBinds[i].primary.ToString()))
                     {
                         if (keySet[i])
@@ -1076,11 +1098,12 @@ namespace TimeControl
                             keySet[i] = true;
                         }
                     }
+                    if (i == 4)//slider
+                    {
+                        Settings.customKeySlider = GUILayout.HorizontalSlider(Settings.customKeySlider, 0f, 1f);
+                    }
                 }
                 GUI.contentColor = c;
-                
-                //custom setting keybind
-                Settings.customKeySlider = GUILayout.HorizontalSlider(Settings.customKeySlider, 0f, 1f);
 
                 //update checker
                 if (updateAvailable)
@@ -1267,6 +1290,14 @@ namespace TimeControl
                         Settings.keyBinds[i] = new KeyBinding(e.keyCode);
                         keySet[i] = false;
                     }
+                    for (int j = 0; j < 20; j++)
+                    {
+                        if (Input.GetKeyDown("joystick button " + j))
+                        {
+                            Settings.keyBinds[i] = new KeyBinding((KeyCode)Enum.Parse(typeof(KeyCode), "JoystickButton" + j));
+                            keySet[i] = false;
+                        }
+                    }
                 }
             }
 
@@ -1288,16 +1319,27 @@ namespace TimeControl
             }
             if (Settings.keyBinds[4].GetKeyDown())
             {
-                timePaused = !timePaused;
+                timeSlider = Settings.customKeySlider;
             }
             if (Settings.keyBinds[5].GetKeyDown())
+            {
+                timePaused = !timePaused;
+            }
+            if (Settings.keyBinds[6].GetKeyDown())
             {
                 timePaused = false;
                 pauseOnNextFixedUpdate = true;
             }
-            if (Settings.keyBinds[6].GetKeyDown())
+            if (Settings.keyBinds[7].GetKeyDown())
             {
-                timeSlider = Settings.customKeySlider;
+                if (((inverseTimeScale == 1) && operational && !Settings.fpsKeeperActive) && !hyperWarping)
+                {
+                    hyperWarping = true;
+                }
+                else if (hyperWarping)
+                {
+                    exitHyper();
+                }
             }
 
         }
