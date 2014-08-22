@@ -235,7 +235,7 @@ namespace TimeControl
                 }
 
                 //ALTITUDE LIMITS
-                //TODO properly set up altitude limits
+                //TODO properly load altitude limits
                 ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
                 for (int i = 0; i < customAltitudeLimits.Count; i++)
                 {
@@ -340,7 +340,7 @@ namespace TimeControl
             }
 
             config.Save(path);
-        }//TODO rewrite save
+        }//TODO properly save altitude limits
 
     }
 }
