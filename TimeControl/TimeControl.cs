@@ -69,19 +69,13 @@ namespace TimeControl
         private Boolean hyperWarping = false;
         private float hyperMinPhys = 1f;
         private Boolean hyperPauseOnTimeReached = false;
-        private string hyperWarpHours = "0";
-        private string hyperWarpMinutes = "0";
-        private string hyperWarpSeconds = "0";
+        private string hyperWarpHours = "0"; private string hyperWarpMinutes = "0"; private string hyperWarpSeconds = "0";
         private double hyperWarpTime = Mathf.Infinity;
         private float hyperMaxRate = 2f;
         
         //WARP
         private Boolean autoWarping = false;
-        private string warpYears = "0";
-        private string warpDays = "0";
-        private string warpHours = "0";
-        private string warpMinutes = "0";
-        private string warpSeconds = "0";
+        private string warpYears = "0"; private string warpDays = "0"; private string warpHours = "0"; private string warpMinutes = "0"; private string warpSeconds = "0";
         private double warpTime = Mathf.NegativeInfinity;
 
         //INIT FUNCTIONS
@@ -186,17 +180,25 @@ namespace TimeControl
         }
         private void onPartDestroyed(Part p)
         {
-            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
+            try
             {
-                exitHyper();
+                if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
+                {
+                    exitHyper();
+                }
             }
+            catch { }
         }
         private void onVesselDestroy(Vessel v)
         {
-            if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
+            try
             {
-                exitHyper();
+                if (HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
+                {
+                    exitHyper();
+                }
             }
+            catch { }
         }
         private void onTimeWarpRateChanged()
         {
@@ -307,6 +309,22 @@ namespace TimeControl
                         }
                     }
                 }
+
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    currentSOI = getPlanetaryID(FlightGlobals.currentMainBody.name);
+                }
+                else if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+                {
+                    currentSOI = 1; //Kerbin
+                }
+                else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+                {
+                    if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.CELESTIALBODY)
+                    {
+                        currentSOI = getPlanetaryID(PlanetariumCamera.fetch.target.celestialBody.name);
+                    }
+                }
             }
         private void FixedUpdate()
         {
@@ -355,8 +373,6 @@ namespace TimeControl
             {
                 fld.enabled = true;
             }
-
-            currentSOI = getPlanetaryID(FlightGlobals.currentMainBody.name);
 
             warpText.textStyles[1].normal.textColor = warpTextColor; //ensures the warp text color goes back to default
 
@@ -464,7 +480,7 @@ namespace TimeControl
                 Event.current.Use();
 
             GUI.DragWindow();
-        }//TODO deal with "current" in menu
+        }
         private void onFlightGUI(int windowId)
         {
             GUI.enabled = true;
@@ -703,7 +719,7 @@ namespace TimeControl
                 {
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label("Current SOI: " + ((HighLogic.LoadedSceneIsFlight) ? FlightGlobals.currentMainBody.name : "None"));
+                        GUILayout.Label("Current SOI: " + PSystemManager.Instance.localBodies[SOI].name);
                         GUILayout.FlexibleSpace();
                         GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
                     }
@@ -789,7 +805,7 @@ namespace TimeControl
                     {
                         if (GUILayout.Button("Reset warp rates", GUILayout.Width(174)))
                         {
-                            for (int i = 0; i < Settings.warpLevels; i++)
+                            for (int i = 0; i < Settings.standardWarpRates.Length; i++)
                             {
                                 Settings.customWarpRates[i] = Settings.standardWarpRates[i];
                             }
@@ -797,7 +813,7 @@ namespace TimeControl
 
                         if (GUILayout.Button("Reset body altitude limits"))
                         {
-                            for (int i = 0; i < Settings.warpLevels; i++)
+                            for (int i = 0; i < Settings.standardAltitudeLimits.Length; i++)
                             {
                                 Settings.customAltitudeLimits[SOI][i] = Settings.standardAltitudeLimits[SOI][i];
                             }
@@ -1092,7 +1108,7 @@ namespace TimeControl
                 GUILayout.Label("limits:" + Settings.customAltitudeLimits.Count);
                 GUILayout.Label("limits[0]:" + Settings.customAltitudeLimits[0].Count);
                 GUILayout.Label("levels:" + Settings.warpLevels);
-                //GUILayout.Label("situation: " + FlightGlobals.ActiveVessel.situation);
+                GUILayout.Label("current" + currentSOI);
 
                 GUILayout.Label("UT: " + Planetarium.GetUniversalTime());
                 GUILayout.BeginHorizontal();
@@ -1267,14 +1283,6 @@ namespace TimeControl
         }
 		private int getPlanetaryID(string s) //ID from name
 		{
-			// 
-			// Change by Nathaniel R. Lewis (aka Teknoman117) (linux.robotdude@gmail.com)
-			//
-			// This method previously hard coded the reference IDs for each planet.  PSystemManager.Instance.localBodies is
-			// a list of the celestial bodies active in KSP.  The index of the body in this list *IS* the reference id.
-			// Method modified to return the reference ID with a predicate search this list.  Enables automatic compatibility
-			// with future planets added by Squad or by planet adding mods such as the upcoming Kopernicus mod.
-			//
 			return PSystemManager.Instance.localBodies.FindIndex (p => p.bodyName.Equals(s));  
 		}
         private float convertToExponential(float a) //1-64 exponential curve

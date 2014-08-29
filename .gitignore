@@ -1,7 +1,6 @@
-*.bat
 *.lnk
 *.sln
 *.suo
 *.csproj
 TimeControl/Old/*
-TimeControl/obj
+TimeControl/obj/*

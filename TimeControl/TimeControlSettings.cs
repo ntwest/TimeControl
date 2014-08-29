@@ -148,7 +148,7 @@ namespace TimeControl
             ConfigNode keyBindsNode = config.AddNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)
             {
-                keyBindsNode.AddValue("keyBind"+i, keyBinds[i].primary);
+                keyBindsNode.AddValue("keyBind" + i, keyBinds[i].primary);
             }
             config.AddValue("customKeySlider", customKeySlider);
 
@@ -173,8 +173,8 @@ namespace TimeControl
 
             config.Save(path);
         }
-		private void loadConfig()
-		{
+        private void loadConfig()
+        {
             try
             {
                 config = ConfigNode.Load(path);
@@ -274,7 +274,7 @@ namespace TimeControl
                     throw e;
                 }
             }
-		}
+        }
         private void saveConfig()
         {
             //INTERNAL
@@ -329,6 +329,7 @@ namespace TimeControl
             }
 
             //ALTITUDE LIMITS
+            //TODO properly save altitude limits
             ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
             for (int i = 0; i < customAltitudeLimits.Count; i++)
             {
@@ -340,7 +341,7 @@ namespace TimeControl
             }
 
             config.Save(path);
-        }//TODO properly save altitude limits
+        }
 
     }
 }
