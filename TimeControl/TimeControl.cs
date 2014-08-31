@@ -324,6 +324,10 @@ namespace TimeControl
                     {
                         currentSOI = getPlanetaryID(PlanetariumCamera.fetch.target.celestialBody.name);
                     }
+                    else if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.VESSEL)
+                    {
+                        currentSOI = getPlanetaryID(PlanetariumCamera.fetch.target.vessel.mainBody.name);
+                    }
                 }
             }
         private void FixedUpdate()
@@ -349,7 +353,7 @@ namespace TimeControl
 
             if (HighLogic.CurrentGame != null)
             {
-                if (hyperWarping || autoWarping)//TODO replace this with full timewarp override?
+                if (hyperWarping || autoWarping)
                 {
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = false;
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = false;
@@ -719,7 +723,7 @@ namespace TimeControl
                 {
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label("Current SOI: " + PSystemManager.Instance.localBodies[SOI].name);
+                        GUILayout.Label("Current SOI: " + PSystemManager.Instance.localBodies[currentSOI].name);
                         GUILayout.FlexibleSpace();
                         GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
                     }
@@ -1108,7 +1112,7 @@ namespace TimeControl
                 GUILayout.Label("limits:" + Settings.customAltitudeLimits.Count);
                 GUILayout.Label("limits[0]:" + Settings.customAltitudeLimits[0].Count);
                 GUILayout.Label("levels:" + Settings.warpLevels);
-                GUILayout.Label("current" + currentSOI);
+                GUILayout.Label("current: " + currentSOI);
 
                 GUILayout.Label("UT: " + Planetarium.GetUniversalTime());
                 GUILayout.BeginHorizontal();

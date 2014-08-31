@@ -92,8 +92,8 @@ namespace TimeControl
 			config = ConfigNode.Load(path);
 			if (config == null)//file does not exist
 			{
-				buildConfig();
-				loadConfig();
+				buildConfig(false);
+				loadConfig();//reload it, just to be sure
 			}
 			else
 			{
@@ -112,60 +112,82 @@ namespace TimeControl
             }
         }
 
-        private void buildConfig()
+        private void buildConfig(bool rebuildRails)
         {
-            config = new ConfigNode();
-
-            //INTERNAL
-            config.AddValue("visible", visible);
-            config.AddValue("minimized", minimized);
-            config.AddValue("mode", mode);
-
-            //WINDOW POSITIONS
-            ConfigNode flightWindowPositionNode = config.AddNode("flightWindowPosition");
-            flightWindowPositionNode.AddValue("xMin", flightWindowPosition.xMin);
-            flightWindowPositionNode.AddValue("yMin", flightWindowPosition.yMin);
-
-            ConfigNode menuWindowPositionNode = config.AddNode("menuWindowPosition");
-            menuWindowPositionNode.AddValue("xMin", menuWindowPosition.xMin);
-            menuWindowPositionNode.AddValue("yMin", menuWindowPosition.yMin);
-
-            ConfigNode settingsWindowPositionNode = config.AddNode("settingsWindowPosition");
-            settingsWindowPositionNode.AddValue("xMin", settingsWindowPosition.xMin);
-            settingsWindowPositionNode.AddValue("yMin", settingsWindowPosition.yMin);
-
-            //USER
-            config.AddValue("camFix", camFix);
-            config.AddValue("fpsKeeperActive", fpsKeeperActive);
-            config.AddValue("fpsMinSlider", fpsMinSlider);
-
-            config.AddValue("showFPS", showFPS);
-            ConfigNode fpsPositionNode = config.AddNode("fpsPosition");
-            fpsPositionNode.AddValue("xMin", fpsPosition.xMin);
-            fpsPositionNode.AddValue("yMin", fpsPosition.yMin);
-
-            //KEYBINDS
-            ConfigNode keyBindsNode = config.AddNode("keyBinds");
-            for (int i = 0; i < keyBinds.Length; i++)
+            if (!rebuildRails)
             {
-                keyBindsNode.AddValue("keyBind" + i, keyBinds[i].primary);
+                config = new ConfigNode();
+
+                //INTERNAL DATA NODE
+                ConfigNode internalData = config.AddNode("internalData");
+
+                //INTERNAL
+                internalData.AddValue("visible", visible);
+                internalData.AddValue("minimized", minimized);
+                internalData.AddValue("mode", mode);
+
+                //WINDOW POSITIONS
+                ConfigNode flightWindowPositionNode = internalData.AddNode("flightWindowPosition");
+                flightWindowPositionNode.AddValue("x", flightWindowPosition.xMin);
+                flightWindowPositionNode.AddValue("y", flightWindowPosition.yMin);
+
+                ConfigNode menuWindowPositionNode = internalData.AddNode("menuWindowPosition");
+                menuWindowPositionNode.AddValue("x", menuWindowPosition.xMin);
+                menuWindowPositionNode.AddValue("y", menuWindowPosition.yMin);
+
+                ConfigNode settingsWindowPositionNode = internalData.AddNode("settingsWindowPosition");
+                settingsWindowPositionNode.AddValue("x", settingsWindowPosition.xMin);
+                settingsWindowPositionNode.AddValue("y", settingsWindowPosition.yMin);
+
+                //USER
+                internalData.AddValue("camFix", camFix);
+                internalData.AddValue("fpsKeeperActive", fpsKeeperActive);
+                internalData.AddValue("fpsMinSlider", fpsMinSlider);
+
+                internalData.AddValue("showFPS", showFPS);
+                ConfigNode fpsPositionNode = internalData.AddNode("fpsPosition");
+                fpsPositionNode.AddValue("x", fpsPosition.xMin);
+                fpsPositionNode.AddValue("y", fpsPosition.yMin);
+
+                //KEYBINDS
+                ConfigNode keyBindsNode = internalData.AddNode("keyBinds");
+                for (int i = 0; i < keyBinds.Length; i++)
+                {
+                    keyBindsNode.AddValue("keyBind" + i, keyBinds[i].primary);
+                }
+                internalData.AddValue("customKeySlider", customKeySlider);
             }
-            config.AddValue("customKeySlider", customKeySlider);
+            else //remove the rails data
+            {
+                warpLevels = 8;
+                try
+                {
+                    config.RemoveNodes("railsData");
+                }
+                catch //no rails data means the config is screwed up
+                {
+                    buildConfig(false);
+                    return;
+                }
+            }
+
+            //RAILS DATA NODE
+            ConfigNode railsData = config.AddNode("railsData");
 
             //WARP RATES
-            config.AddValue("warpLevels", warpLevels);
-            ConfigNode customWarpRatesNode = config.AddNode("customWarpRates");
-            for (int i = 0; i < standardWarpRates.Length; i++)
+            railsData.AddValue("warpLevels", warpLevels);
+            ConfigNode customWarpRatesNode = railsData.AddNode("customWarpRates");
+            for (int i = 0; i < warpLevels; i++)
             {
                 customWarpRatesNode.AddValue("customWarpRate" + i, standardWarpRates[i]);
             }
 
             //ALTITUDE LIMITS
-            ConfigNode customAltitudeLimitsNode = config.AddNode("customAltitudeLimits");
+            ConfigNode customAltitudeLimitsNode = railsData.AddNode("customAltitudeLimits");
             for (int i = 0; i < standardAltitudeLimits.Length; i++)
             {
                 ConfigNode celestial = customAltitudeLimitsNode.AddNode("celestial" + i);
-                for (int j = 0; j < standardAltitudeLimits[i].Length; j++)
+                for (int j = 0; j < warpLevels; j++)
                 {
                     celestial.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
                 }
@@ -177,96 +199,83 @@ namespace TimeControl
         {
             try
             {
-                config = ConfigNode.Load(path);
+                config = ConfigNode.Load(path);//redundant?
+
+                //INTERNAL DATA NODE
+                ConfigNode internalData = config.GetNode("internalData");
 
                 //INTERNAL
-                visible = bool.Parse(config.GetValue("visible"));
-                minimized = bool.Parse(config.GetValue("minimized"));
-                mode = int.Parse(config.GetValue("mode"));
+                visible = bool.Parse(internalData.GetValue("visible"));
+                minimized = bool.Parse(internalData.GetValue("minimized"));
+                mode = int.Parse(internalData.GetValue("mode"));
 
                 //WINDOW POSITIONS
-                ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
-                flightWindowPosition.xMin = float.Parse(flightWindowPositionNode.GetValue("xMin"));
-                flightWindowPosition.yMin = float.Parse(flightWindowPositionNode.GetValue("yMin"));
+                ConfigNode flightWindowPositionNode = internalData.GetNode("flightWindowPosition");
+                flightWindowPosition.xMin = float.Parse(flightWindowPositionNode.GetValue("x"));
+                flightWindowPosition.yMin = float.Parse(flightWindowPositionNode.GetValue("y"));
 
-                ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
-                menuWindowPosition.xMin = float.Parse(menuWindowPositionNode.GetValue("xMin"));
-                menuWindowPosition.yMin = float.Parse(menuWindowPositionNode.GetValue("yMin"));
+                ConfigNode menuWindowPositionNode = internalData.GetNode("menuWindowPosition");
+                menuWindowPosition.xMin = float.Parse(menuWindowPositionNode.GetValue("x"));
+                menuWindowPosition.yMin = float.Parse(menuWindowPositionNode.GetValue("y"));
 
-                ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
-                settingsWindowPosition.xMin = float.Parse(settingsWindowPositionNode.GetValue("xMin"));
-                settingsWindowPosition.yMin = float.Parse(settingsWindowPositionNode.GetValue("yMin"));
+                ConfigNode settingsWindowPositionNode = internalData.GetNode("settingsWindowPosition");
+                settingsWindowPosition.xMin = float.Parse(settingsWindowPositionNode.GetValue("x"));
+                settingsWindowPosition.yMin = float.Parse(settingsWindowPositionNode.GetValue("y"));
 
                 //USER
-                camFix = bool.Parse(config.GetValue("camFix"));
-                fpsKeeperActive = bool.Parse(config.GetValue("fpsKeeperActive"));
-                fpsMinSlider = int.Parse(config.GetValue("fpsMinSlider"));
+                camFix = bool.Parse(internalData.GetValue("camFix"));
+                fpsKeeperActive = bool.Parse(internalData.GetValue("fpsKeeperActive"));
+                fpsMinSlider = int.Parse(internalData.GetValue("fpsMinSlider"));
 
-                showFPS = bool.Parse(config.GetValue("showFPS"));
-                ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
-                fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("xMin"));
-                fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("yMin"));
+                showFPS = bool.Parse(internalData.GetValue("showFPS"));
+                ConfigNode fpsPositionNode = internalData.GetNode("fpsPosition");
+                fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("x"));
+                fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("y"));
 
                 //KEYBINDS
-                ConfigNode keyBindsNode = config.GetNode("keyBinds");
+                ConfigNode keyBindsNode = internalData.GetNode("keyBinds");
                 for (int i = 0; i < keyBinds.Length; i++)
                 {
                     keyBinds[i].primary = (KeyCode)Enum.Parse(typeof(KeyCode), keyBindsNode.GetValue("keyBind" + i));
                 }
-                customKeySlider = float.Parse(config.GetValue("customKeySlider"));
+                customKeySlider = float.Parse(internalData.GetValue("customKeySlider"));
 
-                //WARP RATES
-                warpLevels = (int)Mathf.Clamp(int.Parse(config.GetValue("warpLevels")), 8, Mathf.Infinity);
-                ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
-                for (int i = 0; i < warpLevels; i++)
+                try
                 {
-                    if (customWarpRatesNode.HasValue("customWarpRate" + i))
+                    //RAILS DATA NODE
+                    ConfigNode railsData = config.GetNode("railsData");
+
+                    //WARP RATES
+                    warpLevels = (int)Mathf.Clamp(int.Parse(railsData.GetValue("warpLevels")), 8, Mathf.Infinity);
+                    ConfigNode customWarpRatesNode = railsData.GetNode("customWarpRates");
+                    for (int i = 0; i < warpLevels; i++)
                     {
                         customWarpRates[i] = customWarpRatesNode.GetValue("customWarpRate" + i);
                     }
-                    else
-                    {
-                        if (i > 7)//only bother if its not already there by standard
-                        {
-                            customWarpRates[i] = customWarpRates[i - 1];
-                            customWarpRatesNode.AddValue("customWarpRate" + i, customWarpRates[i]);
-                        }
-                    }
-                }
 
-                //ALTITUDE LIMITS
-                //TODO properly load altitude limits
-                ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
-                for (int i = 0; i < customAltitudeLimits.Count; i++)
-                {
-                    string celestialName = ("celestial" + i);
-
-                    if (customAltitudeLimitsNode.HasNode(celestialName))
+                    //ALTITUDE LIMITS
+                    ConfigNode customAltitudeLimitsNode = railsData.GetNode("customAltitudeLimits");
+                    for (int i = 0; i < customAltitudeLimits.Count; i++)
                     {
-                        ConfigNode celestialLimitsNode = customAltitudeLimitsNode.GetNode(celestialName);
-                        for (int j = 0; j < customAltitudeLimits[0].Count; j++)
+                        ConfigNode celestialLimitsNode = customAltitudeLimitsNode.GetNode("celestial" + i);
+                        for (int j = 0; j < warpLevels; j++)
                         {
                             customAltitudeLimits[i][j] = celestialLimitsNode.GetValue("customAltitudeLimit" + j);
                         }
                     }
-                    else
-                    {
-                        ConfigNode celestialLimitsNode = customAltitudeLimitsNode.AddNode(celestialName);
-                        for (int j = 0; j < warpLevels; j++)
-                        {
-                            customAltitudeLimits[i][j] = standardAltitudeLimits[i][j];
-                            celestialLimitsNode.AddValue("customAltitudeLimit" + j, standardAltitudeLimits[i][j]);
-                        }
-                    }
                 }
-                saveConfig();
+                catch
+                {
+                    print("Time Control: rails data load failed, rebuilding (planetary system change?)");
+                    buildConfig(true);
+                }
             }
             catch (Exception e)
             {
                 if (e is ArgumentNullException || e is NullReferenceException)
                 {
                     print("Time Control: config load failed, rebuilding");
-                    buildConfig();
+                    buildConfig(false);
                 }
                 else
                 {
@@ -277,45 +286,51 @@ namespace TimeControl
         }
         private void saveConfig()
         {
+            //INTERNAL DATA NODE
+            ConfigNode internalData = config.GetNode("internalData");
+
             //INTERNAL
-            config.SetValue("visible", visible.ToString());
-            config.SetValue("minimized", minimized.ToString());
-            config.SetValue("mode", mode.ToString());
+            internalData.SetValue("visible", visible.ToString());
+            internalData.SetValue("minimized", minimized.ToString());
+            internalData.SetValue("mode", mode.ToString());
 
             //WINDOW POSITIONS
-            ConfigNode flightWindowPositionNode = config.GetNode("flightWindowPosition");
-            flightWindowPositionNode.SetValue("xMin", flightWindowPosition.xMin.ToString());
-            flightWindowPositionNode.SetValue("yMin", flightWindowPosition.yMin.ToString());
+            ConfigNode flightWindowPositionNode = internalData.GetNode("flightWindowPosition");
+            flightWindowPositionNode.SetValue("x", flightWindowPosition.xMin.ToString());
+            flightWindowPositionNode.SetValue("y", flightWindowPosition.yMin.ToString());
 
-            ConfigNode menuWindowPositionNode = config.GetNode("menuWindowPosition");
-            menuWindowPositionNode.SetValue("xMin", menuWindowPosition.xMin.ToString());
-            menuWindowPositionNode.SetValue("yMin", menuWindowPosition.yMin.ToString());
+            ConfigNode menuWindowPositionNode = internalData.GetNode("menuWindowPosition");
+            menuWindowPositionNode.SetValue("x", menuWindowPosition.xMin.ToString());
+            menuWindowPositionNode.SetValue("y", menuWindowPosition.yMin.ToString());
 
-            ConfigNode settingsWindowPositionNode = config.GetNode("settingsWindowPosition");
-            settingsWindowPositionNode.SetValue("xMin", settingsWindowPosition.xMin.ToString());
-            settingsWindowPositionNode.SetValue("yMin", settingsWindowPosition.yMin.ToString());
+            ConfigNode settingsWindowPositionNode = internalData.GetNode("settingsWindowPosition");
+            settingsWindowPositionNode.SetValue("x", settingsWindowPosition.xMin.ToString());
+            settingsWindowPositionNode.SetValue("y", settingsWindowPosition.yMin.ToString());
 
             //USER
-            config.SetValue("camFix", camFix.ToString());
-            config.SetValue("fpsKeeperActive", fpsKeeperActive.ToString());
-            config.SetValue("fpsMinSlider", fpsMinSlider.ToString());
+            internalData.SetValue("camFix", camFix.ToString());
+            internalData.SetValue("fpsKeeperActive", fpsKeeperActive.ToString());
+            internalData.SetValue("fpsMinSlider", fpsMinSlider.ToString());
 
-            config.SetValue("showFPS", showFPS.ToString());
-            ConfigNode fpsPositionNode = config.GetNode("fpsPosition");
-            fpsPositionNode.SetValue("xMin", fpsPosition.xMin.ToString());
-            fpsPositionNode.SetValue("yMin", fpsPosition.yMin.ToString());
+            internalData.SetValue("showFPS", showFPS.ToString());
+            ConfigNode fpsPositionNode = internalData.GetNode("fpsPosition");
+            fpsPositionNode.SetValue("x", fpsPosition.xMin.ToString());
+            fpsPositionNode.SetValue("y", fpsPosition.yMin.ToString());
 
             //KEYBINDS
-            ConfigNode keyBindsNode = config.GetNode("keyBinds");
+            ConfigNode keyBindsNode = internalData.GetNode("keyBinds");
             for (int i = 0; i < keyBinds.Length; i++)
             {
                 keyBindsNode.SetValue("keyBind" + i, keyBinds[i].primary.ToString());
             }
-            config.SetValue("customKeySlider", customKeySlider.ToString());
+            internalData.SetValue("customKeySlider", customKeySlider.ToString());
+
+            //RAILS DATA NODE
+            ConfigNode railsData = config.GetNode("railsData");
 
             //WARP RATES
-            config.SetValue("warpLevels", warpLevels.ToString());
-            ConfigNode customWarpRatesNode = config.GetNode("customWarpRates");
+            railsData.SetValue("warpLevels", warpLevels.ToString());
+            ConfigNode customWarpRatesNode = railsData.GetNode("customWarpRates");
             for (int i = 0; i < warpLevels; i++)
             {
                 if (customWarpRatesNode.HasValue("customWarpRate" + i))
@@ -329,14 +344,20 @@ namespace TimeControl
             }
 
             //ALTITUDE LIMITS
-            //TODO properly save altitude limits
-            ConfigNode customAltitudeLimitsNode = config.GetNode("customAltitudeLimits");
+            ConfigNode customAltitudeLimitsNode = railsData.GetNode("customAltitudeLimits");
             for (int i = 0; i < customAltitudeLimits.Count; i++)
             {
                 ConfigNode celestial = customAltitudeLimitsNode.GetNode("celestial" + i);
-                for (int j = 0; j < customAltitudeLimits[0].Count; j++)
+                for (int j = 0; j < warpLevels; j++)
                 {
-                    celestial.SetValue("customAltitudeLimit" + j, customAltitudeLimits[i][j]);
+                    if (celestial.HasValue("customAltitudeLimit" + j))
+                    {
+                        celestial.SetValue("customAltitudeLimit" + j, customAltitudeLimits[i][j]);
+                    }
+                    else
+                    {
+                        celestial.AddValue("customAltitudeLimit" + j, customAltitudeLimits[i][j]);
+                    }
                 }
             }
 
