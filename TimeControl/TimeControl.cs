@@ -818,7 +818,7 @@ namespace TimeControl
                             }
                         }
 
-                        if (GUILayout.Button("Reset body altitude limits"))
+                        if (GUILayout.Button("Reset body altitude limits"))//TODO index error here?
                         {
                             for (int i = 0; i < Settings.standardAltitudeLimits.Length; i++)
                             {
