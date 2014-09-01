@@ -285,10 +285,10 @@ namespace TimeControl
                     }
                 }
 
-                if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
-                {
-                    showDebugGUI = true;
-                }
+                //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
+                //{
+                //    showDebugGUI = true;
+                //}
 
                 sizeWindows();
 
@@ -312,7 +312,10 @@ namespace TimeControl
 
                 if (HighLogic.LoadedSceneIsFlight)
                 {
-                    currentSOI = getPlanetaryID(FlightGlobals.currentMainBody.name);
+                    if (FlightGlobals.ready)
+                    {
+                        currentSOI = getPlanetaryID(FlightGlobals.currentMainBody.name);
+                    }
                 }
                 else if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
