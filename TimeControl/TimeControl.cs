@@ -433,7 +433,7 @@ namespace TimeControl
         }
 
         //GUI FUNCTIONS
-        private void OnGUI()
+        private void OnGUI()//TODO replace all GUI ID's with auto-assign call
         {
             GUI.skin = HighLogic.Skin;
             if (Settings.showFPS && fpsVisible && HighLogic.LoadedSceneIsFlight)
@@ -818,9 +818,9 @@ namespace TimeControl
                             }
                         }
 
-                        if (GUILayout.Button("Reset body altitude limits"))//TODO index error here?
+                        if (GUILayout.Button("Reset body altitude limits"))
                         {
-                            for (int i = 0; i < Settings.standardAltitudeLimits.Length; i++)
+                            for (int i = 0; i < Settings.standardAltitudeLimits[SOI].Length; i++)
                             {
                                 Settings.customAltitudeLimits[SOI][i] = Settings.standardAltitudeLimits[SOI][i];
                             }
