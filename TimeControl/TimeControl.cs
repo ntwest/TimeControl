@@ -445,7 +445,7 @@ namespace TimeControl
 
             GUI.skin = null;
 
-            if (showDebugGUI)
+            if (showDebugGUI)//TODO remove this and replace with Kreeper
             {
                 debugWindowPosition = constrainToScreen(GUILayout.Window(9001, debugWindowPosition, onDebugGUI, "Time Control: Debug"));
             }
@@ -454,16 +454,16 @@ namespace TimeControl
             {
                 if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
-                    Settings.menuWindowPosition = constrainToScreen(GUILayout.Window(12, Settings.menuWindowPosition, onMenuGUI, "Time Control"));
+                    Settings.menuWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode(), Settings.menuWindowPosition, onMenuGUI, "Time Control"));
                 }
 
                 if (HighLogic.LoadedSceneIsFlight)
                 {
-                    Settings.flightWindowPosition = constrainToScreen(GUILayout.Window(10, Settings.flightWindowPosition, onFlightGUI, "Time Control"));
+                    Settings.flightWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode()+1, Settings.flightWindowPosition, onFlightGUI, "Time Control"));
 
                     if (settingsOpen && !Settings.minimized)
                     {
-                        Settings.settingsWindowPosition = constrainToScreen(GUILayout.Window(11, Settings.settingsWindowPosition, onSettingsGUI, "Time Control Settings"));
+                        Settings.settingsWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode()+2, Settings.settingsWindowPosition, onSettingsGUI, "Time Control Settings"));
                     }
                 }
             }
