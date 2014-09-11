@@ -61,6 +61,9 @@ namespace TimeControl
 
         private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
 
+        private float lastSave = 0f;
+        private float saveInterval = 10f;
+
 		private void Start()
 		{
 			UnityEngine.Object.DontDestroyOnLoad(this);
@@ -103,8 +106,12 @@ namespace TimeControl
 
         private void Update()
         {
-            if ((int)Time.realtimeSinceStartup % 10 == 0) //save every 10 seconds
+            float now = Time.realtimeSinceStartup;
+
+            if (now - lastSave > saveInterval)
             {
+                lastSave = now;
+
                 GameSettings.PHYSICS_FRAME_DT_LIMIT = maxDeltaTimeSlider;
                 GameSettings.SaveSettings();
 
