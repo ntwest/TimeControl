@@ -4,6 +4,8 @@
  * License: MIT
  */
 
+//TODO make this a standalone and include FPS display in it
+
 using System;
 using System.Collections;
 using System.Collections.Generic;

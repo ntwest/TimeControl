@@ -106,11 +106,9 @@ namespace TimeControl
 
         private void Update()
         {
-            float now = Time.realtimeSinceStartup;
-
-            if (now - lastSave > saveInterval)
+            if (Time.realtimeSinceStartup - lastSave > saveInterval)
             {
-                lastSave = now;
+                lastSave = Time.realtimeSinceStartup;
 
                 GameSettings.PHYSICS_FRAME_DT_LIMIT = maxDeltaTimeSlider;
                 GameSettings.SaveSettings();

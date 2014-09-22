@@ -285,10 +285,10 @@ namespace TimeControl
                     }
                 }
 
-                //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
-                //{
-                //    showDebugGUI = true;
-                //}
+                if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
+                {
+                    showDebugGUI = true;
+                }
 
                 sizeWindows();
 
@@ -433,7 +433,7 @@ namespace TimeControl
         }
 
         //GUI FUNCTIONS
-        private void OnGUI()//TODO replace all GUI ID's with auto-assign call
+        private void OnGUI()
         {
             GUI.skin = HighLogic.Skin;
             if (Settings.showFPS && fpsVisible && HighLogic.LoadedSceneIsFlight)
@@ -1093,6 +1093,7 @@ namespace TimeControl
             GUILayout.BeginVertical();
             {
                 GUILayout.Label("Version: " + Assembly.GetExecutingAssembly().GetName().Version.ToString(2));
+                GUILayout.Label("Online Version: " + updateNumber);
                 GUILayout.Label("Update Available: " + updateAvailable);
                 GUILayout.Label("Minimized: " + Settings.minimized);
                 GUILayout.Label("Visible (toolbar): " + Settings.visible);
