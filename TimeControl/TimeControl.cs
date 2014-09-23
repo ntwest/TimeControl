@@ -285,10 +285,10 @@ namespace TimeControl
                     }
                 }
 
-                if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
-                {
-                    showDebugGUI = true;
-                }
+                //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
+                //{
+                //    showDebugGUI = true;
+                //}
 
                 sizeWindows();
 
@@ -1055,7 +1055,7 @@ namespace TimeControl
                         }
                         if (GUILayout.Button("KerbalStuff"))
                         {
-                            Application.OpenURL("http://beta.kerbalstuff.com/mod/21/Time_Control");
+                            Application.OpenURL("https://kerbalstuff.com/mod/21/Time_Control");
                         }
                         if (GUILayout.Button("Curse"))
                         {

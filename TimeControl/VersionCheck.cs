@@ -27,6 +27,8 @@ namespace KSVersionCheck
         {
             WebClient wc = new WebClient();
 
+            ServicePointManager.ServerCertificateValidationCallback = delegate { return true; };
+
             wc.DownloadStringCompleted += (sender, e) =>
             {
                 Dictionary<string, object> data = Json.Deserialize(e.Result) as Dictionary<string, object>;
