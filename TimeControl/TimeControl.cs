@@ -72,6 +72,7 @@ namespace TimeControl
         private string hyperWarpHours = "0"; private string hyperWarpMinutes = "0"; private string hyperWarpSeconds = "0";
         private double hyperWarpTime = Mathf.Infinity;
         private float hyperMaxRate = 2f;
+        private string hyperMaxRateText = "2";
         
         //WARP
         private Boolean autoWarping = false;
@@ -659,7 +660,28 @@ namespace TimeControl
                     GUILayout.EndHorizontal();
 
                     GUILayout.Label("Max Warp Rate: " + Mathf.Round(hyperMaxRate));
-                    hyperMaxRate = GUILayout.HorizontalSlider(hyperMaxRate, 2f, 100f);
+                    
+                    GUILayout.BeginHorizontal();
+                    
+                    float lmaxWarpRatef;
+                    string lmaxWarpRatestr;
+
+                    lmaxWarpRatestr = GUILayout.TextField(hyperMaxRateText, GUILayout.Width(35));
+                    if (lmaxWarpRatestr != hyperMaxRateText && float.TryParse(lmaxWarpRatestr, out lmaxWarpRatef))
+                    {
+                        hyperMaxRateText = lmaxWarpRatestr;
+                        hyperMaxRate = lmaxWarpRatef;
+
+                    } 
+
+                    lmaxWarpRatef = GUILayout.HorizontalSlider(hyperMaxRate, 2f, 100f);
+                    lmaxWarpRatef = (float)Math.Truncate(lmaxWarpRatef);
+                    if (lmaxWarpRatef != hyperMaxRate) {
+                        hyperMaxRate = lmaxWarpRatef;
+                        hyperMaxRateText = lmaxWarpRatef.ToString();
+                    }
+                    
+                    GUILayout.EndHorizontal();
 
                     GUILayout.Label("Min Physics Accuracy: " + 1 / hyperMinPhys);
                     hyperMinPhys = GUILayout.HorizontalSlider(hyperMinPhys, 1f, 4f);
