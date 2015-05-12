@@ -206,7 +206,7 @@ namespace TimeControl
             if (TimeWarp.CurrentRateIndex > 0)
             {
                 operational = false;
-                if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel.altitude > FlightGlobals.currentMainBody.maxAtmosphereAltitude)
+                if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel.altitude > FlightGlobals.currentMainBody.atmosphereDepth )
                 {
                     setSpontanousDestructionMechanic(false);
                 }
