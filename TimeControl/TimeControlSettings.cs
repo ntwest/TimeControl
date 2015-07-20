@@ -15,41 +15,47 @@ using KSP.IO;
 namespace TimeControl
 {
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
-    public class Settings : MonoBehaviour
+    internal class Settings : MonoBehaviour
     {
+        private string path = KSPUtil.ApplicationRootPath + "GameData/" + TC.MOD + "/Config.txt";        
+
         //Plugin Configuration
         ConfigNode config;
 
         //Window Positions
-        public static Rect flightWindowPosition = new Rect(1,1,1,1);
-        public static Rect menuWindowPosition = new Rect(1,1,1,1);
-        public static Rect settingsWindowPosition = new Rect(1,1,1,1);
+        internal static Rect flightWindowPosition = new Rect(1,1,1,1);
+        internal static Rect menuWindowPosition = new Rect(1,1,1,1);
+        internal static Rect settingsWindowPosition = new Rect(1,1,1,1);
 
         //FPS Display
-        public static Rect fpsPosition = new Rect(155, 0, 100, 100);
-        public static string fpsX = "155";
-        public static string fpsY = "0";
+        internal static Rect fpsPosition = new Rect(155, 0, 100, 100);
+        internal static string fpsX = "155";
+        internal static string fpsY = "0";
 
         //Display
-        public static Boolean minimized = false; //small mode
-        public static Boolean visible = true; //toolbar and hiding
+        internal static Boolean minimized = false; //small mode
+        internal static Boolean visible = true; //toolbar and hiding
+        internal static Boolean tempInvisible = false;
+
+        internal static Boolean useStockToolbar = true;
+        internal static Boolean useBlizzyToolbar = true;
 
         //Options
-        public static int mode = 0;
-        public static Boolean camFix = true;
-        public static Boolean showFPS = false;
-        public static Boolean fpsKeeperActive = false;
-        public static int fpsMinSlider = 5;
-        public static float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
+        internal static int mode = 0;
+        internal static Boolean camFix = true;
+        internal static Boolean showFPS = false;
+        internal static Boolean fpsKeeperActive = false;
+        internal static int fpsMinSlider = 5;
+        internal static float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
 
         //Rails warp stuff
-        public static int warpLevels = 8;
-        public static string[] standardWarpRates = { "1", "5", "10", "50", "100", "1000", "10000", "100000" };
-        public static List<string> customWarpRates = new List<string>(standardWarpRates);
-        public static string[][] standardAltitudeLimits = null;
-        public static List<List<string>> customAltitudeLimits = new List<List<string>>();
+        internal static int warpLevels = 8;
+        internal static string[] standardWarpRates = { "1", "5", "10", "50", "100", "1000", "10000", "100000" };
+        internal static List<string> customWarpRates = new List<string>(standardWarpRates);
+        internal static string[][] standardAltitudeLimits = null;
+        internal static List<List<string>> customAltitudeLimits = new List<List<string>>();
 
-        public static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None),
+        internal static KeyBinding[] keyBinds = { new KeyBinding(KeyCode.None),
                                                 new KeyBinding(KeyCode.None),
                                                 new KeyBinding(KeyCode.None),
                                                 new KeyBinding(KeyCode.None),
@@ -57,9 +63,8 @@ namespace TimeControl
                                                 new KeyBinding(KeyCode.None),
                                                 new KeyBinding(KeyCode.None),
                                                 new KeyBinding(KeyCode.None) };
-        public static float customKeySlider = 0f;
-
-        private string path = KSPUtil.ApplicationRootPath + "GameData/TimeControl/config.txt";
+        
+        internal static float customKeySlider = 0f;        
 
         private float lastSave = 0f;
         private float saveInterval = 10f;
@@ -131,6 +136,11 @@ namespace TimeControl
                 internalData.AddValue("minimized", minimized);
                 internalData.AddValue("mode", mode);
 
+                //TOOLBAR
+                ConfigNode toolbarChoice = internalData.AddNode("toolbarChoice");
+                toolbarChoice.AddValue("useStockToolbar", useStockToolbar);
+                toolbarChoice.AddValue("useBlizzyToolbar", useBlizzyToolbar);
+
                 //WINDOW POSITIONS
                 ConfigNode flightWindowPositionNode = internalData.AddNode("flightWindowPosition");
                 flightWindowPositionNode.AddValue("x", flightWindowPosition.xMin);
@@ -200,6 +210,7 @@ namespace TimeControl
 
             config.Save(path);
         }
+        
         private void loadConfig()
         {
             try
@@ -213,6 +224,11 @@ namespace TimeControl
                 visible = bool.Parse(internalData.GetValue("visible"));
                 minimized = bool.Parse(internalData.GetValue("minimized"));
                 mode = int.Parse(internalData.GetValue("mode"));
+
+                //TOOLBAR
+                ConfigNode toolbarChoice = internalData.GetNode("toolbarChoice");
+                useStockToolbar = bool.Parse(toolbarChoice.GetValue("useStockToolbar"));
+                useBlizzyToolbar = bool.Parse(toolbarChoice.GetValue("useBlizzyToolbar"));
 
                 //WINDOW POSITIONS
                 ConfigNode flightWindowPositionNode = internalData.GetNode("flightWindowPosition");
@@ -289,6 +305,7 @@ namespace TimeControl
                 }
             }
         }
+        
         private void saveConfig()
         {
             //INTERNAL DATA NODE
@@ -298,6 +315,11 @@ namespace TimeControl
             internalData.SetValue("visible", visible.ToString());
             internalData.SetValue("minimized", minimized.ToString());
             internalData.SetValue("mode", mode.ToString());
+
+            //TOOLBAR
+            ConfigNode toolbarChoice = internalData.GetNode("toolbarChoice");
+            useStockToolbar = bool.Parse(toolbarChoice.GetValue("useStockToolbar"));
+            useBlizzyToolbar = bool.Parse(toolbarChoice.GetValue("useBlizzyToolbar"));
 
             //WINDOW POSITIONS
             ConfigNode flightWindowPositionNode = internalData.GetNode("flightWindowPosition");

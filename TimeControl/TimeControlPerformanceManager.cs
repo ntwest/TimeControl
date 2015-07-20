@@ -38,7 +38,7 @@ namespace TimeControl
         private void Update()
         {
             //FPS calculation
-            ++frames;
+            frames++;
             if (Time.realtimeSinceStartup > lastInterval + updateInterval)
             {
                 fps = frames / (Time.realtimeSinceStartup - lastInterval);

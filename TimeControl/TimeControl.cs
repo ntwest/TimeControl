@@ -14,6 +14,7 @@ using KSP.IO;
 
 namespace TimeControl
 {
+
     [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     public class TimeControl : MonoBehaviour
     {
@@ -29,7 +30,9 @@ namespace TimeControl
         private Boolean supressFlightResultsDialog = false;
         private FlightResultsDialog fld;
         private Boolean fpsVisible = true;
-        private Boolean tempInvisible = false;
+
+        // KSC Control Locking
+        private static bool isKSCLocked = false;
 
         //GUI
         private static Rect minimizeButton = new Rect(5, 5, 10, 10);
@@ -63,7 +66,7 @@ namespace TimeControl
 
         //KEYS
         private Boolean[] keySet = new Boolean[8];
-        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Custom-#x: ", "Pause: ", "Step: ", "Hyper Warp: "};
+        private String[] keyLabels = { "Speed Up: ", "Slow Down: ", "Realtime: ", "1/64x: ", "Custom-#x: ", "Pause: ", "Step: ", "Hyper Warp: " };
 
         //HYPERWARP
         private Boolean hyperWarping = false;
@@ -73,7 +76,7 @@ namespace TimeControl
         private double hyperWarpTime = Mathf.Infinity;
         private float hyperMaxRate = 2f;
         private string hyperMaxRateText = "2";
-        
+
         //WARP
         private Boolean autoWarping = false;
         private string warpYears = "0"; private string warpDays = "0"; private string warpHours = "0"; private string warpMinutes = "0"; private string warpSeconds = "0";
@@ -99,11 +102,15 @@ namespace TimeControl
                 Settings.visible = true;
             }
         }//TODO AppToolbar implementation (waiting until it will work in the TS)
+
         private void Awake()
         {
             UnityEngine.Object.DontDestroyOnLoad(this); //Don't go away on scene changes
 
             //Check for updates
+
+            // NW - Disabled version checking for now
+            /*
             KSVersionCheck.VersionCheck.CheckVersion(21, latest =>
             {
                 if (latest.friendly_version != Assembly.GetExecutingAssembly().GetName().Version.ToString(2))
@@ -112,7 +119,10 @@ namespace TimeControl
                     TimeControl.updateNumber = latest.friendly_version;
                 }
             });
+             * */
+
         }
+
         private void Start()
         {
             FlightCamera[] cams = FlightCamera.FindObjectsOfType(typeof(FlightCamera)) as FlightCamera[];
@@ -137,21 +147,25 @@ namespace TimeControl
 
         //EVENT MANAGERS
         private void onFlightReady()
-        {  
+        {
             operational = true;
             timeSlider = 0f;
         }
+
         private void onGameSceneLoadRequested(GameScenes gs)
         {
             exitHyper();
+
             operational = false;
             autoWarping = false;
-            tempInvisible = true;
+
+            Settings.tempInvisible = true;
             if (HighLogic.LoadedSceneIsFlight)
             {
                 setSpontanousDestructionMechanic(true);
             }
         }
+
         private void onGamePause()
         {
             operational = false;
@@ -162,17 +176,17 @@ namespace TimeControl
         }
         private void onHideUI()
         {
-            tempInvisible = true;
+            Settings.tempInvisible = true;
             fpsVisible = false;
         }
         private void onShowUI()
         {
-            tempInvisible = false;
+            Settings.tempInvisible = false;
             fpsVisible = true;
         }
         private void onLevelWasLoaded(GameScenes gs)
         {
-            tempInvisible = false;
+            Settings.tempInvisible = false;
 
             if (ToolbarManager.ToolbarAvailable)
             {
@@ -206,7 +220,7 @@ namespace TimeControl
             if (TimeWarp.CurrentRateIndex > 0)
             {
                 operational = false;
-                if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel.altitude > FlightGlobals.currentMainBody.atmosphereDepth )
+                if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel.altitude > FlightGlobals.currentMainBody.atmosphereDepth)
                 {
                     setSpontanousDestructionMechanic(false);
                 }
@@ -264,76 +278,86 @@ namespace TimeControl
             {
                 autoWarping = false;
             }
-        }
-            private void preUpdate()
+        }        
+
+        private void preUpdate()
+        {
+            if (selectedSOI == -1)
             {
-                if (selectedSOI == -1)
-                {
-                    SOI = currentSOI;
-                }
-                else
-                {
-                    SOI = selectedSOI;
-                }
+                SOI = currentSOI;
+            }
+            else
+            {
+                SOI = selectedSOI;
+            }
 
-                if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
+            if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKeyDown(KeyCode.T))
+            {
+                Settings.visible = !Settings.visible;
+                toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
+                if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
                 {
-                    Settings.visible = !Settings.visible;
-                    toolbarButton.TexturePath = Settings.visible ? "TimeControl/active" : "TimeControl/inactive";
-                    if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
-                    {
-                        FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup(KSPActionGroup.SAS);
-                    }
-                }
-
-                //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
-                //{
-                //    showDebugGUI = true;
-                //}
-
-                sizeWindows();
-
-                if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
-                {
-                    if (mouseOverAnyWindow())
-                    {
-                        if (!(InputLockManager.GetControlLock("KAC lock") == ControlTypes.KSC_FACILITIES))
-                        {
-                            InputLockManager.SetControlLock(ControlTypes.KSC_FACILITIES, "KAC lock");
-                        }
-                    }
-                    else
-                    {
-                        if (InputLockManager.GetControlLock("KAC lock") == ControlTypes.KSC_FACILITIES)
-                        {
-                            InputLockManager.RemoveControlLock("KAC lock");
-                        }
-                    }
-                }
-
-                if (HighLogic.LoadedSceneIsFlight)
-                {
-                    if (FlightGlobals.ready)
-                    {
-                        currentSOI = getPlanetaryID(FlightGlobals.currentMainBody.name);
-                    }
-                }
-                else if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
-                {
-                    currentSOI = 1; //Kerbin
-                }
-                else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
-                {
-                    if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.CELESTIALBODY)
-                    {
-                        currentSOI = getPlanetaryID(PlanetariumCamera.fetch.target.celestialBody.name);
-                    }
-                    else if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.VESSEL)
-                    {
-                        currentSOI = getPlanetaryID(PlanetariumCamera.fetch.target.vessel.mainBody.name);
-                    }
+                    FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup(KSPActionGroup.SAS);
                 }
             }
+
+            //if ((Input.GetKey(KeyCode.LeftAlt) || Input.GetKey(KeyCode.RightAlt)) && Input.GetKey(KeyCode.T))
+            //{
+            //    showDebugGUI = true;
+            //}
+
+            sizeWindows();
+
+            //On mouseover code for build list inspired by Engineer's editor mousover code
+            Vector2 mousePos = Input.mousePosition;
+            mousePos.y = Screen.height - mousePos.y;
+            if (HighLogic.LoadedScene == GameScenes.SPACECENTER && !isKSCLocked)
+            {
+                if ((Settings.visible && Settings.flightWindowPosition.Contains(mousePos))
+                    || (Settings.visible && Settings.menuWindowPosition.Contains(mousePos))
+                    || (Settings.visible && Settings.settingsWindowPosition.Contains(mousePos)))
+                {
+                    InputLockManager.SetControlLock(ControlTypes.KSC_FACILITIES, "TimeControlKSCLock");
+                    isKSCLocked = true;
+                }
+                TC.LogDebug("KSC Locked");
+            }
+            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER && isKSCLocked)
+            {
+                if ((Settings.visible && Settings.flightWindowPosition.Contains(mousePos))
+                    || (Settings.visible && Settings.menuWindowPosition.Contains(mousePos))
+                    || (Settings.visible && Settings.settingsWindowPosition.Contains(mousePos)))
+                {
+                    InputLockManager.RemoveControlLock("TimeControlKSCLock");
+                    isKSCLocked = false;
+                }
+                TC.LogDebug("KSC UnLocked");
+            }
+
+            if (HighLogic.LoadedSceneIsFlight)
+            {
+                if (FlightGlobals.ready)
+                {
+                    currentSOI = TC.getPlanetaryID(FlightGlobals.currentMainBody.name);
+                }
+            }
+            else if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+            {
+                currentSOI = 1; //Kerbin
+            }
+            else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            {
+                if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.CELESTIALBODY)
+                {
+                    currentSOI = TC.getPlanetaryID(PlanetariumCamera.fetch.target.celestialBody.name);
+                }
+                else if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.VESSEL)
+                {
+                    currentSOI = TC.getPlanetaryID(PlanetariumCamera.fetch.target.vessel.mainBody.name);
+                }
+            }
+        }
+
         private void FixedUpdate()
         {
             if (Planetarium.GetUniversalTime() >= hyperWarpTime)
@@ -351,6 +375,7 @@ namespace TimeControl
                 pauseOnNextFixedUpdate = false;
             }
         }
+
         private void flightUpdate()
         {
             UpdateCollision();
@@ -402,13 +427,13 @@ namespace TimeControl
 
                 if (!hyperWarping)
                 {
-                    truePos = convertToExponential(timeSlider);
+                    truePos = TC.convertToExponential(timeSlider);
                     if (!timePaused)
                     {
                         fpsKeeper();
 
-                        smoothSlider = linearInterpolate(smoothSlider, timeSlider, .01f);
-                        inverseTimeScale = convertToExponential(smoothSlider);
+                        smoothSlider = TC.linearInterpolate(smoothSlider, timeSlider, .01f);
+                        inverseTimeScale = TC.convertToExponential(smoothSlider);
                         Time.timeScale = 1f / inverseTimeScale;
                         Time.fixedDeltaTime = deltaLocked ? defaultDeltaTime : defaultDeltaTime * (1f / inverseTimeScale);
                         //Time.maximumDeltaTime = (Mathf.Round(Settings.maxDeltaTimeSlider * 100f) / 100f)/inverseTimeScale;
@@ -451,7 +476,7 @@ namespace TimeControl
                 debugWindowPosition = constrainToScreen(GUILayout.Window(9001, debugWindowPosition, onDebugGUI, "Time Control: Debug"));
             }
 
-            if (Settings.visible && !tempInvisible)
+            if (Settings.visible && !Settings.tempInvisible)
             {
                 if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
@@ -460,17 +485,17 @@ namespace TimeControl
 
                 if (HighLogic.LoadedSceneIsFlight)
                 {
-                    Settings.flightWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode()+1, Settings.flightWindowPosition, onFlightGUI, "Time Control"));
+                    Settings.flightWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode() + 1, Settings.flightWindowPosition, onFlightGUI, "Time Control"));
 
                     if (settingsOpen && !Settings.minimized)
                     {
-                        Settings.settingsWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode()+2, Settings.settingsWindowPosition, onSettingsGUI, "Time Control Settings"));
+                        Settings.settingsWindowPosition = constrainToScreen(GUILayout.Window("Time Control".GetHashCode() + 2, Settings.settingsWindowPosition, onSettingsGUI, "Time Control Settings"));
                     }
                 }
             }
 
             GUI.skin = HighLogic.Skin;
-        } 
+        }
         private void onMenuGUI(int windowId)
         {
             //Minimize button
@@ -524,466 +549,467 @@ namespace TimeControl
 
             GUI.DragWindow();
         }
-            private void modeButtons()
+        private void modeButtons()
+        {
+            Color bc = GUI.backgroundColor;
+            Color cc = GUI.contentColor;
+            GUI.backgroundColor = Color.clear;
+            //Settings button
+            if (!settingsOpen)
             {
-                Color bc = GUI.backgroundColor;
-                Color cc = GUI.contentColor;
-                GUI.backgroundColor = Color.clear;
-                //Settings button
-                if (!settingsOpen)
-                {
-                        GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
-                }
-                if (GUI.Button(settingsButton, "?"))
-                {
-                    settingsOpen = !settingsOpen;
-                }
-                GUI.contentColor = cc;
-                //Slow-mo mode
-                if (Settings.mode != 0)
-                {
-                    GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
-                }
-                if (GUI.Button(mode0Button, "S"))
-                {
-                    Settings.mode = 0;
-                }
-                GUI.contentColor = cc;
-                //Hyper mode
-                if (Settings.mode != 1)
-                {
-                    GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
-                }
-                if (GUI.Button(mode1Button, "H"))
-                {
-                    Settings.mode = 1;
-                }
-                GUI.contentColor = cc;
-                //Rails mode
-                if (Settings.mode != 2)
-                {
-                    GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
-                }
-                if (GUI.Button(mode2Button, "R"))
-                {
-                    Settings.mode = 2;
-                }
-                GUI.contentColor = cc;
-                GUI.backgroundColor = bc;
+                GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
             }
-            private void modeSlowmo()
+            if (GUI.Button(settingsButton, "?"))
             {
+                settingsOpen = !settingsOpen;
+            }
+            GUI.contentColor = cc;
+            //Slow-mo mode
+            if (Settings.mode != 0)
+            {
+                GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+            }
+            if (GUI.Button(mode0Button, "S"))
+            {
+                Settings.mode = 0;
+            }
+            GUI.contentColor = cc;
+            //Hyper mode
+            if (Settings.mode != 1)
+            {
+                GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+            }
+            if (GUI.Button(mode1Button, "H"))
+            {
+                Settings.mode = 1;
+            }
+            GUI.contentColor = cc;
+            //Rails mode
+            if (Settings.mode != 2)
+            {
+                GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+            }
+            if (GUI.Button(mode2Button, "R"))
+            {
+                Settings.mode = 2;
+            }
+            GUI.contentColor = cc;
+            GUI.backgroundColor = bc;
+        }
+        private void modeSlowmo()
+        {
+            GUI.enabled = (operational && !Settings.fpsKeeperActive);
+
+            GUILayout.BeginVertical();
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    if (truePos != 1)
+                    {
+                        GUILayout.Label("Time Scale: 1/" + truePos.ToString() + "x");
+                    }
+                    else
+                    {
+                        GUILayout.Label("Time Scale: " + truePos.ToString() + "x");
+                    }
+                    GUI.enabled = operational;
+                    if (!timePaused)
+                    {
+                        if (GUILayout.Button("Pause", GUILayout.Width(60)))
+                        {
+                            timePaused = true;
+                        }
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Resume", GUILayout.Width(60)))
+                        {
+                            timePaused = false;
+                        }
+                    }
+                    GUI.enabled = timePaused;
+                    if (GUILayout.Button(">", GUILayout.Width(20)))
+                    {
+                        timePaused = false;
+                        pauseOnNextFixedUpdate = true;
+                    }
+                    GUI.enabled = operational;
+                }
+                GUILayout.EndHorizontal();
+
                 GUI.enabled = (operational && !Settings.fpsKeeperActive);
+                timeSlider = GUILayout.HorizontalSlider(timeSlider, 0f, 1f);
+                deltaLocked = Settings.fpsKeeperActive ? GUILayout.Toggle(Settings.fpsKeeperActive, "Lock physics delta to default") : GUILayout.Toggle(deltaLocked, "Lock physics delta to default");
 
-                GUILayout.BeginVertical();
-                {
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (truePos != 1)
-                        {
-                            GUILayout.Label("Time Scale: 1/" + truePos.ToString() + "x");
-                        }
-                        else
-                        {
-                            GUILayout.Label("Time Scale: " + truePos.ToString() + "x");
-                        }
-                        GUI.enabled = operational;
-                        if (!timePaused)
-                        {
-                            if (GUILayout.Button("Pause", GUILayout.Width(60)))
-                            {
-                                timePaused = true;
-                            }
-                        }
-                        else
-                        {
-                            if (GUILayout.Button("Resume", GUILayout.Width(60)))
-                            {
-                                timePaused = false;
-                            }
-                        }
-                        GUI.enabled = timePaused;
-                        if (GUILayout.Button(">", GUILayout.Width(20)))
-                        {
-                            timePaused = false;
-                            pauseOnNextFixedUpdate = true;
-                        }
-                        GUI.enabled = operational;
-                    }
-                    GUILayout.EndHorizontal();
+                GUILayout.Label("", GUILayout.Height(5));
 
-                    GUI.enabled = (operational && !Settings.fpsKeeperActive);
-                    timeSlider = GUILayout.HorizontalSlider(timeSlider, 0f, 1f);
-                    deltaLocked = Settings.fpsKeeperActive ? GUILayout.Toggle(Settings.fpsKeeperActive, "Lock physics delta to default") : GUILayout.Toggle(deltaLocked, "Lock physics delta to default");
-
-                    GUILayout.Label("", GUILayout.Height(5));
-
-                    throttleToggle = GUILayout.Toggle(throttleToggle, "Throttle Control: " + Mathf.Round(throttleSlider * 100) + "%");
-                    throttleSlider = GUILayout.HorizontalSlider(throttleSlider, 0.0f, 1.0f);
-                }
-                GUILayout.EndVertical();
+                throttleToggle = GUILayout.Toggle(throttleToggle, "Throttle Control: " + Mathf.Round(throttleSlider * 100) + "%");
+                throttleSlider = GUILayout.HorizontalSlider(throttleSlider, 0.0f, 1.0f);
             }
-            private void modeHyper()
+            GUILayout.EndVertical();
+        }
+        private void modeHyper()
+        {
+            GUI.enabled = ((inverseTimeScale == 1) && operational && !Settings.fpsKeeperActive);
+            GUILayout.BeginVertical();
             {
-                GUI.enabled = ((inverseTimeScale == 1) && operational && !Settings.fpsKeeperActive);
-                GUILayout.BeginVertical();
+                GUILayout.BeginHorizontal();
                 {
-                    GUILayout.BeginHorizontal();
+                    GUILayout.Label("Time Rate: " + (PerformanceManager.ptr / 1 * 100).ToString("0") + "%");
+                    GUILayout.FlexibleSpace();
+                    if (hyperWarping)
                     {
-                        GUILayout.Label("Time Rate: " + (PerformanceManager.ptr / 1 * 100).ToString("0") + "%");
-                        GUILayout.FlexibleSpace();
-                        if (hyperWarping)
-                        {
-                            GUILayout.Label("HYPER");
-                        }
-                        else if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
-                        {
-                            GUILayout.Label("RAILS");
-                        }
-                        else if (TimeWarp.WarpMode == TimeWarp.Modes.LOW && TimeWarp.CurrentRateIndex > 0)
-                        {
-                            GUILayout.Label("PHYS");
-                        }
-                        else if (timePaused || FlightDriver.Pause)
-                        {
-                            GUILayout.Label("PAUSED");
-                        }
-                        else if (Time.timeScale < 1)
-                        {
-                            GUILayout.Label("SLOWMO");
-                        }
-                        else
-                        {
-                            GUILayout.Label("NORM");
-                        }
+                        GUILayout.Label("HYPER");
                     }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label("Max Warp Rate: " + Mathf.Round(hyperMaxRate));
-                    
-                    GUILayout.BeginHorizontal();
-                    
-                    float lmaxWarpRatef;
-                    string lmaxWarpRatestr;
-
-                    lmaxWarpRatestr = GUILayout.TextField(hyperMaxRateText, GUILayout.Width(35));
-                    if (lmaxWarpRatestr != hyperMaxRateText && float.TryParse(lmaxWarpRatestr, out lmaxWarpRatef))
+                    else if (TimeWarp.WarpMode == TimeWarp.Modes.HIGH && TimeWarp.CurrentRateIndex > 0)
                     {
-                        hyperMaxRateText = lmaxWarpRatestr;
-                        hyperMaxRate = lmaxWarpRatef;
-
-                    } 
-
-                    lmaxWarpRatef = GUILayout.HorizontalSlider(hyperMaxRate, 2f, 100f);
-                    lmaxWarpRatef = (float)Math.Truncate(lmaxWarpRatef);
-                    if (lmaxWarpRatef != hyperMaxRate) {
-                        hyperMaxRate = lmaxWarpRatef;
-                        hyperMaxRateText = lmaxWarpRatef.ToString();
+                        GUILayout.Label("RAILS");
                     }
-                    
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label("Min Physics Accuracy: " + 1 / hyperMinPhys);
-                    hyperMinPhys = GUILayout.HorizontalSlider(hyperMinPhys, 1f, 4f);
-
-                    GUILayout.BeginHorizontal();
+                    else if (TimeWarp.WarpMode == TimeWarp.Modes.LOW && TimeWarp.CurrentRateIndex > 0)
                     {
-                        if (GUILayout.Button("Warp"))
-                        {
-                            hyperWarping = true;
-                        }
-
-                        if (GUILayout.Button("Resume"))
-                        {
-                            timePaused = false;
-                            exitHyper();
-                        }
+                        GUILayout.Label("PHYS");
                     }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label("", GUILayout.Height(5));
-
-                    GUILayout.BeginHorizontal();
+                    else if (timePaused || FlightDriver.Pause)
                     {
-                        GUILayout.Label("Timed Warp:");
-                        hyperWarpHours = GUILayout.TextField(hyperWarpHours, GUILayout.Width(35));
-                        GUILayout.Label("h ");
-                        hyperWarpMinutes = GUILayout.TextField(hyperWarpMinutes, GUILayout.Width(35));
-                        GUILayout.Label("m ");
-                        hyperWarpSeconds = GUILayout.TextField(hyperWarpSeconds, GUILayout.Width(35));
-                        GUILayout.Label("s");
+                        GUILayout.Label("PAUSED");
                     }
-                    GUILayout.EndHorizontal();
+                    else if (Time.timeScale < 1)
+                    {
+                        GUILayout.Label("SLOWMO");
+                    }
+                    else
+                    {
+                        GUILayout.Label("NORM");
+                    }
+                }
+                GUILayout.EndHorizontal();
 
-                    hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");
+                GUILayout.Label("Max Warp Rate: " + Mathf.Round(hyperMaxRate));
 
-                    if (GUILayout.Button("Timed Warp"))
+                GUILayout.BeginHorizontal();
+
+                float lmaxWarpRatef;
+                string lmaxWarpRatestr;
+
+                lmaxWarpRatestr = GUILayout.TextField(hyperMaxRateText, GUILayout.Width(35));
+                if (lmaxWarpRatestr != hyperMaxRateText && float.TryParse(lmaxWarpRatestr, out lmaxWarpRatef))
+                {
+                    hyperMaxRateText = lmaxWarpRatestr;
+                    hyperMaxRate = lmaxWarpRatef;
+
+                }
+
+                lmaxWarpRatef = GUILayout.HorizontalSlider(hyperMaxRate, 2f, 100f);
+                lmaxWarpRatef = (float)Math.Truncate(lmaxWarpRatef);
+                if (lmaxWarpRatef != hyperMaxRate)
+                {
+                    hyperMaxRate = lmaxWarpRatef;
+                    hyperMaxRateText = lmaxWarpRatef.ToString();
+                }
+
+                GUILayout.EndHorizontal();
+
+                GUILayout.Label("Min Physics Accuracy: " + 1 / hyperMinPhys);
+                hyperMinPhys = GUILayout.HorizontalSlider(hyperMinPhys, 1f, 4f);
+
+                GUILayout.BeginHorizontal();
+                {
+                    if (GUILayout.Button("Warp"))
                     {
                         hyperWarping = true;
-                        int hours = parseSTOI(hyperWarpHours);
-                        hyperWarpHours = "0";
-                        int minutes = parseSTOI(hyperWarpMinutes);
-                        hyperWarpMinutes = "0";
-                        int seconds = parseSTOI(hyperWarpSeconds);
-                        hyperWarpSeconds = "0";
-
-                        hyperWarpTime = hours * 3600 +
-                                        minutes * 60 +
-                                        seconds +
-                                        Planetarium.GetUniversalTime();
                     }
 
-                    GUILayout.Label("", GUILayout.Height(5));
-
-                    throttleToggle = GUILayout.Toggle(throttleToggle, "Throttle Control: " + Mathf.Round(throttleSlider * 100) + "%");
-                    throttleSlider = GUILayout.HorizontalSlider(throttleSlider, 0.0f, 1.0f);
+                    if (GUILayout.Button("Resume"))
+                    {
+                        timePaused = false;
+                        exitHyper();
+                    }
                 }
-                GUILayout.EndVertical();
-            }
-            private void modeRails()
-            {
-                GUI.enabled = true;
+                GUILayout.EndHorizontal();
 
-                GUILayout.BeginVertical();
+                GUILayout.Label("", GUILayout.Height(5));
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label("Timed Warp:");
+                    hyperWarpHours = GUILayout.TextField(hyperWarpHours, GUILayout.Width(35));
+                    GUILayout.Label("h ");
+                    hyperWarpMinutes = GUILayout.TextField(hyperWarpMinutes, GUILayout.Width(35));
+                    GUILayout.Label("m ");
+                    hyperWarpSeconds = GUILayout.TextField(hyperWarpSeconds, GUILayout.Width(35));
+                    GUILayout.Label("s");
+                }
+                GUILayout.EndHorizontal();
+
+                hyperPauseOnTimeReached = GUILayout.Toggle(hyperPauseOnTimeReached, "Pause on time reached");
+
+                if (GUILayout.Button("Timed Warp"))
+                {
+                    hyperWarping = true;
+                    int hours = parseSTOI(hyperWarpHours);
+                    hyperWarpHours = "0";
+                    int minutes = parseSTOI(hyperWarpMinutes);
+                    hyperWarpMinutes = "0";
+                    int seconds = parseSTOI(hyperWarpSeconds);
+                    hyperWarpSeconds = "0";
+
+                    hyperWarpTime = hours * 3600 +
+                                    minutes * 60 +
+                                    seconds +
+                                    Planetarium.GetUniversalTime();
+                }
+
+                GUILayout.Label("", GUILayout.Height(5));
+
+                throttleToggle = GUILayout.Toggle(throttleToggle, "Throttle Control: " + Mathf.Round(throttleSlider * 100) + "%");
+                throttleSlider = GUILayout.HorizontalSlider(throttleSlider, 0.0f, 1.0f);
+            }
+            GUILayout.EndVertical();
+        }
+        private void modeRails()
+        {
+            GUI.enabled = true;
+
+            GUILayout.BeginVertical();
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label("Current SOI: " + PSystemManager.Instance.localBodies[currentSOI].bodyName);
+                    GUILayout.FlexibleSpace();
+                    GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
+                }
+                GUILayout.EndHorizontal();
+
+                GUILayout.Label("", GUILayout.Height(5));
+
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.BeginHorizontal(GUILayout.Width(175));
+                    {
+                        GUILayout.Label("Warp Rate");
+                        warpLevelsButtons();
+                    }
+                    GUILayout.EndHorizontal();
+
+                    GUILayout.Label("Altitude Limit");
+                    GUILayout.FlexibleSpace();
+                    string s;
+                    if (selectedSOI == -1)
+                    {
+                        s = "Current";
+                    }
+                    else
+                    {
+                        s = PSystemManager.Instance.localBodies[selectedSOI].name;
+                    }
+                    SOISelect = GUILayout.Toggle(SOISelect, s, "button", GUILayout.Width(80));
+                }
+                GUILayout.EndHorizontal();
+
+                warpScroll = GUILayout.BeginScrollView(warpScroll, GUILayout.Height(203));
                 {
                     GUILayout.BeginHorizontal();
                     {
-                        GUILayout.Label("Current SOI: " + PSystemManager.Instance.localBodies[currentSOI].name);
-                        GUILayout.FlexibleSpace();
-                        GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label("", GUILayout.Height(5));
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.BeginHorizontal(GUILayout.Width(175));
+                        GUILayout.BeginVertical(GUILayout.Width(20));
                         {
-                            GUILayout.Label("Warp Rate");
-                            warpLevelsButtons();
-                        }
-                        GUILayout.EndHorizontal();
-
-                        GUILayout.Label("Altitude Limit");
-                        GUILayout.FlexibleSpace();
-                        string s;
-                        if (selectedSOI == -1)
-                        {
-                            s = "Current";
-                        }
-                        else
-                        {
-                            s = PSystemManager.Instance.localBodies[selectedSOI].name;
-                        }
-                        SOISelect = GUILayout.Toggle(SOISelect, s, "button", GUILayout.Width(80));
-                    }
-                    GUILayout.EndHorizontal();
-
-                    warpScroll = GUILayout.BeginScrollView(warpScroll, GUILayout.Height(203));
-                    {
-                        GUILayout.BeginHorizontal();
-                        {
-                            GUILayout.BeginVertical(GUILayout.Width(20));
+                            for (int i = 0; i < Settings.warpLevels; i++)
                             {
-                                for (int i = 0; i < Settings.warpLevels; i++)
-                                {
-                                    GUILayout.Label(i + 1 + ":");
-                                }
+                                GUILayout.Label(i + 1 + ":");
                             }
-                            GUILayout.EndVertical();
+                        }
+                        GUILayout.EndVertical();
 
-                            GUILayout.BeginVertical(GUILayout.Width(150));
+                        GUILayout.BeginVertical(GUILayout.Width(150));
+                        {
+                            GUI.enabled = false;
+                            Settings.customWarpRates[0] = GUILayout.TextField(Settings.customWarpRates[0], 10);
+                            GUI.enabled = true;
+
+                            for (int i = 1; i < Settings.warpLevels; i++)
+                            {
+                                Settings.customWarpRates[i] = GUILayout.TextField(Settings.customWarpRates[i], 10);
+                            }
+                        }
+                        GUILayout.EndVertical();
+
+                        GUILayout.BeginVertical(GUILayout.Width(150));
+                        {
+                            if (!SOISelect)
                             {
                                 GUI.enabled = false;
-                                Settings.customWarpRates[0] = GUILayout.TextField(Settings.customWarpRates[0], 10);
+                                Settings.customAltitudeLimits[SOI][0] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][0]);
                                 GUI.enabled = true;
 
                                 for (int i = 1; i < Settings.warpLevels; i++)
                                 {
-                                    Settings.customWarpRates[i] = GUILayout.TextField(Settings.customWarpRates[i], 10);
+                                    Settings.customAltitudeLimits[SOI][i] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][i], 20);
                                 }
-                            }
-                            GUILayout.EndVertical();
-
-                            GUILayout.BeginVertical(GUILayout.Width(150));
-                            {
-                                if (!SOISelect)
-                                {
-                                    GUI.enabled = false;
-                                    Settings.customAltitudeLimits[SOI][0] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][0]);
-                                    GUI.enabled = true;
-
-                                    for (int i = 1; i < Settings.warpLevels; i++)
-                                    {
-                                        Settings.customAltitudeLimits[SOI][i] = GUILayout.TextField(Settings.customAltitudeLimits[SOI][i], 20);
-                                    }
-                                }
-                                else
-                                {
-                                    onSOISelect();
-                                }
-                            }
-                            GUILayout.EndVertical();
-                        }
-                        GUILayout.EndHorizontal();
-                    }
-                    GUILayout.EndScrollView();
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (GUILayout.Button("Reset warp rates", GUILayout.Width(174)))
-                        {
-                            for (int i = 0; i < Settings.standardWarpRates.Length; i++)
-                            {
-                                Settings.customWarpRates[i] = Settings.standardWarpRates[i];
-                            }
-                        }
-
-                        if (GUILayout.Button("Reset body altitude limits"))
-                        {
-                            for (int i = 0; i < Settings.standardAltitudeLimits[SOI].Length; i++)
-                            {
-                                Settings.customAltitudeLimits[SOI][i] = Settings.standardAltitudeLimits[SOI][i];
-                            }
-                        }
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.Label("", GUILayout.Height(5));
-
-                    onWarpTo();
-                }
-                GUILayout.EndVertical();
-            }
-                private void onWarpTo()
-                {
-                    GUI.enabled = (TimeWarp.CurrentRateIndex == 0);
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Label("Time Warp:");
-
-                        warpYears = GUILayout.TextField(warpYears, GUILayout.Width(35));
-                        GUILayout.Label("y ");
-                        warpDays = GUILayout.TextField(warpDays, GUILayout.Width(35));
-                        GUILayout.Label("d ");
-                        warpHours = GUILayout.TextField(warpHours, GUILayout.Width(35));
-                        GUILayout.Label("h ");
-                        warpMinutes = GUILayout.TextField(warpMinutes, GUILayout.Width(35));
-                        GUILayout.Label("m ");
-                        warpSeconds = GUILayout.TextField(warpSeconds, GUILayout.Width(35));
-                        GUILayout.Label("s");
-                    }
-                    GUILayout.EndHorizontal();
-
-                    GUILayout.BeginHorizontal();
-                    {
-                        if (GUILayout.Button("Auto Warp", GUILayout.Width(174)))
-                        {
-                            int years = parseSTOI(warpYears);
-                            warpYears = "0";
-                            int days = parseSTOI(warpDays);
-                            warpDays = "0";
-                            int hours = parseSTOI(warpHours);
-                            warpHours = "0";
-                            int minutes = parseSTOI(warpMinutes);
-                            warpMinutes = "0";
-                            int seconds = parseSTOI(warpSeconds);
-                            warpSeconds = "0";
-
-                            if (GameSettings.KERBIN_TIME)
-                            {
-                                warpTime = years * 9201600 + days * 21600 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
                             }
                             else
                             {
-                                warpTime = years * 31536000 + days * 86400 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
-                            }
-                            if (warpTime > Planetarium.GetUniversalTime() && (warpTime - Planetarium.GetUniversalTime()) > parseSTOI(Settings.customWarpRates[1]))
-                            {
-                                autoWarping = true;
-                                timeWarp.WarpTo(warpTime);
+                                onSOISelect();
                             }
                         }
-
-                        GUI.enabled = true;
-                        if (GUILayout.Button("Cancel Warp"))
-                        {
-                            autoWarping = false;
-                            TimeWarp.fetch.SendMessage("StopAllCoroutines");
-                            TimeWarp.SetRate(0, false);
-                        }
+                        GUILayout.EndVertical();
                     }
                     GUILayout.EndHorizontal();
                 }
-                private void warpLevelsButtons()
+                GUILayout.EndScrollView();
+
+                GUILayout.BeginHorizontal();
                 {
-                    if (GUILayout.Button("+", GUILayout.Width(20)))
+                    if (GUILayout.Button("Reset warp rates", GUILayout.Width(174)))
                     {
-                        if (Settings.warpLevels < 99)
+                        for (int i = 0; i < Settings.standardWarpRates.Length; i++)
                         {
-                            Settings.warpLevels++;
-                            setWarpLevels(Settings.warpLevels);
+                            Settings.customWarpRates[i] = Settings.standardWarpRates[i];
                         }
                     }
-                    if (GUILayout.Button("-", GUILayout.Width(20)))
+
+                    if (GUILayout.Button("Reset body altitude limits"))
                     {
-                        if (Settings.warpLevels > 8)
+                        for (int i = 0; i < Settings.standardAltitudeLimits[SOI].Length; i++)
                         {
-                            Settings.warpLevels--;
-                            setWarpLevels(Settings.warpLevels);
+                            Settings.customAltitudeLimits[SOI][i] = Settings.standardAltitudeLimits[SOI][i];
                         }
                     }
                 }
-                    private void setWarpLevels(int levels)
-                    {
-                        while (timeWarp.warpRates.Length > levels)//remove
-                        {
-                            Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
-                            Array.Resize(ref timeWarp.warpRates, levels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.RemoveAt(s.Count - 1);
-                            }
-                            foreach (CelestialBody c in PSystemManager.Instance.localBodies)
-                            {
-                                Array.Resize(ref c.timeWarpAltitudeLimits, levels);
-                            }
-                        }
-                        while (timeWarp.warpRates.Length < levels)//add
-                        {
-                            Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
-                            Array.Resize(ref timeWarp.warpRates, levels);
-                            foreach (List<string> s in Settings.customAltitudeLimits)
-                            {
-                                s.Add(s[s.Count - 1]);
-                            }
-                            foreach (CelestialBody c in PSystemManager.Instance.localBodies)
-                            {
-                                Array.Resize(ref c.timeWarpAltitudeLimits, levels);
-                            }
-                        }
-                    }
-                private void onSOISelect()
+                GUILayout.EndHorizontal();
+
+                GUILayout.Label("", GUILayout.Height(5));
+
+                onWarpTo();
+            }
+            GUILayout.EndVertical();
+        }
+        private void onWarpTo()
+        {
+            GUI.enabled = (TimeWarp.CurrentRateIndex == 0);
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label("Time Warp:");
+
+                warpYears = GUILayout.TextField(warpYears, GUILayout.Width(35));
+                GUILayout.Label("y ");
+                warpDays = GUILayout.TextField(warpDays, GUILayout.Width(35));
+                GUILayout.Label("d ");
+                warpHours = GUILayout.TextField(warpHours, GUILayout.Width(35));
+                GUILayout.Label("h ");
+                warpMinutes = GUILayout.TextField(warpMinutes, GUILayout.Width(35));
+                GUILayout.Label("m ");
+                warpSeconds = GUILayout.TextField(warpSeconds, GUILayout.Width(35));
+                GUILayout.Label("s");
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            {
+                if (GUILayout.Button("Auto Warp", GUILayout.Width(174)))
                 {
-                    if (GUILayout.Button("Current"))
+                    int years = parseSTOI(warpYears);
+                    warpYears = "0";
+                    int days = parseSTOI(warpDays);
+                    warpDays = "0";
+                    int hours = parseSTOI(warpHours);
+                    warpHours = "0";
+                    int minutes = parseSTOI(warpMinutes);
+                    warpMinutes = "0";
+                    int seconds = parseSTOI(warpSeconds);
+                    warpSeconds = "0";
+
+                    if (GameSettings.KERBIN_TIME)
                     {
-                        selectedSOI = -1;
-                        SOISelect = false;
-                        warpScroll.y = 0;
+                        warpTime = years * 9201600 + days * 21600 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
                     }
-                    int i = 0;
-                    foreach (CelestialBody c in PSystemManager.Instance.localBodies)
+                    else
                     {
-                        if (GUILayout.Button(c.name))
-                        {
-                            selectedSOI = i;
-                            SOISelect = false;
-                            warpScroll.y = 0;
-                        }
-                        i++;
+                        warpTime = years * 31536000 + days * 86400 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
+                    }
+                    if (warpTime > Planetarium.GetUniversalTime() && (warpTime - Planetarium.GetUniversalTime()) > parseSTOI(Settings.customWarpRates[1]))
+                    {
+                        autoWarping = true;
+                        timeWarp.WarpTo(warpTime);
                     }
                 }
+
+                GUI.enabled = true;
+                if (GUILayout.Button("Cancel Warp"))
+                {
+                    autoWarping = false;
+                    TimeWarp.fetch.SendMessage("StopAllCoroutines");
+                    TimeWarp.SetRate(0, false);
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+        private void warpLevelsButtons()
+        {
+            if (GUILayout.Button("+", GUILayout.Width(20)))
+            {
+                if (Settings.warpLevels < 99)
+                {
+                    Settings.warpLevels++;
+                    setWarpLevels(Settings.warpLevels);
+                }
+            }
+            if (GUILayout.Button("-", GUILayout.Width(20)))
+            {
+                if (Settings.warpLevels > 8)
+                {
+                    Settings.warpLevels--;
+                    setWarpLevels(Settings.warpLevels);
+                }
+            }
+        }
+        private void setWarpLevels(int levels)
+        {
+            while (timeWarp.warpRates.Length > levels)//remove
+            {
+                Settings.customWarpRates.RemoveAt(Settings.customWarpRates.Count - 1);
+                Array.Resize(ref timeWarp.warpRates, levels);
+                foreach (List<string> s in Settings.customAltitudeLimits)
+                {
+                    s.RemoveAt(s.Count - 1);
+                }
+                foreach (CelestialBody c in PSystemManager.Instance.localBodies)
+                {
+                    Array.Resize(ref c.timeWarpAltitudeLimits, levels);
+                }
+            }
+            while (timeWarp.warpRates.Length < levels)//add
+            {
+                Settings.customWarpRates.Add(Settings.customWarpRates[Settings.customWarpRates.Count - 1]);
+                Array.Resize(ref timeWarp.warpRates, levels);
+                foreach (List<string> s in Settings.customAltitudeLimits)
+                {
+                    s.Add(s[s.Count - 1]);
+                }
+                foreach (CelestialBody c in PSystemManager.Instance.localBodies)
+                {
+                    Array.Resize(ref c.timeWarpAltitudeLimits, levels);
+                }
+            }
+        }        
+        private void onSOISelect()
+        {
+            if (GUILayout.Button("Current"))
+            {
+                selectedSOI = -1;
+                SOISelect = false;
+                warpScroll.y = 0;
+            }
+            int i = 0;
+            foreach (CelestialBody c in PSystemManager.Instance.localBodies)
+            {
+                if (GUILayout.Button(c.name))
+                {
+                    selectedSOI = i;
+                    SOISelect = false;
+                    warpScroll.y = 0;
+                }
+                i++;
+            }
+        }
         private void onSettingsGUI(int windowId)
         {
             //close button
@@ -1037,15 +1063,15 @@ namespace TimeControl
                     {
                         GUI.contentColor = c;
                     }
-                    string pos = (convertToExponential(Settings.customKeySlider) != 1) ? ("1/" + convertToExponential(Settings.customKeySlider).ToString()) : "1";
-                    if (GUILayout.Button(keyLabels[i].Replace("#", pos)  + Settings.keyBinds[i].primary.ToString()))
+                    string pos = (TC.convertToExponential(Settings.customKeySlider) != 1) ? ("1/" + TC.convertToExponential(Settings.customKeySlider).ToString()) : "1";
+                    if (GUILayout.Button(keyLabels[i].Replace("#", pos) + Settings.keyBinds[i].primary.ToString()))
                     {
                         if (keySet[i])
                         {
                             keySet[i] = false;
                             Settings.keyBinds[i] = new KeyBinding(KeyCode.None);
                         }
-                        else if (!arrayTrue(keySet))
+                        else if (keySet.Any(f => f))
                         {
                             keySet[i] = true;
                         }
@@ -1093,17 +1119,7 @@ namespace TimeControl
                 Event.current.Use();
             GUI.DragWindow();
         }
-            private Boolean arrayTrue(Boolean[] b)//return true if any true
-            {
-                foreach (Boolean value in b)
-                {
-                    if (value)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
+
         private void onDebugGUI(int windowID)
         {
             GUI.enabled = true;
@@ -1119,7 +1135,7 @@ namespace TimeControl
                 GUILayout.Label("Update Available: " + updateAvailable);
                 GUILayout.Label("Minimized: " + Settings.minimized);
                 GUILayout.Label("Visible (toolbar): " + Settings.visible);
-                GUILayout.Label("Temp Invisible: " + tempInvisible);
+                GUILayout.Label("Temp Invisible: " + Settings.tempInvisible);
                 GUILayout.Label("Operational: " + operational);
                 GUILayout.Label("TimeWarp: " + timeWarp);
                 GUILayout.Label("Flight Window: " + Settings.flightWindowPosition);
@@ -1159,12 +1175,14 @@ namespace TimeControl
                 Event.current.Use();
             GUI.DragWindow();
         }
+
         private Rect constrainToScreen(Rect r)
         {
             r.x = Mathf.Clamp(r.x, 0, Screen.width - r.width);
             r.y = Mathf.Clamp(r.y, 0, Screen.height - r.height);
             return r;
         }
+
         private void sizeWindows()
         {
             Settings.menuWindowPosition.height = 0;
@@ -1193,23 +1211,14 @@ namespace TimeControl
         }
 
         //HELPER FUNCTIONS
-        private Boolean mouseOverWindow(Rect r, Boolean visible)
-        {
-            return visible && r.Contains(Event.current.mousePosition);
-        }
-        private Boolean mouseOverAnyWindow()
-        {
-            return (mouseOverWindow(Settings.flightWindowPosition, Settings.visible) ||
-                    mouseOverWindow(Settings.menuWindowPosition, Settings.visible) ||
-                    mouseOverWindow(Settings.settingsWindowPosition, Settings.visible)
-                    );
-        }
+        
         private void exitHyper()
         {
             hyperWarping = false;
             hyperWarpTime = Mathf.Infinity;
             ScreenMessages.RemoveMessage(this.msg);
         }
+
         private void fpsKeeper()
         {
             //FPS KEEPER
@@ -1237,10 +1246,11 @@ namespace TimeControl
                 else
                 {
                     Settings.maxDeltaTimeSlider = 0.02f;
-                    timeSlider = (float)(fpsKeeperFactor - 10)/64f;
+                    timeSlider = (float)(fpsKeeperFactor - 10) / 64f;
                 }
             }
         }
+        
         private void keyManager()
         {
             for (int i = 0; i < Settings.keyBinds.Length; i++)
@@ -1306,19 +1316,13 @@ namespace TimeControl
             }
 
         }
+
         private void warpMessage(string text)
         {
             ScreenMessages.RemoveMessage(this.msg);
             this.msg = ScreenMessages.PostScreenMessage(text, 3f, ScreenMessageStyle.UPPER_CENTER);
         }
-		private int getPlanetaryID(string s) //ID from name
-		{
-			return PSystemManager.Instance.localBodies.FindIndex (p => p.bodyName.Equals(s));  
-		}
-        private float convertToExponential(float a) //1-64 exponential curve
-        {
-            return Mathf.Clamp(Mathf.Floor(Mathf.Pow(64, a)), 1, 64);
-        }
+
         private int parseSTOI(string a) //Parses a string to an int with standard limitations
         {
             int num;
@@ -1336,26 +1340,17 @@ namespace TimeControl
                                     );
             }
         }
-        private float linearInterpolate(float current, float target, float amount)
+
+        // NTW
+        // The fix for the explosions after time warp seems to cause the black screen when going back to the space center
+        // 
+        private void setSpontanousDestructionMechanic(bool b, CelestialBody c = null) //users...
         {
-            if (current > target && Mathf.Abs(current - target) > amount)
+            if (c == null) c = FlightGlobals.currentMainBody;
+
+            if (c.pqsController != null)
             {
-                return current - amount;
-            }
-            else if (current < target && Mathf.Abs(current - target) > amount)
-            {
-                return current + amount;
-            }
-            else
-            {
-                return target;
-            }
-        }
-        private void setSpontanousDestructionMechanic(bool b) //users...
-        {
-            if (FlightGlobals.currentMainBody.pqsController != null)
-            {
-                PQS p = FlightGlobals.currentMainBody.pqsController;
+                PQS p = c.pqsController;
                 var mods = p.transform.GetComponentsInChildren(typeof(PQSMod), true);
                 foreach (var m in mods)
                 {
@@ -1367,6 +1362,7 @@ namespace TimeControl
                 }
             }
         }
+      
 
         //Kragrathea's fix
         private GameObject FindLocal(string name)
@@ -1380,6 +1376,7 @@ namespace TimeControl
             }
             return null;
         }
+
         private void SetLocalCollision(string planetName, bool enabled = true)
         {
             var localPlanet = FindLocal(planetName);
@@ -1388,21 +1385,27 @@ namespace TimeControl
             {
                 if (c.enabled != enabled)
                 {
-                    print("Updating collision " + c.gameObject.name + "=" + enabled);
+                    TC.LogDebug("Updating collision " + c.gameObject.name + "=" + enabled);
                     c.enabled = enabled;
                 }
             }
         }
-        private string currentBodyName;
+
+        private string currentSOIName;
+
         private void UpdateCollision()
         {
-            if (FlightGlobals.currentMainBody != null && FlightGlobals.currentMainBody.bodyName != currentBodyName)
+            if (FlightGlobals.currentMainBody != null && FlightGlobals.currentMainBody.name != currentSOIName)
             {
-                print("Body change " + currentBodyName + " to " + FlightGlobals.currentMainBody.bodyName);
-                if (currentBodyName != null)
-                    SetLocalCollision(currentBodyName, false);
-                currentBodyName = FlightGlobals.currentMainBody.bodyName;
-                SetLocalCollision(currentBodyName, true);
+                TC.Log("Body change " + currentSOIName + " to " + FlightGlobals.currentMainBody.name);
+
+                CelestialBody oldBody = FlightGlobals.Bodies.Find(c => c.name == currentSOIName);
+                setSpontanousDestructionMechanic(true, oldBody);
+
+                if (currentSOIName != null)
+                    SetLocalCollision(currentSOIName, false);
+                currentSOIName = FlightGlobals.currentMainBody.name;
+                SetLocalCollision(currentSOIName, true);
             }
         }
     }
