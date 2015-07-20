@@ -47,7 +47,6 @@ namespace TimeControl
             GameEvents.onGUIApplicationLauncherReady.Add(AppLauncherReady);
             GameEvents.onGUIApplicationLauncherDestroyed.Add(AppLauncherDestroyed);
             GameEvents.onLevelWasLoadedGUIReady.Add(AppLauncherDestroyed);
-
         }
 
         #endregion
@@ -55,6 +54,15 @@ namespace TimeControl
         private void OnClick()
         {
             Settings.visible = !Settings.visible;
+
+            if (Settings.visible)
+            {
+                Set(true);
+            }
+            else
+            {
+                Set(false);
+            }
         }
 
         private void AppLauncherShow()
@@ -82,7 +90,16 @@ namespace TimeControl
             if (!isAvailable || !HighLogic.LoadedSceneIsGame) return;
             
             if (appLauncherButton == null)
-                appLauncherButton = ApplicationLauncher.Instance.AddModApplication(OnClick, null, null, null, null, null, AppScenes, buttonTexture);
+                appLauncherButton = ApplicationLauncher.Instance.AddModApplication(OnClick, OnClick, null, null, null, null, AppScenes, buttonTexture);
+
+            if (Settings.visible)
+            {
+                Set(true);
+            }
+            else
+            {
+                Set(false);
+            }
 
             ApplicationLauncher.Instance.RemoveOnHideCallback(AppLancherHide);
             ApplicationLauncher.Instance.RemoveOnShowCallback(AppLauncherShow);
