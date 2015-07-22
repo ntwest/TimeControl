@@ -260,6 +260,7 @@ namespace TimeControl
 
             setWarpLevels(Settings.warpLevels);
 
+            // Why is this updated every frame?
             for (int i = 0; i < Settings.warpLevels; i++)
             {
                 timeWarp.warpRates[i] = parseSTOI(Settings.customWarpRates[i]);

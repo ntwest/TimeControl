@@ -40,6 +40,8 @@ namespace TimeControl
         internal static Boolean useStockToolbar = true;
         internal static Boolean useBlizzyToolbar = true;
 
+        internal static bool logDebugMessages = false;
+
         //Options
         internal static int mode = 0;
         internal static Boolean camFix = true;
@@ -160,6 +162,9 @@ namespace TimeControl
                 internalData.AddValue("fpsMinSlider", fpsMinSlider);
 
                 internalData.AddValue("showFPS", showFPS);
+
+                internalData.AddValue("logDebugMessages", logDebugMessages);
+
                 ConfigNode fpsPositionNode = internalData.AddNode("fpsPosition");
                 fpsPositionNode.AddValue("x", fpsPosition.xMin);
                 fpsPositionNode.AddValue("y", fpsPosition.yMin);
@@ -247,8 +252,12 @@ namespace TimeControl
                 camFix = bool.Parse(internalData.GetValue("camFix"));
                 fpsKeeperActive = bool.Parse(internalData.GetValue("fpsKeeperActive"));
                 fpsMinSlider = int.Parse(internalData.GetValue("fpsMinSlider"));
-
+                
                 showFPS = bool.Parse(internalData.GetValue("showFPS"));
+
+                logDebugMessages = bool.Parse(internalData.GetValue("logDebugMessages"));
+                TC.logDebugMessages = logDebugMessages;
+
                 ConfigNode fpsPositionNode = internalData.GetNode("fpsPosition");
                 fpsPosition.xMin = float.Parse(fpsPositionNode.GetValue("x"));
                 fpsPosition.yMin = float.Parse(fpsPositionNode.GetValue("y"));
@@ -340,6 +349,9 @@ namespace TimeControl
             internalData.SetValue("fpsMinSlider", fpsMinSlider.ToString());
 
             internalData.SetValue("showFPS", showFPS.ToString());
+
+            internalData.SetValue("logDebugMessages", logDebugMessages.ToString());
+
             ConfigNode fpsPositionNode = internalData.GetNode("fpsPosition");
             fpsPositionNode.SetValue("x", fpsPosition.xMin.ToString());
             fpsPositionNode.SetValue("y", fpsPosition.yMin.ToString());

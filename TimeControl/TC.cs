@@ -13,7 +13,7 @@ namespace TimeControl
 
         private static string logPrefix = MOD + "(" + VERSION + "): ";
 
-        internal static bool logDebugMessages = true;
+        internal static bool logDebugMessages = false;
 
         internal static void LogDebug(string _string)
         {
