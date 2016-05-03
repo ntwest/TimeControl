@@ -164,7 +164,7 @@ namespace TimeControl
             Settings.tempInvisible = true;
             if (HighLogic.LoadedSceneIsFlight)
             {
-                setSpontanousDestructionMechanic(true);
+                // setSpontanousDestructionMechanic(true);
             }
         }
 
@@ -224,7 +224,7 @@ namespace TimeControl
                 operational = false;
                 if (HighLogic.LoadedSceneIsFlight && FlightGlobals.ActiveVessel.altitude > FlightGlobals.currentMainBody.atmosphereDepth)
                 {
-                    setSpontanousDestructionMechanic(false);
+                    // setSpontanousDestructionMechanic(false);
                 }
             }
             else
@@ -236,7 +236,7 @@ namespace TimeControl
         {
             if (HighLogic.LoadedSceneIsFlight)
             {
-                setSpontanousDestructionMechanic(true);
+                // setSpontanousDestructionMechanic(true);
             }
         }
 
@@ -381,7 +381,7 @@ namespace TimeControl
 
         private void flightUpdate()
         {
-            UpdateCollision();
+            // UpdateCollision();
 
             if (HighLogic.CurrentGame != null)
             {
@@ -1405,7 +1405,7 @@ namespace TimeControl
                 TC.Log("Body change " + currentSOIName + " to " + FlightGlobals.currentMainBody.name);
 
                 CelestialBody oldBody = FlightGlobals.Bodies.Find(c => c.name == currentSOIName);
-                setSpontanousDestructionMechanic(true, oldBody);
+                // setSpontanousDestructionMechanic(true, oldBody);
 
                 if (currentSOIName != null)
                     SetLocalCollision(currentSOIName, false);
