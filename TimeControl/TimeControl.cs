@@ -11,6 +11,8 @@ using System.Reflection;
 using System.Linq;
 using UnityEngine;
 using KSP.IO;
+using KSP.UI.Screens;
+using KSP.UI.Dialogs;
 
 namespace TimeControl
 {
@@ -129,7 +131,7 @@ namespace TimeControl
             cam = cams[0];
 
             warpText = FindObjectOfType<ScreenMessages>();
-            warpTextColor = warpText.textStyles[1].normal.textColor;
+            warpTextColor = warpText.defaultColor;
 
             //EVENTS
             GameEvents.onFlightReady.Add(this.onFlightReady);
@@ -348,11 +350,11 @@ namespace TimeControl
             }
             else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
             {
-                if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.CELESTIALBODY)
+                if (PlanetariumCamera.fetch.target.type == MapObject.ObjectType.CelestialBody)
                 {
                     currentSOI = TC.getPlanetaryID(PlanetariumCamera.fetch.target.celestialBody.name);
                 }
-                else if (PlanetariumCamera.fetch.target.type == MapObject.MapObjectType.VESSEL)
+                else if (PlanetariumCamera.fetch.target.type == MapObject.ObjectType.Vessel)
                 {
                     currentSOI = TC.getPlanetaryID(PlanetariumCamera.fetch.target.vessel.mainBody.name);
                 }
@@ -408,7 +410,7 @@ namespace TimeControl
                 fld.enabled = true;
             }
 
-            warpText.textStyles[1].normal.textColor = warpTextColor; //ensures the warp text color goes back to default
+            warpText.defaultColor = warpTextColor; //ensures the warp text color goes back to default
 
             Time.maximumDeltaTime = Mathf.Round(Settings.maxDeltaTimeSlider * 100f) / 100f;
 
@@ -448,7 +450,6 @@ namespace TimeControl
                 {
                     Time.timeScale = Mathf.Round(hyperMaxRate);
                     Time.fixedDeltaTime = defaultDeltaTime * hyperMinPhys;
-                    warpText.textStyles[1].normal.textColor = Color.red;
                     warpMessage("Hyper Warp: " + Math.Round(PerformanceManager.ptr, 1) + "x");
                 }
                 Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
@@ -1217,7 +1218,8 @@ namespace TimeControl
         {
             hyperWarping = false;
             hyperWarpTime = Mathf.Infinity;
-            ScreenMessages.RemoveMessage(this.msg);
+            if (this.msg != null)
+                ScreenMessages.RemoveMessage(this.msg);
         }
 
         private void fpsKeeper()
@@ -1320,8 +1322,10 @@ namespace TimeControl
 
         private void warpMessage(string text)
         {
-            ScreenMessages.RemoveMessage(this.msg);
+            if (this.msg != null)
+                ScreenMessages.RemoveMessage(this.msg);
             this.msg = ScreenMessages.PostScreenMessage(text, 3f, ScreenMessageStyle.UPPER_CENTER);
+
         }
 
         private int parseSTOI(string a) //Parses a string to an int with standard limitations

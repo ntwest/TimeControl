@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using UnityEngine;
+using KSP.UI.Screens;
 
 namespace TimeControl
 {
@@ -130,14 +131,14 @@ namespace TimeControl
             {
                 if (SetTrue)
                 {
-                    if (appLauncherButton.State == RUIToggleButton.ButtonState.FALSE)
+                    if (appLauncherButton.enabled == false )
                     {
                         appLauncherButton.SetTrue(force);
                     }
                 }
                 else
                 {
-                    if (appLauncherButton.State == RUIToggleButton.ButtonState.TRUE)
+                    if (appLauncherButton.enabled == true)
                     {
                         appLauncherButton.SetFalse(force);
                     }

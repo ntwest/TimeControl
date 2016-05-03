@@ -5,3 +5,15 @@
 obj
 old_source
 Images
+/Release
+/TimeControl/bin/Debug
+/TimeControl/libs
+/TimeControl/bin/Release/Assembly-CSharp-firstpass.dll
+/TimeControl/bin/Release/Assembly-CSharp.dll
+/TimeControl/bin/Release/KSPUtil.dll
+/TimeControl/bin/Release/UnityEngine.UI.dll
+/TimeControl/bin/Release/UnityEngine.dll
+/TimeControl/bin/Release/TrackIRUnity.dll
+/TimeControl/bin/Release/TimeControl.pdb
+/TimeControl/bin/Release/TimeControl.dll
+/TimeControl/bin/Release/TDx.TDxInput.dll
