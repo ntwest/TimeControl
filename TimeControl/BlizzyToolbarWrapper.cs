@@ -27,7 +27,7 @@ using UnityEngine;
 
 
 
-namespace TimeControl
+namespace TimeControl.BlizzyToolbar
 {
 
 
