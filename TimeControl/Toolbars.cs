@@ -19,7 +19,7 @@ namespace TimeControl
 
         private ApplicationLauncherButton appLauncherButton;
 
-        internal bool Enabled { get { return Settings.Instance.UseStockToolbar; } }
+        internal bool StockToolbarEnabled { get { return Settings.Instance.UseStockToolbar; } }
         internal static bool isAvailable { get { return ApplicationLauncher.Ready && ApplicationLauncher.Instance != null; } }
 
         internal bool IsReady { get; private set; } = false;
@@ -65,7 +65,7 @@ namespace TimeControl
                 toolbarButton.Visibility = new BlizzyToolbar.GameScenesVisibility( GameScenes.FLIGHT, GameScenes.TRACKSTATION, GameScenes.SPACECENTER ); //Places where the button should show up
                 toolbarButton.OnClick += BlizzyToolbarButtonClick;
             }
-
+            
             IsReady = true;
 
             yield break;
@@ -81,6 +81,11 @@ namespace TimeControl
             if (e.PropertyName == Settings.PropertyStrings.WindowVisible)
             {
                 Set( Settings.Instance.WindowVisible );
+            }
+
+            if (e.PropertyName == Settings.PropertyStrings.UseStockToolbar)
+            {
+                Reset();
             }
         }
 
@@ -107,7 +112,7 @@ namespace TimeControl
             Settings.Instance.TempHideGUI( "StockAppLauncher" );
         }
 
-        private void AppLauncherReady() { if (!Enabled) return; Init(); }
+        private void AppLauncherReady() { if (!StockToolbarEnabled) return; Init(); }
         private void AppLauncherDestroyed(GameScenes gameScene) { if (HighLogic.LoadedSceneIsGame) return; Destroy(); }
         private void AppLauncherDestroyed() { Destroy(); }
 
@@ -171,12 +176,12 @@ namespace TimeControl
             if (appLauncherButton != null)
             {
                 Set( false );
-                if (!Enabled)
+                if (!StockToolbarEnabled)
                 {
                     Destroy();
                 }
             }
-            if (Enabled)
+            if (StockToolbarEnabled)
             {
                 Init();
             }

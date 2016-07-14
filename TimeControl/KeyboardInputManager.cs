@@ -82,7 +82,7 @@ namespace TimeControl
 
         private void UpdateKSPKeyBindings()
         {
-            // TODO UpdateKSPKeyBindings
+            // TODO UpdateKSPKeyBindings. Maybe make a full fledged input manager
 
             /*
 
@@ -287,9 +287,7 @@ namespace TimeControl
             if (TimeController.Instance.CurrentWarpState == TimeControllable.Hyper)
             {
                 if (keysPressedDown.Contains( k.KeyCombination.Last() ))
-                {
-                    TimeController.Instance.HyperMaxRate += 1;
-                }
+                    TimeController.Instance.SpeedUpTime();
             }
             else
             {
@@ -307,9 +305,7 @@ namespace TimeControl
             if (TimeController.Instance.CurrentWarpState == TimeControllable.Hyper)
             {
                 if (keysPressedDown.Contains( k.KeyCombination.Last() ))
-                {
-                    TimeController.Instance.HyperMaxRate -= 1;
-                }
+                    TimeController.Instance.SlowDownTime();
             }
             else
             {
@@ -350,7 +346,7 @@ namespace TimeControl
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
                 LogKeyPress( k, "PauseKeyPress" );
-                TimeController.Instance.TogglePause();
+                TimeController.Instance.TimePaused = !TimeController.Instance.TimePaused;
             }
         }    
 
@@ -473,15 +469,24 @@ namespace TimeControl
             string parse = s.Trim();
 
             // Must start with [ and end with ]
-            if (parse[0] != '[' || parse[parse.Length-1] != ']')
-                return null;
+            if (parse[0] != '[' || parse[parse.Length - 1] != ']')
+            {
+                Log.Warning( "Key Codes must be surrounded by [ ] ", logCaller );
+            }
             
             // Strip start and end characters
             parse = parse.Substring( 1, parse.Length - 2 );
 
-            // Split On ][
-            IEnumerable<string> keys = s.Split( new string[] { "][" }, StringSplitOptions.None ).Select( x => x.Trim() );
-
+            IEnumerable<string> keys;
+            if (s.Contains( "][" ))
+            {
+                // Split On ][
+                keys = s.Split( new string[] { "][" }, StringSplitOptions.None ).Select( x => x.Trim() );
+            } else
+            {
+                keys = new List<string>() { parse };
+            }
+            
             List<KeyCode> lkc = new List<KeyCode>();
 
             bool AllKeysDefined = true;
@@ -490,21 +495,25 @@ namespace TimeControl
                 if (key == "Ctrl")
                 {
                     lkc.Add( KeyCode.LeftControl );
+                    Log.Trace( "Adding Control to key list from string " + s, logCaller );
                     continue;
                 }
                 if (key == "Alt")
                 {
                     lkc.Add( KeyCode.LeftAlt );
+                    Log.Trace( "Adding LeftAlt to key list from string " + s, logCaller );
                     continue;
                 }
                 if (key == "Cmd")
                 {
                     lkc.Add( KeyCode.LeftCommand );
+                    Log.Trace( "Adding LeftCommand to key list from string " + s, logCaller );
                     continue;
                 }
                 if (key == "Shift")
                 {
                     lkc.Add( KeyCode.LeftShift );
+                    Log.Trace( "Adding LeftShift to key list from string " + s, logCaller );
                     continue;
                 }
 
@@ -513,7 +522,9 @@ namespace TimeControl
                     AllKeysDefined = false;
                     break;
                 }
-                lkc.Add( (KeyCode)Enum.Parse( typeof( KeyCode ), key ) );
+                KeyCode parsedKeyCode = (KeyCode)Enum.Parse( typeof( KeyCode ), key );
+                Log.Trace( "Adding "+ parsedKeyCode.ToString() + " to key list from string " + s, logCaller );
+                lkc.Add( parsedKeyCode );
             }
             
             if (!AllKeysDefined)

@@ -85,7 +85,7 @@ namespace TimeControl
             GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
             GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
-            StartCoroutine( ReloadConfig() );
+            StartCoroutine( ReloadConfigWhenTimeWarpReady() );
 
             Log.Trace( "method end", logCaller );
         }
@@ -134,18 +134,20 @@ namespace TimeControl
         
         private void onHideUI()
         {
-            string logCaller = "onHideUI";
+            string logCaller = "Settings.onHideUI";
             Log.Trace( "method start", logCaller );
 
+            Log.Info( "Hiding GUI for Settings Lock", logCaller );
             TempHideGUI( "Settings" );
 
             Log.Trace( "method end", logCaller );
         }
         private void onShowUI()
         {
-            string logCaller = "onShowUI";
+            string logCaller = "Settings.onShowUI";
             Log.Trace( "method start", logCaller );
 
+            Log.Info( "Unhiding GUI for Settings Lock", logCaller );
             TempUnHideGUI( "Settings" );
 
             Log.Trace( "method end", logCaller );
@@ -155,10 +157,24 @@ namespace TimeControl
 
 
         #region Coroutines
-        public IEnumerator ReloadConfig()
+        public IEnumerator ReloadConfigWhenTimeWarpReady()
         {
+            string logCaller = "Settings.ReloadConfig";
+            Log.Trace( "coroutine start", logCaller );
+
             while (TimeWarp.fetch == null)
                 yield return null;
+
+            ResetConfigs();
+
+            Log.Trace( "coroutine end", logCaller );
+            yield break;
+        }
+
+        private void ResetConfigs()
+        {
+            string logCaller = "Settings.ResetConfigs";
+            Log.Trace( "method start", logCaller );
 
             resetKeyBindingsToDefault();
             resetWarpRatesToDefault();
@@ -167,9 +183,14 @@ namespace TimeControl
             warpLevels = customWarpRates.Count;
 
             IsReady = configLoadSuccessful;
+            if (IsReady)
+                Log.Info( "TimeController.Settings is Ready!", logCaller );
+            else
+                Log.Error( "Something went wrong loading the time controller settings!", logCaller );
 
-            yield break;
+            Log.Trace( "method end", logCaller );
         }
+
         #endregion
         #region Key Bindings
         private void resetKeyBindingsToDefault()
@@ -238,8 +259,15 @@ namespace TimeControl
                         Log.Warning( "Key combination is not defined correctly: " + keycombo + " - Using default for user action " + userAction, logCaller );
                         continue;
                     }
-                    k.KeyCombination = new List<KeyCode>( iekc );
-                    k.KeyCombinationString = keycombo;
+                    if (iekc.Contains( KeyCode.None ))
+                    {
+                        k.KeyCombination = new List<KeyCode>();
+                    }
+                    else
+                    {
+                        k.KeyCombination = new List<KeyCode>( iekc );
+                        k.KeyCombinationString = keycombo;
+                    }
                 }
             }
 
@@ -1082,9 +1110,9 @@ namespace TimeControl
                 return showScreenMessages;
             }
             set {
-                if (visible != value)
+                if (showScreenMessages != value)
                 {
-                    visible = value;
+                    showScreenMessages = value;
                     OnPropertyChanged( PropertyStrings.ShowScreenMessages );
                     SetNeedsSavedFlag();
                 }

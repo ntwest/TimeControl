@@ -36,6 +36,9 @@ namespace TimeControl
         }
         private void Start()
         {
+            string logCaller = "TimeController.Start";
+            Log.Trace( "method start", logCaller );
+
             GameEvents.onGamePause.Add( onGamePause );
             GameEvents.onGameUnpause.Add( onGameUnpause );
             GameEvents.onGameSceneLoadRequested.Add( onGameSceneLoadRequested );
@@ -48,10 +51,12 @@ namespace TimeControl
             GameEvents.onVesselSOIChanged.Add( onVesselSOIChanged );
             GameEvents.onLevelWasLoaded.Add( onLevelWasLoaded );
 
-            FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
-            cam = cams[0];
+            //FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
+            //cam = cams[0];
 
             StartCoroutine( StartAfterSettingsReady() );
+
+            Log.Trace( "method end", logCaller );
         }
 
         /// <summary>
@@ -59,15 +64,21 @@ namespace TimeControl
         /// </summary>
         public IEnumerator StartAfterSettingsReady()
         {
+            string logCaller = "TimeController.StartAfterSettingsReady";
+            Log.Trace( "coroutine start", logCaller );
+
             while (Settings.Instance == null || !Settings.Instance.IsReady)
                 yield return null;
 
+            Log.Info( "Wiring Up Settings Property Changed Event Subscription", logCaller );
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;
-
+            
             UpdateInternalTimeWarpArrays();
 
+            Log.Info( "TimeController.Instance is Ready!", logCaller );
             IsReady = true;
 
+            Log.Trace( "coroutine yield break", logCaller );
             yield break;
         }
 
@@ -162,6 +173,7 @@ namespace TimeControl
         {
             Time.timeScale = Mathf.Round( HyperMaxRate );
             Time.fixedDeltaTime = defaultDeltaTime * HyperMinPhys;
+            Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
 
             CurrentControllerMessage = ("Time Control Hyper Warp: " + Math.Round( PerformanceManager.ptr, 1 ) + "x");
         }
@@ -180,6 +192,8 @@ namespace TimeControl
             // InverseTimeScale property is modified when SmoothSlider is changed
             Time.timeScale = 1f / inverseTimeScale;
             Time.fixedDeltaTime = DeltaLocked ? defaultDeltaTime : defaultDeltaTime * (1f / inverseTimeScale);
+            Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
+
             CurrentControllerMessage = ("SLOW-MOTION");
         }
         private void UpdateSlowMoFPSKeeper()
@@ -212,7 +226,8 @@ namespace TimeControl
         {
             if (TimePaused)
             {
-                Time.timeScale = 0f;
+                if (Time.timeScale != 0f)
+                    Time.timeScale = 0f;
                 CurrentControllerMessage = ("PAUSED");
             }
             else if (CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Physics || CurrentWarpState == TimeControllable.Rails)
@@ -255,23 +270,38 @@ namespace TimeControl
         #region GameEvents
         private void onFlightReady()
         {
+            string logCaller = "TimeController.onFlightReady";
+            Log.Trace( "method start (event)", logCaller );
+
             CurrentWarpState = TimeControllable.None;
             udpateSOI();
             TimeSlider = 0f;
             IsOperational = true;
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onGamePause()
         {
+            string logCaller = "TimeController.onGamePause";
+            Log.Trace( "method start (event)", logCaller );
+
             IsOperational = false;
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onGameUnpause()
         {
+            string logCaller = "TimeController.onGameUnpause";
+            Log.Trace( "method start (event)", logCaller );
+
             IsOperational = true;
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onGameSceneLoadRequested(GameScenes gs)
         {
             string logCaller = "onGameSceneLoadRequested";
-            Log.Trace( "method start", logCaller );
+            Log.Trace( "method start (event)", logCaller );
 
             switch (CurrentWarpState)
             {
@@ -290,20 +320,33 @@ namespace TimeControl
             IsOperational = false;
             CurrentWarpState = TimeControllable.None;
 
-            Log.Trace( "method end", logCaller );
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onPartDestroyed(Part p)
         {
+            string logCaller = "onPartDestroyed";
+            Log.Trace( "method start (event)", logCaller );
+
             if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
                 CancelHyperWarp();
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onVesselDestroy(Vessel v)
         {
+            string logCaller = "onVesselDestroy";
+            Log.Trace( "method start (event)", logCaller );
+
             if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
                 CancelHyperWarp();
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onTimeWarpRateChanged()
         {
+            string logCaller = "onTimeWarpRateChanged";
+            Log.Trace( "method start (event)", logCaller );
+
             if (TimeWarp.CurrentRateIndex > 0)
             {
                 IsOperational = false;
@@ -312,20 +355,33 @@ namespace TimeControl
             {
                 IsOperational = true;
             }
+
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onVesselGoOffRails(Vessel v)
         {
+            string logCaller = "onVesselGoOffRails";
+            Log.Trace( "method start (event)", logCaller );
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onPlanetariumTargetChanged(MapObject mo)
         {
+            string logCaller = "onPlanetariumTargetChanged";
+            Log.Trace( "method start (event)", logCaller );
             udpateSOI();
+            Log.Trace( "method end (event)", logCaller );            
         }
         private void onVesselSOIChanged(GameEvents.HostedFromToAction<Vessel, CelestialBody> hfta)
         {
+            string logCaller = "onVesselSOIChanged";
+            Log.Trace( "method start (event)", logCaller );
             udpateSOI();
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onLevelWasLoaded(GameScenes gs)
         {
+            string logCaller = "onLevelWasLoaded";
+            Log.Trace( "method start (event)", logCaller );
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
                 CurrentWarpState = TimeControllable.None;
@@ -336,6 +392,7 @@ namespace TimeControl
                 IsOperational = true;
                 udpateSOI();
             }
+            Log.Trace( "method end (event)", logCaller );
         }
         #endregion
 
@@ -402,7 +459,7 @@ namespace TimeControl
             get {
                 return timePaused;
             }
-            private set {
+            set {
                 if (timePaused != value)
                 {
                     timePaused = value;
@@ -535,6 +592,9 @@ namespace TimeControl
         #region Private Methods
         private void udpateSOI()
         {
+            string logCaller = "udpateSOI";
+            Log.Trace( "method start", logCaller );
+
             if (HighLogic.LoadedSceneIsFlight)
             {
                 CurrentSOI = FlightGlobals.currentMainBody;
@@ -558,36 +618,41 @@ namespace TimeControl
             {
                 CurrentSOI = FlightGlobals.GetHomeBody(); //Kerbin
             }
+
+            Log.Trace( "method end", logCaller );
         }
         private void resetTime()
         {
+            string logCaller = "resetTime";
+            Log.Trace( "method start", logCaller );
+
             TimeSlider = 0f;
             Time.timeScale = 1f;
             Time.fixedDeltaTime = defaultDeltaTime;
+            Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
+
+            Log.Trace( "method end", logCaller );
         }
         #endregion
 
         #region Public Methods        
         #region Pause
-        public void TogglePause()
-        {
-            TimePaused = !TimePaused;
-        }
-        public void Pause()
-        {
-            TimePaused = true;
-        }
-        public void Unpause()
-        {
-            TimePaused = false;
-        }
         public void IncrementTimeStep()
         {
+            string logCaller = "IncrementTimeStep";
+            Log.Trace( "method start", logCaller );
+
             TimePaused = false;
             PauseOnNextFixedUpdate = true;
+
+            Log.Trace( "method end", logCaller );
         }
         public void Realtime()
         {
+            string logCaller = "Realtime";
+            Log.Trace( "method start", logCaller );
+
+            Log.Info( "Cancelling all warp types", logCaller );
             switch (CurrentWarpState)
             {
                 case TimeControllable.None:
@@ -603,6 +668,7 @@ namespace TimeControl
                     CancelSlowMo();
                     break;
             }
+            Log.Trace( "method end", logCaller );
         }
 
 
@@ -616,15 +682,18 @@ namespace TimeControl
 
             int levels = Settings.Instance.WarpLevels;
 
+            Log.Info( "Resizing Internal  Warp Rates Array", logCaller );
             if (timeWarp.warpRates.Length != levels)
                 Array.Resize( ref timeWarp.warpRates, levels );
 
+            Log.Info( "Resizing Internal  Celestial Body Altitude Limits Arrays", logCaller );
             foreach (CelestialBody c in FlightGlobals.Bodies)
                 if (c.timeWarpAltitudeLimits.Length != levels)
                     Array.Resize( ref c.timeWarpAltitudeLimits, levels );
 
+            Log.Info( "Setting Internal Rates and Altitude Limits", logCaller );
             for (int i = 0; i < levels; i++)
-            {
+            {                
                 timeWarp.warpRates[i] = Settings.Instance.CustomWarpRates[i].WarpRateInt;
 
                 foreach (CelestialBody cb in FlightGlobals.Bodies)
@@ -635,17 +704,26 @@ namespace TimeControl
             Log.Trace( "method end", logCaller );
         }
 
-        public bool RailsWarpToTime(double warpTime)
+        public bool AutoWarpToTime(double warpTime)
         {
-            string logCaller = "TimeController.RailsWarpToTime";
+            string logCaller = "TimeController.AutoWarpToTime";
             Log.Trace( "method start", logCaller );
+
+            if (HighLogic.LoadedSceneIsFlight && ((FlightGlobals.ActiveVessel.situation | Vessel.Situations.FLYING) == Vessel.Situations.FLYING))
+            {
+                // TODO Implement a way to rails warp until you hit atmo, then hyper warp, then rails warp again.
+                Log.Info( "In atmosphere. Hyper warping instead.", logCaller );
+                return HyperWarpToTime( warpTime );
+            }
 
             if (CurrentWarpState == TimeControllable.Hyper)
             {
+                Log.Info( "Currently hyperwarping. Cancelling this first.", logCaller );
                 CancelHyperWarp();
             }
             if (CurrentWarpState == TimeControllable.SlowMo)
             {
+                Log.Info( "Currently slow-motion. Cancelling this first.", logCaller );
                 CancelSlowMo();
             }
 
@@ -654,18 +732,20 @@ namespace TimeControl
                 Log.Info( "Auto warping to time " + warpTime, logCaller );
                 CurrentWarpState = TimeControllable.Rails;
                 timeWarp.WarpTo( warpTime );
+                Log.Trace( "method end", logCaller );
                 return true;
             }
             else
             {
                 Log.Info( "Time " + warpTime + " has already passed. Cannot warp to it.", logCaller );
+                Log.Trace( "method end", logCaller );
                 return false;
-            }
+            }            
         }
 
-        public bool RailsWarpForDuration(string warpYears = "0", string warpDays = "0", string warpHours = "0", string warpMinutes = "0", string warpSeconds = "0")
+        public bool AutoWarpForDuration(string warpYears = "0", string warpDays = "0", string warpHours = "0", string warpMinutes = "0", string warpSeconds = "0")
         {
-            string logCaller = "TimeController.RailsWarpForDuration";
+            string logCaller = "TimeController.AutoWarpForDuration";
             Log.Trace( "method start", logCaller );
 
             int years;
@@ -715,7 +795,7 @@ namespace TimeControl
             else
                 warpTime = years * 31536000 + days * 86400 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
             
-            bool result = RailsWarpToTime( warpTime );
+            bool result = AutoWarpToTime( warpTime );
 
             Log.Trace( "method end", logCaller );
             return result;
@@ -730,13 +810,16 @@ namespace TimeControl
             {
                 if (TimeWarp.fetch != null && TimeWarp.fetch.current_rate_index > 0)
                 {
-                    Log.Warning( "Rails warp is running but TimeController thinks we are on warp type " + CurrentWarpState.ToString(), logCaller );
+                    Log.Error( "Rails warp is running but TimeController thinks we are on warp type " + CurrentWarpState.ToString(), logCaller );
+                    // Recover as best we can
                     CancelHyperWarp();
                     CancelSlowMo();
                     CurrentWarpState = TimeControllable.Rails;
                 }
                 else
                 {
+                    Log.Warning( "Cannot cancel rails warp as we are not rails warping." );
+                    Log.Trace( "method end", logCaller );
                     return;
                 }
             }
@@ -755,64 +838,186 @@ namespace TimeControl
         #region Slow Motion and FPS Keeper
         public bool TrySetSlowMo()
         {
+            string logCaller = "TimeController.TrySetSlowMo";
+            Log.Trace( "method start", logCaller );
+
             if (CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.SlowMo)
             {
                 CurrentWarpState = TimeControllable.SlowMo;
+                Log.Trace( "method end", logCaller );
                 return true;
             }
             else
+            {
+                Log.Trace( "method end", logCaller );
                 return false;
+            }
+                
+        }
+        public void CancelSlowMo()
+        {
+            string logCaller = "TimeController.CancelSlowMo";
+            Log.Trace( "method start", logCaller );
+
+            if (CurrentWarpState != TimeControllable.SlowMo)
+            {
+                Log.Warning( "Current Warp State is not SlowMo", logCaller );
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
+            resetTime();
+            CurrentWarpState = TimeControllable.None;
+
+            Log.Trace( "method end", logCaller );
+            return;
         }
         public bool CheckSlowMo()
         {
+            string logCaller = "TimeController.CheckSlowMo";
+            Log.Trace( "method start", logCaller );
+
             if (CurrentWarpState == TimeControllable.SlowMo)
             {
                 if (TimeSlider == 0f)
                 {
+                    Log.Info( "Slow Mo Cancelled, returning to NONE", logCaller );
                     CurrentWarpState = TimeControllable.None;
+                    Log.Trace( "method end", logCaller );
                     return false;
                 }
+                Log.Trace( "method end", logCaller );
                 return true;
             }
+            Log.Trace( "method end", logCaller );
             return false;            
         }
 
-        public void CancelSlowMo()
-        {
-            if (CurrentWarpState != TimeControllable.SlowMo)
-                return;
 
-            resetTime();            
-            CurrentWarpState = TimeControllable.None;
-        }
         public void SpeedUpTime()
         {
-            UpdateTimeSlider( TimeSlider - 0.01f );
+            string logCaller = "TimeController.SpeedUpTime";
+            Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo) && !((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper))
+            {
+                Log.Warning( "Cannot call SpeedUpTime when we cannot Slow-Mo or Hyper warp", logCaller );
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
+            if (((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper) && CurrentWarpState == TimeControllable.Hyper)
+            {
+                Log.Info( "Increasing Hyper Warp Rate", logCaller );
+                TimeController.Instance.HyperMaxRate += 1;
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
+            if ((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo)
+            {
+                Log.Info( "Increasing Slow-Mo Rate", logCaller );
+                UpdateTimeSlider( TimeSlider - 0.01f );
+            }
+
+            Log.Trace( "method end", logCaller );
+            return;
         }
         public void SlowDownTime()
         {
-            UpdateTimeSlider( TimeSlider + 0.01f );
+            string logCaller = "TimeController.SpeedUpTime";
+            Log.Trace( "method start", logCaller );
+
+
+            if (!((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo) && !((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper))
+            {
+                Log.Warning( "Cannot call SlowDownTime when we cannot Slow-Mo or Hyper warp", logCaller );
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
+            if (((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper) && CurrentWarpState == TimeControllable.Hyper)
+            {
+                Log.Info( "Decreasing Hyper Warp Rate", logCaller );
+                TimeController.Instance.HyperMaxRate -= 1;
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
+            if ((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo)
+            {
+                Log.Info( "Decreasing Slow-Mo Rate", logCaller );
+                UpdateTimeSlider( TimeSlider + 0.01f );
+            }
+            Log.Trace( "method end", logCaller );
+            return;
         }
         public void UpdateTimeSlider(float ts)
         {
-            if (!TrySetSlowMo())
+            string logCaller = "TimeController.UpdateTimeSlider";
+            Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo))
+            {
+                Log.Warning( "Cannot call UpdateTimeSlider when we cannot Slow-Mo warp", logCaller );
+                Log.Trace( "method end", logCaller );
                 return;
+            }
+
+            if (!TrySetSlowMo())
+            {
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+            Log.Info( "Setting Time Slider to " + ts );
             TimeSlider = Mathf.Clamp01( ts );
             CheckSlowMo();
+            Log.Trace( "method end", logCaller );
+            return;
         }
 
         public void SetFPSKeeper(bool v)
         {
-            if (!TrySetSlowMo())
+            string logCaller = "TimeController.SetFPSKeeper";
+            Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo))
+            {
+                Log.Warning( "Cannot call SetFPSKeeper when we cannot Slow-Mo warp", logCaller );
+                Log.Trace( "method end", logCaller );
                 return;
+            }
+
+            if (!TrySetSlowMo())
+            {
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
             IsFpsKeeperActive = v;
             CheckSlowMo();
+            Log.Trace( "method end", logCaller );
+            return;
         }
 
         public void ToggleFPSKeeper()
         {
-            if (!TrySetSlowMo())
+            string logCaller = "TimeController.ToggleFPSKeeper";
+            Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.SlowMo) == TimeControllable.SlowMo))
+            {
+                Log.Warning( "Cannot call ToggleFPSKeeper when we cannot Slow-Mo warp", logCaller );
+                Log.Trace( "method end", logCaller );
                 return;
+            }
+
+            if (!TrySetSlowMo())
+            {
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
             IsFpsKeeperActive = !IsFpsKeeperActive;
             CheckSlowMo();
         }
@@ -823,6 +1028,13 @@ namespace TimeControl
         {
             string logCaller = "TimeController.HyperWarpToTime";
             Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper))
+            {
+                Log.Warning( "Cannot call HyperWarpToTime when we cannot Hyper warp", logCaller );
+                Log.Trace( "method end", logCaller );
+                return false;
+            }
 
             if (!(CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Hyper))
             {
@@ -843,6 +1055,13 @@ namespace TimeControl
         {
             string logCaller = "TimeController.HyperWarpForDuration";
             Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper))
+            {
+                Log.Warning( "Cannot call HyperWarpForDuration when we cannot Hyper warp", logCaller );
+                Log.Trace( "method end", logCaller );
+                return false;
+            }
 
             int hours;
             if (!int.TryParse( warpHours, out hours ))
@@ -876,8 +1095,22 @@ namespace TimeControl
         }
         public void ToggleHyperWarp()
         {
-            if (!(CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Hyper))
+            string logCaller = "TimeController.ToggleHyperWarp";
+            Log.Trace( "method start", logCaller );
+
+            if (!((CanControlWarpType & TimeControllable.Hyper) == TimeControllable.Hyper))
+            {
+                Log.Warning( "Cannot call ToggleHyperWarp when we cannot Hyper warp", logCaller );
+                Log.Trace( "method end", logCaller );
                 return;
+            }
+
+            if (!(CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Hyper))
+            {
+                Log.Warning( "Currently in a different warp mode, cannot toggle hyper warp at this time.", logCaller );
+                Log.Trace( "method end", logCaller );
+                return;
+            }
             
             if (CurrentWarpState == TimeControllable.Hyper)
             {
@@ -887,15 +1120,26 @@ namespace TimeControl
             {
                 CurrentWarpState = TimeControllable.Hyper;
             }
+
+            Log.Trace( "method end", logCaller );
         }
         public void CancelHyperWarp()
         {
+            string logCaller = "TimeController.HyperWarpForDuration";
+            Log.Trace( "method start", logCaller );
+
             if (CurrentWarpState != TimeControllable.Hyper)
+            {
+                Log.Warning( "Cannot cancel hyper warp, not currently hyperwarping", logCaller );
+                Log.Trace( "method end", logCaller );
                 return;
+            }
 
             resetTime();
             hyperWarpEndTime = Mathf.Infinity;
             CurrentWarpState = TimeControllable.None;
+
+            Log.Trace( "method end", logCaller );
         }
         #endregion
         
@@ -918,12 +1162,10 @@ namespace TimeControl
         private int fpsKeeperFactor = 0;
         private bool fpsKeeperActive;
         private Boolean operational;
-
         private CelestialBody currentSOI;
-
         private string currentControllerMessage;
 
-        private FlightCamera cam;
+        //private FlightCamera cam;
 
         //HYPERWARP   
         private Boolean hyperPauseOnTimeReached = false;
