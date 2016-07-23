@@ -72,7 +72,7 @@ namespace TimeControl
 
             Log.Info( "Wiring Up Settings Property Changed Event Subscription", logCaller );
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;
-            
+
             UpdateInternalTimeWarpArrays();
 
             Log.Info( "TimeController.Instance is Ready!", logCaller );
@@ -221,7 +221,7 @@ namespace TimeControl
                 Settings.Instance.MaxDeltaTimeSlider = 0.02f;
                 TimeSlider = (float)(fpsKeeperFactor - 10) / 64f;
             }
-        }        
+        }
         private void UpdatePaused()
         {
             if (TimePaused)
@@ -274,6 +274,10 @@ namespace TimeControl
             Log.Trace( "method start (event)", logCaller );
 
             CurrentWarpState = TimeControllable.None;
+
+            if (CanControlWarpType != TimeControllable.None)
+                UpdateInternalTimeWarpArrays();
+
             udpateSOI();
             TimeSlider = 0f;
             IsOperational = true;
@@ -369,7 +373,7 @@ namespace TimeControl
             string logCaller = "onPlanetariumTargetChanged";
             Log.Trace( "method start (event)", logCaller );
             udpateSOI();
-            Log.Trace( "method end (event)", logCaller );            
+            Log.Trace( "method end (event)", logCaller );
         }
         private void onVesselSOIChanged(GameEvents.HostedFromToAction<Vessel, CelestialBody> hfta)
         {
@@ -382,6 +386,10 @@ namespace TimeControl
         {
             string logCaller = "onLevelWasLoaded";
             Log.Trace( "method start (event)", logCaller );
+
+            if (CanControlWarpType != TimeControllable.None)
+                UpdateInternalTimeWarpArrays();
+
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
                 CurrentWarpState = TimeControllable.None;
@@ -432,7 +440,7 @@ namespace TimeControl
                 }
             }
         }
-        public bool IsReady { get; private set; } 
+        public bool IsReady { get; private set; }
         public CelestialBody CurrentSOI {
             get {
                 return currentSOI;
@@ -463,6 +471,11 @@ namespace TimeControl
                 if (timePaused != value)
                 {
                     timePaused = value;
+                    if (value == false)
+                    {
+                        if (CurrentWarpState != TimeControllable.Hyper && CurrentWarpState != TimeControllable.SlowMo)
+                            resetTime();
+                    }
                 }
             }
         }
@@ -531,7 +544,7 @@ namespace TimeControl
             set {
                 if (smoothSlider != value)
                 {
-                    smoothSlider = value;                    
+                    smoothSlider = value;
                 }
             }
         }
@@ -540,7 +553,7 @@ namespace TimeControl
                 return pauseOnNextFixedUpdate;
             }
 
-            set { 
+            set {
                 if (pauseOnNextFixedUpdate != value)
                 {
                     pauseOnNextFixedUpdate = value;
@@ -581,7 +594,7 @@ namespace TimeControl
             set {
                 if (hyperMaxRate != value)
                 {
-                    hyperMaxRate = Mathf.Clamp(value, 2f, 100f);
+                    hyperMaxRate = Mathf.Clamp( value, 2f, 100f );
                 }
             }
         }
