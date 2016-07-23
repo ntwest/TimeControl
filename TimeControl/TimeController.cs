@@ -370,6 +370,8 @@ namespace TimeControl
                     break;
             }
 
+            resetTime();
+
             IsOperational = false;
             CurrentWarpState = TimeControllable.None;
 
