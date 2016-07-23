@@ -369,7 +369,7 @@ namespace TimeControl
             {
                 string ll = configSettings.GetValue( PropertyStrings.LoggingLevel );
                 if (Enum.IsDefined( typeof( LogSeverity ), ll ))
-                    loggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
+                    LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );                    
                 else
                     Log.Warning( "Logging Level of " + ll + " is not defined. Using default.", logCaller );
             }
@@ -842,7 +842,8 @@ namespace TimeControl
             set {
                 if (LoggingLevel != value)
                 {
-                    LoggingLevel = value;
+                    loggingLevel = value;
+                    Log.LoggingLevel = loggingLevel;
                     OnPropertyChanged( PropertyStrings.LoggingLevel );
                     SetNeedsSavedFlag();
                 }
