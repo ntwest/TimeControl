@@ -230,10 +230,6 @@ namespace TimeControl
                     Time.timeScale = 0f;
                 CurrentControllerMessage = ("PAUSED");
             }
-            else if (CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Physics || CurrentWarpState == TimeControllable.Rails)
-            {
-                resetTime();
-            }
         }
 
 
@@ -246,7 +242,10 @@ namespace TimeControl
             if (CurrentWarpState == TimeControllable.Hyper)
                 FixedUpdateHyper();
 
-            if (PauseOnNextFixedUpdate)
+            if (CurrentWarpState == TimeControllable.Rails)
+                FixedUpdateRails();
+
+            if (PauseOnNextFixedUpdate && TimeWarp.CurrentRateIndex == 0)
             {
                 TimePaused = true;
                 PauseOnNextFixedUpdate = false;
@@ -262,6 +261,56 @@ namespace TimeControl
                     PauseOnNextFixedUpdate = true;
             }
         }
+
+        private void FixedUpdateRails()
+        {
+            double UT = Planetarium.GetUniversalTime();
+            if (CurrentWarpState != TimeControllable.Rails)
+            {
+                railsWarpEndTime = Mathf.Infinity;
+            }
+            if (railsWarpEndTime == Mathf.Infinity)
+            {
+                return;
+            }
+
+            // If we've gone past or equal to the time we are warping to, cancel and return
+            if (UT >= railsWarpEndTime)
+            {
+                Log.Warning( String.Format( "UT {0} is past railsWarpEndTime {1}", UT, railsWarpEndTime ), "TimeController.FixedUpdateRails" );
+                CancelRailsWarp();
+                if (RailsPauseOnTimeReached)
+                    PauseOnNextFixedUpdate = true;
+                return;
+            }
+
+            // Otherwise, speed up or slow down depending on how much longer we have to go
+            // TODO - speed up code (for perhaps a combination hyper / rails warper)
+
+            // Since we do this check each fixed update, we can have faster warp rates..? Looks like 5x seems to work well.
+            // TODO - make this some kind of setting perhaps?
+            int r = TimeWarp.CurrentRateIndex;
+            while (r > 0 && (Settings.Instance.CustomWarpRates[r].WarpRateInt > ((railsWarpEndTime - UT) * 5)))
+            {
+                r -= 1;
+            }
+            if (r == TimeWarp.CurrentRateIndex)
+                return;
+
+            if (r == 0)
+            {
+                railsWarpEndTime = Mathf.Infinity;
+                CancelRailsWarp();
+                if (RailsPauseOnTimeReached)
+                    PauseOnNextFixedUpdate = true;
+            }
+            else
+            {
+                TimeWarp.fetch.Mode = TimeWarp.Modes.HIGH;
+                TimeWarp.SetRate( r, false, true );
+            }
+        }
+
 
         #endregion
 
@@ -412,7 +461,6 @@ namespace TimeControl
                 return PluginUtilities.convertToExponential( timeSlider );
             }
         }
-
         public string CurrentRailsWarpRateText {
             get {
                 if (CurrentWarpState == TimeControllable.Rails)
@@ -573,6 +621,19 @@ namespace TimeControl
             }
         }
 
+        public bool RailsPauseOnTimeReached {
+            get {
+                return railsPauseOnTimeReached;
+            }
+
+            set {
+                if (railsPauseOnTimeReached != value)
+                {
+                    railsPauseOnTimeReached = value;
+                }
+            }
+        }
+
         public float HyperMinPhys {
             get {
                 return hyperMinPhys;
@@ -717,7 +778,7 @@ namespace TimeControl
 
             Log.Info( "Setting Internal Rates and Altitude Limits", logCaller );
             for (int i = 0; i < levels; i++)
-            {                
+            {
                 timeWarp.warpRates[i] = Settings.Instance.CustomWarpRates[i].WarpRateInt;
 
                 foreach (CelestialBody cb in FlightGlobals.Bodies)
@@ -728,10 +789,13 @@ namespace TimeControl
             Log.Trace( "method end", logCaller );
         }
 
-        public bool AutoWarpToTime(double warpTime)
+        public bool RailsWarpToTime(double warpTime)
         {
-            string logCaller = "TimeController.AutoWarpToTime";
+            string logCaller = "TimeController.RailsWarpToTime";
             Log.Trace( "method start", logCaller );
+
+            double UT = Planetarium.GetUniversalTime();
+            double TimeDiff = warpTime - UT;
 
             if (HighLogic.LoadedSceneIsFlight && ((FlightGlobals.ActiveVessel.situation | Vessel.Situations.FLYING) == Vessel.Situations.FLYING))
             {
@@ -751,26 +815,44 @@ namespace TimeControl
                 CancelSlowMo();
             }
 
-            if (warpTime > Planetarium.GetUniversalTime() && (warpTime - Planetarium.GetUniversalTime()) > Settings.Instance.CustomWarpRates[1].WarpRateInt)
+
+            if (warpTime > UT && (warpTime - UT) > Settings.Instance.CustomWarpRates[1].WarpRateInt)
             {
-                Log.Info( "Auto warping to time " + warpTime, logCaller );
+                Log.Info( String.Format( "Auto warping to time {0} from time {1}", warpTime, UT ), logCaller );
                 CurrentWarpState = TimeControllable.Rails;
-                timeWarp.WarpTo( warpTime );
+
+                int r = Settings.Instance.CustomWarpRates.Count - 1;
+                Log.Trace( String.Format( "Starting at rate {0} / {1}x", r, Settings.Instance.CustomWarpRates[r].WarpRateInt ), logCaller );
+                while (r > 0 && (Settings.Instance.CustomWarpRates[r].WarpRateInt > TimeDiff * 5))
+                {
+                    Log.Trace( String.Format( "Time Difference: {0}", TimeDiff ), logCaller );
+                    Log.Trace( String.Format( "Rate {0} / {1}x too fast, reducing r", r, Settings.Instance.CustomWarpRates[r].WarpRateInt ), logCaller );
+                    r -= 1;
+                }
+                Log.Info( String.Format( "Warp Rate Starting At {0} / {1}x", r, Settings.Instance.CustomWarpRates[r].WarpRateInt ), logCaller );
+                TimeWarp.fetch.Mode = TimeWarp.Modes.HIGH;
+                TimeWarp.SetRate( r, true, true );
+                railsWarpEndTime = warpTime;
                 Log.Trace( "method end", logCaller );
                 return true;
             }
             else
             {
-                Log.Info( "Time " + warpTime + " has already passed. Cannot warp to it.", logCaller );
+                Log.Info( "Time " + warpTime + " has already passed or is sooner than the slowest rails warp rate. Cannot warp to it.", logCaller );
                 Log.Trace( "method end", logCaller );
                 return false;
-            }            
+            }
         }
 
         public bool AutoWarpForDuration(string warpYears = "0", string warpDays = "0", string warpHours = "0", string warpMinutes = "0", string warpSeconds = "0")
         {
             string logCaller = "TimeController.AutoWarpForDuration";
             Log.Trace( "method start", logCaller );
+
+            if (TimePaused)
+            {
+                timePaused = false;
+            }
 
             int years;
             if (!int.TryParse( warpYears, out years ))
@@ -818,8 +900,8 @@ namespace TimeControl
                 warpTime = years * 9201600 + days * 21600 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
             else
                 warpTime = years * 31536000 + days * 86400 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
-            
-            bool result = AutoWarpToTime( warpTime );
+
+            bool result = RailsWarpToTime( warpTime );
 
             Log.Trace( "method end", logCaller );
             return result;
@@ -827,9 +909,11 @@ namespace TimeControl
 
         public void CancelRailsWarp()
         {
-            string logCaller = "TimeController.CancelWarp";
+            string logCaller = "TimeController.CancelRailsWarp";
             Log.Trace( "method start", logCaller );
-            
+
+            railsWarpEndTime = Mathf.Infinity;
+
             if (!(CurrentWarpState == TimeControllable.Rails || CurrentWarpState == TimeControllable.Physics))
             {
                 if (TimeWarp.fetch != null && TimeWarp.fetch.current_rate_index > 0)
@@ -842,17 +926,17 @@ namespace TimeControl
                 }
                 else
                 {
-                    Log.Warning( "Cannot cancel rails warp as we are not rails warping." );
+                    Log.Info( "Cannot cancel rails warp as we are not rails warping." );
                     Log.Trace( "method end", logCaller );
                     return;
                 }
             }
-            
+
             Log.Info( "Cancelling auto warp if it is running.", logCaller );
             TimeWarp.fetch.CancelAutoWarp();
 
             Log.Info( "Setting warp rate to 0.", logCaller );
-            TimeWarp.SetRate( 0, false );
+            TimeWarp.SetRate( 0, true, true );
             CurrentWarpState = TimeControllable.None;
 
             Log.Trace( "method end", logCaller );
@@ -876,7 +960,7 @@ namespace TimeControl
                 Log.Trace( "method end", logCaller );
                 return false;
             }
-                
+
         }
         public void CancelSlowMo()
         {
@@ -1192,10 +1276,14 @@ namespace TimeControl
         //HYPERWARP   
         private Boolean hyperPauseOnTimeReached = false;
         private double hyperWarpEndTime = Mathf.Infinity;
+
+        private Boolean railsPauseOnTimeReached = false;
+        private double railsWarpEndTime = Mathf.Infinity;
+
         private float hyperMinPhys = 1f;
         private float hyperMaxRate = 2f;
         private TimeWarp timeWarp;
-        
+
         #endregion
 
     }

@@ -643,6 +643,7 @@ namespace TimeControl
             }
             GUILayout.EndHorizontal();
 
+            TimeController.Instance.RailsPauseOnTimeReached = GUILayout.Toggle( TimeController.Instance.RailsPauseOnTimeReached, "Pause on time reached" );
 
             GUILayout.BeginHorizontal();
             {
