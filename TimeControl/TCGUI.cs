@@ -361,29 +361,35 @@ namespace TimeControl
                 GUILayout.Label( "FPS: " + Mathf.Floor( PerformanceManager.fps ) );
                 GUILayout.FlexibleSpace();
 
+                // Button to resturn to realtime
+                bool returnButton = false;
                 if (TimeController.Instance.TimePaused || FlightDriver.Pause)
                 {
-                    GUILayout.Label( "PAUSED" );
+                    returnButton = GUILayout.Button( "PAUSED" );
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Hyper)
                 {
-                    GUILayout.Label( "HYPER" );
+                    returnButton = GUILayout.Button( "HYPER" );
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Rails)
                 {
-                    GUILayout.Label( "RAILS" );
+                    returnButton = GUILayout.Button( "RAILS" );
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Physics)
                 {
-                    GUILayout.Label( "PHYS" );
+                    returnButton = GUILayout.Button( "PHYS" );
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo)
                 {
-                    GUILayout.Label( "SLOWMO" );
+                    returnButton = GUILayout.Button( "SLOWMO" );
                 }
                 else
                 {
                     GUILayout.Label( "NORM" );
+                }
+                if (returnButton)
+                {
+                    TimeController.Instance.Realtime();
                 }
             }
             GUILayout.EndHorizontal();
