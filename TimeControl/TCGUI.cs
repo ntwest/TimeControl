@@ -10,7 +10,6 @@ using KSP.UI.Screens;
 using KSP.UI.Dialogs;
 using KSPPluginFramework;
 
-
 namespace TimeControl
 {
     [KSPAddon( KSPAddon.Startup.MainMenu, true )]
@@ -20,76 +19,62 @@ namespace TimeControl
         private static TCGUI instance;
         internal static TCGUI Instance { get { return instance; } }
         #endregion
-
         #region GUI State
-        
         public bool IsReady { get; private set; } = false;
-
         #endregion
-
+        #region Fields
         // Control the throttle with this GUI
         private bool throttleToggle;
         private float throttleSlider;
-
         // Option to suppress the Flight Results Dialog
         private FlightResultsDialog fld;
         private bool supressFlightResultsDialog = false;
-
-
-        //GUI
+        // GUI toggles and values
+        private bool settingsOpen = false;
+        private bool SOISelect = false;
+        bool currentlyAssigningKey = false;
+        private bool fpsVisible = true;
+        private int currentFlightMode;
+        private CelestialBody selectedSOI;
+        private string warpYears = "0"; private string warpDays = "0"; private string warpHours = "0"; private string warpMinutes = "0"; private string warpSeconds = "0";
+        // On-Screen Messages
+        private ScreenMessages screenMsgs;
+        private Color screenMsgsColor;
+        private ScreenMessage warpScreenMessage;
+        //GUI Layout
         private static Rect minimizeButton = new Rect( 5, 5, 10, 10 );
         private static Rect closeButton = new Rect( 5, 5, 10, 10 );
         private static Rect settingsButton = new Rect( 360, -1, 25, 20 );
         private static Rect mode0Button = new Rect( 10, -1, 25, 20 );
         private static Rect mode1Button = new Rect( 25, -1, 25, 20 );
         private static Rect mode2Button = new Rect( 40, -1, 25, 20 );
-
         private Rect flightWindowRect = new Rect( 100, 100, 375, 0 );
         private Rect spaceCenterWindowRect = new Rect( 100, 100, 375, 0 );
         private Rect settingsWindowRect = new Rect( 100, 100, 220, 0 );
-
-        private bool settingsOpen = false;
-        private Vector2 warpScroll;
-        private CelestialBody selectedSOI;
-        private Boolean SOISelect = false;
-
-        private int currentFlightMode;
-
-        private string warpYears = "0"; private string warpDays = "0"; private string warpHours = "0"; private string warpMinutes = "0"; private string warpSeconds = "0";
-        
         private int tcsMainWindowHashCode = "Time Control Main".GetHashCode();
         private int tcsFlightWindowHashCode = "Time Control Flight".GetHashCode();
         private int tcsSettingsWindowHashCode = "Time Control Settings".GetHashCode();
-        
-        bool currentlyAssigningKey = false;
-
-        private ScreenMessages screenMsgs;
-        private Color screenMsgsColor;
-        private ScreenMessage warpScreenMessage;
-        
-        private Boolean fpsVisible = true;
-
+        private Vector2 warpScroll;
+        #endregion
+        #region Private Methods
         private void SetFlightWindowPosition(float x, float y)
         {
             flightWindowRect.x = x;
             flightWindowRect.y = y;
             flightWindowRect = flightWindowRect.ClampToScreen();
         }
-
         private void SetMainWindowPosition(float x, float y)
         {
             spaceCenterWindowRect.x = x;
             spaceCenterWindowRect.y = y;
             spaceCenterWindowRect = spaceCenterWindowRect.ClampToScreen();
         }
-
         private void SetSettingsWindowPosition(float x, float y)
         {
             settingsWindowRect.x = x;
             settingsWindowRect.y = y;
             settingsWindowRect = settingsWindowRect.ClampToScreen();
         }
-
         private void UpdateFlightWindowRectSize(bool force = false)
         {
             if (currentFlightMode == Settings.Instance.WindowSelectedFlightMode && !force)
@@ -110,9 +95,9 @@ namespace TimeControl
                     break;
             }
         }
-
-        #region MonoBehavior
-
+        #endregion
+        #region MonoBehavior and related private methods
+        #region One-Time
         private void Awake()
         {
             Log.Write( "method start", "TCWindow.Awake", LogSeverity.Trace );
@@ -122,7 +107,6 @@ namespace TimeControl
 
             Log.Write( "method end", "TCWindow.Awake", LogSeverity.Trace );
         }
-
         private void Start()
         {
             Log.Write( "method start", "TCWindow.Start", LogSeverity.Trace );
@@ -134,16 +118,14 @@ namespace TimeControl
 
             Log.Write( "method end", "TCWindow.Start", LogSeverity.Trace );
         }
-
-
         /// <summary>
         /// Configures the GUI once the Settings are loaded and the TimeController is ready to operate
         /// </summary>
-        public IEnumerator StartAfterSettingsAndControllerAreReady()
+        private IEnumerator StartAfterSettingsAndControllerAreReady()
         {
             string logCaller = "TimeController.StartAfterSettingsAndControllerAreReady";
             Log.Trace( "coroutine start", logCaller );
-            
+
             while (Settings.Instance == null || !Settings.Instance.IsReady)
                 yield return null;
 
@@ -169,24 +151,22 @@ namespace TimeControl
             Log.Trace( "coroutine end", logCaller );
             yield break;
         }
-
+        #endregion
         #region Update Methods
         private void Update()
         {
             // Don't do anything until the settings are loaded
             if (!IsReady || TimeController.Instance.CanControlWarpType == TimeControllable.None)
                 return;
-            
+
             UpdateThrottle();
             UpdateWarpMessage();
         }
-
         private void UpdateThrottle()
         {
             if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSlider)
                 FlightInputHandler.state.mainThrottle = throttleSlider;
         }
-        
         private void UpdateWarpMessage()
         {
             // Display Warp Screen Message
@@ -236,12 +216,11 @@ namespace TimeControl
         {
             if (!HighLogic.LoadedSceneIsFlight)
                 return;
-                        
+
             if (supressFlightResultsDialog)
                 FlightResultsDialog.Close();
         }
         #endregion
-
         #region GUI Methods
         private void OnGUI()
         {
@@ -251,13 +230,13 @@ namespace TimeControl
                 || Settings.Instance.GUITempHidden
                 )
                 return;
-            
+
             UnityEngine.GUI.skin = null;
             if (Settings.Instance.WindowVisible)
             {
                 if (HighLogic.LoadedSceneIsFlight)
                 {
-                    OnGUIFlightWindow();                    
+                    OnGUIFlightWindow();
                 }
                 else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
@@ -298,7 +277,6 @@ namespace TimeControl
             Settings.Instance.SettingsWindowX = (int)settingsWindowRect.x;
             Settings.Instance.SettingsWindowY = (int)settingsWindowRect.y;
         }
-
         #region Shared GUI
         private void MainGUI(int windowId)
         {
@@ -313,7 +291,7 @@ namespace TimeControl
                 modeButtons();
 
                 GUIHeaderCurrentWarpState();
-                
+
                 if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
                     modeRails();
@@ -341,7 +319,7 @@ namespace TimeControl
                 Event.current.Use();
 
             UnityEngine.GUI.DragWindow();
-        }        
+        }
         private void GUIHeaderCurrentWarpState()
         {
             GUILayout.BeginHorizontal();
@@ -475,11 +453,10 @@ namespace TimeControl
             throttleSlider = GUILayout.HorizontalSlider( throttleSlider, 0.0f, 1.0f );
         }
         #endregion
-
         #region Rails GUI
         private void modeRails()
         {
-            GUI.enabled = true;            
+            GUI.enabled = true;
             GUILayout.BeginVertical();
             {
                 modeRailsHeader();
@@ -491,7 +468,7 @@ namespace TimeControl
                         if (!SOISelect)
                             modeRailsAltitudeLimitsList();
                         else
-                            modeRailsSoiSelector();                        
+                            modeRailsSoiSelector();
                     }
                     GUILayout.EndHorizontal();
                 }
@@ -500,7 +477,7 @@ namespace TimeControl
                 {
                     modeRailsResetRates();
                 }
-                GUILayout.EndHorizontal();                
+                GUILayout.EndHorizontal();
                 GUILayout.Label( "", GUILayout.Height( 5 ) );
                 modeRailsWarpTo();
             }
@@ -510,7 +487,7 @@ namespace TimeControl
         {
             if (selectedSOI == null)
                 selectedSOI = TimeController.Instance.CurrentSOI;
-            
+
             GUILayout.BeginHorizontal();
             {
                 GUILayout.Label( "Current SOI: " + TimeController.Instance.CurrentSOI.name );
@@ -644,7 +621,7 @@ namespace TimeControl
                 }
             }
             GUILayout.EndVertical();
-        }        
+        }
         private void modeRailsWarpTo()
         {
             GUI.enabled = (TimeWarp.CurrentRateIndex == 0);
@@ -665,6 +642,7 @@ namespace TimeControl
                 GUILayout.Label( "s" );
             }
             GUILayout.EndHorizontal();
+
 
             GUILayout.BeginHorizontal();
             {
@@ -699,7 +677,6 @@ namespace TimeControl
                 Settings.Instance.ResetCustomAltitudeLimitsForBody( selectedSOI );
         }
         #endregion Rails GUI
-
         #region Slow-Mo GUI
         private void modeSlowmo()
         {
@@ -753,7 +730,6 @@ namespace TimeControl
             GUILayout.EndVertical();
         }
         #endregion
-
         #region Hyper GUI
         private void modeHyper()
         {
@@ -814,7 +790,7 @@ namespace TimeControl
                     hyperMinPhysText = lhyperMinPhysstr;
                     TimeController.Instance.HyperMinPhys = lhyperMinPhysf;
                 }
-                lhyperMinPhysf = GUILayout.HorizontalSlider( hyperMinPhys, 1f, 6f );                
+                lhyperMinPhysf = GUILayout.HorizontalSlider( hyperMinPhys, 1f, 6f );
                 if (lhyperMinPhysf != hyperMinPhys)
                 {
                     TimeController.Instance.HyperMinPhys = lhyperMinPhysf;
@@ -880,7 +856,6 @@ namespace TimeControl
         }
 
         #endregion
-
         #region Settings GUI
         private void SettingsGUI(int windowId)
         {
@@ -900,7 +875,7 @@ namespace TimeControl
                 GUI.enabled = !TimeController.Instance.IsFpsKeeperActive;
                 Settings.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( Settings.Instance.MaxDeltaTimeSlider, 0.12f, 0.02f );
                 GUI.enabled = true;
-                
+
                 //GUILayout.BeginHorizontal();
                 //{
                 //    GUILayout.Label( "FPS: " + Mathf.Floor( PerformanceManager.fps ), GUILayout.Width( 50 ) );
@@ -929,7 +904,7 @@ namespace TimeControl
 
                 //Keys
                 Color c = UnityEngine.GUI.contentColor;
-                foreach (TCKeyBinding kb in Settings.Instance.KeyBinds )
+                foreach (TCKeyBinding kb in Settings.Instance.KeyBinds)
                 {
                     if (kb.IsKeyAssigned)
                         UnityEngine.GUI.contentColor = Color.yellow;
@@ -947,20 +922,20 @@ namespace TimeControl
                         buttonDesc = kb.Description;
                     }
 
-                    buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None") ;
+                    buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None");
 
                     if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
                         Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider( Settings.Instance.CustomKeySlider, 0f, 1f );
 
                     if (currentlyAssigningKey)
                         UnityEngine.GUI.enabled = false;
-                    
+
                     bool assignKey = GUILayout.Button( buttonDesc );
                     if (assignKey)
                     {
                         settingsGUIAssignKey( buttonDesc, kb );
                     }
-                    
+
                     UnityEngine.GUI.enabled = true;
                 }
                 UnityEngine.GUI.contentColor = c;
@@ -1000,9 +975,7 @@ namespace TimeControl
         }
 
         #endregion
-
         #endregion
-
         #endregion
     }
 }
