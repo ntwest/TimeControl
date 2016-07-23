@@ -175,7 +175,7 @@ namespace TimeControl
             Time.fixedDeltaTime = defaultDeltaTime * HyperMinPhys;
             Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
 
-            CurrentControllerMessage = ("Time Control Hyper Warp: " + Math.Round( PerformanceManager.ptr, 1 ) + "x");
+            CurrentControllerMessage = ("HYPER-WARP " + Math.Round( PerformanceManager.ptr, 1 ) + "x");
         }
         private void UpdateSlowMo()
         {

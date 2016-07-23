@@ -211,7 +211,7 @@ namespace TimeControl
 
                         if (TimeController.Instance.CurrentControllerMessage != "")
                         {
-                            warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, 3f, ScreenMessageStyle.UPPER_CENTER );
+                            warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
                         }
                     }
                 }
@@ -223,7 +223,7 @@ namespace TimeControl
             else if (TimeController.Instance.CurrentControllerMessage != "")
             {
                 if (Settings.Instance.ShowScreenMessages)
-                    warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, 3f, ScreenMessageStyle.UPPER_CENTER );
+                    warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
             }
         }
 
