@@ -643,6 +643,7 @@ namespace TimeControl
             Time.timeScale = 1f;
             Time.fixedDeltaTime = defaultDeltaTime;
             Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
+            timePaused = false;
 
             Log.Trace( "method end", logCaller );
         }
@@ -681,17 +682,27 @@ namespace TimeControl
                     CancelSlowMo();
                     break;
             }
+
+            resetTime();
             Log.Trace( "method end", logCaller );
         }
 
 
-        #endregion  
-              
+        #endregion
+
         #region Rails Warp
         public void UpdateInternalTimeWarpArrays()
         {
             string logCaller = "TimeController.UpdateInternalTimeWarpArrays";
             Log.Trace( "method start", logCaller );
+
+            if (CanControlWarpType == TimeControllable.None)
+            {
+                Log.Warning( "Tried to update internal time warp arrays, but we can't modify them right now", logCaller );
+                Log.Trace( "method end", logCaller );
+                return;
+            }
+
 
             int levels = Settings.Instance.WarpLevels;
 
@@ -903,7 +914,7 @@ namespace TimeControl
                 return true;
             }
             Log.Trace( "method end", logCaller );
-            return false;            
+            return false;
         }
 
 
@@ -1124,7 +1135,7 @@ namespace TimeControl
                 Log.Trace( "method end", logCaller );
                 return;
             }
-            
+
             if (CurrentWarpState == TimeControllable.Hyper)
             {
                 CancelHyperWarp();
@@ -1155,7 +1166,7 @@ namespace TimeControl
             Log.Trace( "method end", logCaller );
         }
         #endregion
-        
+
         #endregion
 
 
@@ -1177,8 +1188,6 @@ namespace TimeControl
         private Boolean operational;
         private CelestialBody currentSOI;
         private string currentControllerMessage;
-
-        //private FlightCamera cam;
 
         //HYPERWARP   
         private Boolean hyperPauseOnTimeReached = false;
