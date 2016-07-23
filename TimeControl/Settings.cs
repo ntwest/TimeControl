@@ -687,6 +687,8 @@ namespace TimeControl
             config.Save( PluginUtilities.settingsFilePath );
             needsSaved = false;
 
+            Log.Info( "Settings Saved to File", logCaller );
+
             Log.Trace( "method end", logCaller );
         }
         private void loadConfig()
@@ -712,6 +714,8 @@ namespace TimeControl
             configLoadRailsData( config );
 
             configLoadSuccessful = true;
+
+            Log.Info( "Settings Loaded from File", logCaller );
 
             Log.Trace( "method end", logCaller );
         }
@@ -793,6 +797,8 @@ namespace TimeControl
             else
                 TimeController.Instance.UpdateInternalTimeWarpArrays();
 
+            Log.Info( "Warp Level Added", logCaller );
+
             Log.Trace( "method end", logCaller );
         }
 
@@ -827,6 +833,8 @@ namespace TimeControl
                 Log.Warning( "Cannot add warp level to TimeController, object not found or is not ready", logCaller );
             else
                 TimeController.Instance.UpdateInternalTimeWarpArrays();
+
+            Log.Info( "Warp Level Removed", logCaller );
 
             Log.Trace( "method end", logCaller );
         }

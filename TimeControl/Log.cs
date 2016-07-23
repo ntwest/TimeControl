@@ -19,8 +19,8 @@ namespace TimeControl
 
         static Log()
         {
-            // Start out writing only warnings or errors. Can be changed in config file.
-            LoggingLevel = LogSeverity.Warning;
+            // Start out writing only info, warnings or errors. Can be changed in config file.
+            LoggingLevel = LogSeverity.Info;
         }
 
         static public void Trace(string message, string caller = "")
