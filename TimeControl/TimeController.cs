@@ -801,6 +801,12 @@ namespace TimeControl
             {
                 // TODO Implement a way to rails warp until you hit atmo, then hyper warp, then rails warp again.
                 Log.Info( "In atmosphere. Hyper warping instead.", logCaller );
+
+                if (railsPauseOnTimeReached)
+                {
+                    railsPauseOnTimeReached = false;
+                    hyperPauseOnTimeReached = true;
+                }
                 return HyperWarpToTime( warpTime );
             }
 
