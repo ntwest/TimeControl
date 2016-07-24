@@ -1,6 +1,16 @@
-Changelog Start: Version 2.0.2 (KSP 1.1.3)
+Version 2.1 (KSP 1.1.3)
 
-Major changes:
+- Screen Messages now stay on until you change warp. They can be toggled off in the settings menu.
+- Replaced label at top right of TC window with a button that cancels the warp type as well as cancelling PAUSE.
+- Auto Rails Warp now uses custom code, it appears to be very accurate.
+- Auto Rails warp now has the ability to pause when you reach the time requested.
+- Rails warp when you first go to the flight window now uses the correct warp rates.
+- Logging mode now is properly set up with the settings file. Defaulting to INFO mode.
+- Corrected issue when changing a scene, if you had time paused, it would break the game.
+
+
+Version 2.0.2 (KSP 1.1.3)
+
 - New Icon from @Avera9eJoe
 - Settings window is available from the space center as well as in flight.
 - Rails Warp
