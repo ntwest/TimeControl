@@ -353,10 +353,21 @@ namespace TimeControl
             if (!config.HasNode( cSet ))
             {
                 string message = "No Settings node found in config. This error is not fatal to the load process. Default settings will be used instead.";
-                Log.Trace( message, logCaller );
+                Log.Error( message, logCaller );
                 return;
             }
             configSettings = config.GetNode( cSet );
+
+            if (configSettings.HasValue( PropertyStrings.LoggingLevel ))
+            {
+                string ll = configSettings.GetValue( PropertyStrings.LoggingLevel );
+                if (Enum.IsDefined( typeof( LogSeverity ), ll ))
+                    LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
+                else
+                    Log.Warning( "Logging Level of " + ll + " is not defined. Using default.", logCaller );
+            }
+            else
+                Log.Warning( PropertyStrings.LoggingLevel + " has error in settings configuration. Using default.", logCaller );
 
             //INTERNAL
             assignFromConfigBool( configSettings, PropertyStrings.WindowVisible, ref visible );
@@ -364,17 +375,6 @@ namespace TimeControl
             assignFromConfigInt( configSettings, PropertyStrings.WindowSelectedFlightMode, ref windowSelectedFlightMode );    
             assignFromConfigInt( configSettings, PropertyStrings.FpsMinSlider, ref fpsMinSlider );
             assignFromConfigBool( configSettings, PropertyStrings.ShowFPS, ref showFPS );
-
-            if (configSettings.HasValue( PropertyStrings.LoggingLevel ))
-            {
-                string ll = configSettings.GetValue( PropertyStrings.LoggingLevel );
-                if (Enum.IsDefined( typeof( LogSeverity ), ll ))
-                    LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );                    
-                else
-                    Log.Warning( "Logging Level of " + ll + " is not defined. Using default.", logCaller );
-            }
-            else
-                Log.Warning( PropertyStrings.LoggingLevel + " has error in settings configuration. Using default.", logCaller );
 
             assignFromConfigBool( configSettings, PropertyStrings.UseStockToolbar, ref useStockToolbar );
             assignFromConfigBool( configSettings, PropertyStrings.UseBlizzyToolbar, ref useBlizzyToolbar );
@@ -848,7 +848,7 @@ namespace TimeControl
             }
 
             set {
-                if (LoggingLevel != value)
+                if (loggingLevel != value)
                 {
                     loggingLevel = value;
                     Log.LoggingLevel = loggingLevel;
@@ -1233,7 +1233,7 @@ namespace TimeControl
 
         private bool showScreenMessages = true;
 
-        private LogSeverity loggingLevel = LogSeverity.Warning;
+        private LogSeverity loggingLevel = Log.LoggingLevel;
 
         #endregion
     }
