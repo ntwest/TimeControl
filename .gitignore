@@ -1,7 +1,5 @@
 *.lnk
-*.sln
 *.suo
-*.csproj
 obj
 old_source
 Images
