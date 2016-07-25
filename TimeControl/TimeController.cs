@@ -24,8 +24,9 @@ namespace TimeControl
     internal class TimeController : MonoBehaviour
     {
         #region Singleton
+        public static bool IsReady { get; private set; }
         private static TimeController instance;
-        internal static TimeController Instance { get { return instance; } }
+        public static TimeController Instance { get { return instance; } }
         #endregion
 
         #region MonoBehavior
@@ -67,7 +68,7 @@ namespace TimeControl
             string logCaller = "TimeController.StartAfterSettingsReady";
             Log.Trace( "coroutine start", logCaller );
 
-            while (Settings.Instance == null || !Settings.Instance.IsReady)
+            while (!Settings.IsReady)
                 yield return null;
 
             Log.Info( "Wiring Up Settings Property Changed Event Subscription", logCaller );
@@ -92,7 +93,7 @@ namespace TimeControl
         private void Update()
         {
             // Don't do anything until the settings are loaded
-            if (Settings.Instance == null || !Settings.Instance.IsReady)
+            if (!Settings.IsReady)
                 return;
 
             if (HighLogic.LoadedScene == GameScenes.MAINMENU)
@@ -214,11 +215,11 @@ namespace TimeControl
             if (fpsKeeperFactor < 11)
             {
                 TimeSlider = 0f;
-                Settings.Instance.MaxDeltaTimeSlider = .12f - (fpsKeeperFactor * .01f);
+                MaxDeltaTimeSlider = .12f - (fpsKeeperFactor * .01f);
             }
             else
             {
-                Settings.Instance.MaxDeltaTimeSlider = 0.02f;
+                MaxDeltaTimeSlider = 0.02f;
                 TimeSlider = (float)(fpsKeeperFactor - 10) / 64f;
             }
         }
@@ -456,7 +457,38 @@ namespace TimeControl
         #endregion
 
         #region Properties
-
+        #region Static Properties
+        public static float MaxDeltaTimeSliderMin {
+            get {
+                return 0.02f;
+            }
+        }
+        public static float MaxDeltaTimeSliderMax {
+            get {
+                return 0.12f;
+            }
+        }
+        public static float HyperMinPhysMin {
+            get {
+                return 1f;
+            }
+        }
+        public static float HyperMinPhysMax {
+            get {
+                return 6f;
+            }
+        }
+        public static float HyperMaxRateMin {
+            get {
+                return 2f;
+            }
+        }
+        public static float HyperMaxRateMax {
+            get {
+                return 100f;
+            }
+        }
+        #endregion
         #region Read-Only Properties
         public float TruePOS {
             get {
@@ -477,7 +509,6 @@ namespace TimeControl
             }
         }
         #endregion
-
         #region Read-Only Private Set Properties
         public string CurrentControllerMessage {
             get {
@@ -490,7 +521,6 @@ namespace TimeControl
                 }
             }
         }
-        public bool IsReady { get; private set; }
         public CelestialBody CurrentSOI {
             get {
                 return currentSOI;
@@ -517,7 +547,7 @@ namespace TimeControl
             get {
                 return timePaused;
             }
-            set {
+            private set {
                 if (timePaused != value)
                 {
                     timePaused = value;
@@ -598,6 +628,27 @@ namespace TimeControl
                 }
             }
         }
+        public float MaxDeltaTimeSlider {
+            get {
+                return maxDeltaTimeSlider;
+            }
+
+            set {
+                if (maxDeltaTimeSlider != value)
+                {
+                    // round to 2 decimal points, then clamp between min and max
+                    float v = Mathf.Clamp( (Mathf.Round( value * 100f ) / 100f), MaxDeltaTimeSliderMin, MaxDeltaTimeSliderMax );
+                    maxDeltaTimeSlider = v;
+                    Time.maximumDeltaTime = v;
+
+                    // Update the Settings. Will be automatically saved as needed
+                    if (Settings.IsReady)
+                    {
+                        Settings.Instance.MaxDeltaTimeSlider = v;
+                    }
+                }
+            }
+        }
         public bool PauseOnNextFixedUpdate {
             get {
                 return pauseOnNextFixedUpdate;
@@ -635,7 +686,6 @@ namespace TimeControl
                 }
             }
         }
-
         public float HyperMinPhys {
             get {
                 return hyperMinPhys;
@@ -644,11 +694,10 @@ namespace TimeControl
             set {
                 if (hyperMinPhys != value)
                 {
-                    hyperMinPhys = Mathf.Clamp( value, 1f, 6f ); ;
+                    hyperMinPhys = Mathf.Clamp( value, HyperMinPhysMin, HyperMinPhysMax ); ;
                 }
             }
         }
-
         public float HyperMaxRate {
             get {
                 return hyperMaxRate;
@@ -657,7 +706,7 @@ namespace TimeControl
             set {
                 if (hyperMaxRate != value)
                 {
-                    hyperMaxRate = Mathf.Clamp( value, 2f, 100f );
+                    hyperMaxRate = Mathf.Clamp( value, HyperMaxRateMin, HyperMaxRateMax );
                 }
             }
         }
@@ -714,6 +763,15 @@ namespace TimeControl
 
         #region Public Methods        
         #region Pause
+        public void TogglePause()
+        {
+            string logCaller = "TogglePause";
+            Log.Trace( "method start", logCaller );
+
+            TimePaused = !TimePaused;
+
+            Log.Trace( "method end", logCaller );
+        }
         public void IncrementTimeStep()
         {
             string logCaller = "IncrementTimeStep";
@@ -1270,6 +1328,7 @@ namespace TimeControl
         //PHYSICS
         private float defaultDeltaTime = Time.fixedDeltaTime; //0.02
         private float timeSlider = 0f;
+        private float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
         private Boolean timePaused;
         private Boolean pauseOnNextFixedUpdate = false;
         private float smoothSlider = 0f;

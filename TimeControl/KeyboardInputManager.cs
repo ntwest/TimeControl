@@ -35,7 +35,7 @@ namespace TimeControl
             string logCaller = "KeyboardInputManager.Awake()";
             Log.Trace( "method start", logCaller );
 
-            UnityEngine.Object.DontDestroyOnLoad( this ); //Don't go away on scene changes
+            DontDestroyOnLoad( this ); //Don't go away on scene changes
             instance = this;
 
             Log.Trace( "method end", logCaller );
@@ -58,13 +58,13 @@ namespace TimeControl
         private void Update()
         {
             // Don't do anything until the Settings Object & TimeController Object are ready
-            if (Settings.Instance == null || !Settings.Instance.IsReady || TimeController.Instance == null || !TimeController.Instance.IsReady)
+            if (!Settings.IsReady || !TimeController.IsReady)
                 return;            
             // Only check for keypresses when we can actually do something
             if (TimeController.Instance.CanControlWarpType == TimeControllable.None)
                 return;
 
-            // Only run during this frame if a key is actually pressed
+            // Only run during this frame if a key is actually pressed down
             if (Input.anyKey)
             {
                 LoadKeyPresses();
@@ -346,7 +346,7 @@ namespace TimeControl
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
                 LogKeyPress( k, "PauseKeyPress" );
-                TimeController.Instance.TimePaused = !TimeController.Instance.TimePaused;
+                TimeController.Instance.TogglePause();
             }
         }    
 

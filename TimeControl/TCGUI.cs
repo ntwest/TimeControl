@@ -25,7 +25,7 @@ namespace TimeControl
         #region Fields
         // Control the throttle with this GUI
         private bool throttleToggle;
-        private float throttleSlider;
+        private float throttleSet;
         // Option to suppress the Flight Results Dialog
         private FlightResultsDialog fld;
         private bool supressFlightResultsDialog = false;
@@ -126,7 +126,7 @@ namespace TimeControl
             string logCaller = "TimeController.StartAfterSettingsAndControllerAreReady";
             Log.Trace( "coroutine start", logCaller );
 
-            while (Settings.Instance == null || !Settings.Instance.IsReady)
+            while (!Settings.IsReady)
                 yield return null;
 
             Log.Info( "Setting Up GUI Window Postions", logCaller );
@@ -138,7 +138,7 @@ namespace TimeControl
             currentFlightMode = Settings.Instance.WindowSelectedFlightMode;
             UpdateFlightWindowRectSize( true );
 
-            while (TimeController.Instance == null || !TimeController.Instance.IsReady)
+            while (TimeController.Instance == null || !TimeController.IsReady)
                 yield return null;
 
             Log.Info( "Getting selected SOI as Current SOI", logCaller );
@@ -164,8 +164,8 @@ namespace TimeControl
         }
         private void UpdateThrottle()
         {
-            if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSlider)
-                FlightInputHandler.state.mainThrottle = throttleSlider;
+            if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSet)
+                FlightInputHandler.state.mainThrottle = throttleSet;
         }
         private void UpdateWarpMessage()
         {
@@ -267,7 +267,7 @@ namespace TimeControl
         }
         private void OnGUIUpdateConfigWithWindowLocations()
         {
-            if (Settings.Instance == null || !Settings.Instance.IsReady)
+            if (!Settings.IsReady)
                 return;
 
             Settings.Instance.FlightWindowX = (int)flightWindowRect.x;
@@ -431,12 +431,12 @@ namespace TimeControl
             if (!TimeController.Instance.TimePaused)
             {
                 if (GUILayout.Button( "Pause", GUILayout.Width( 60 ) ))
-                    TimeController.Instance.TimePaused = true;
+                    TimeController.Instance.TogglePause();
             }
             else
             {
                 if (GUILayout.Button( "Resume", GUILayout.Width( 60 ) ))
-                    TimeController.Instance.TimePaused = false;
+                    TimeController.Instance.TogglePause();
             }
             GUI.enabled = true;
         }
@@ -449,9 +449,56 @@ namespace TimeControl
         }
         private void GUIThrottleControl()
         {
-            throttleToggle = GUILayout.Toggle( throttleToggle, "Throttle Control: " + Mathf.Round( throttleSlider * 100 ) + "%" );
-            throttleSlider = GUILayout.HorizontalSlider( throttleSlider, 0.0f, 1.0f );
+            throttleToggle = GUILayout.Toggle( throttleToggle, "Throttle Control: " + Mathf.Round( throttleSet * 100 ) + "%" );
+            
+            Action<float> updateThrottle = delegate (float f) { throttleSet = f / 100.0f; };
+            // Force slider to select 1 decimal place values between min and max
+            Func<float, float> modifyFieldThrottle = delegate (float f) { return (Mathf.Floor( f * 10 ) / 10); };
+            floatTextBoxAndSliderCombo( null, (throttleSet * 100f), 0.0f, 100.0f, updateThrottle, modifyFieldThrottle );
         }
+
+        /// <summary>
+        /// Creates a text box + slider that both update the same backing field
+        /// </summary>
+        /// <param name="comboLabel">label for this control</param>
+        /// <param name="backingFieldFloat">Value of the backing field</param>
+        /// <param name="sliderMin">Minimim value for the backing field</param>
+        /// <param name="sliderMax">Maximum value for the backing field</param>
+        /// <param name="updateBackingField">Action that is called when we want to update the backing field</param>
+        /// <param name="modifyField">Function that is applied to the GUI input prior to updating the backing field</param>
+        private void floatTextBoxAndSliderCombo(string comboLabel, float backingFieldFloat, float sliderMin, float sliderMax, Action<float> updateBackingField, Func<float, float> modifyField = null)
+        {
+            string backingFieldStr = backingFieldFloat.ToString();
+            float fieldFloat;
+            string fieldStr;
+
+            if (comboLabel != null && comboLabel != "")
+                GUILayout.Label( comboLabel );
+
+            GUILayout.BeginHorizontal();
+            {
+                // Text Box to enter values
+                fieldStr = GUILayout.TextField( backingFieldStr, GUILayout.Width( 35 ) );
+                if (fieldStr != backingFieldStr && float.TryParse( fieldStr, out fieldFloat ))
+                {
+                    backingFieldStr = fieldStr;
+                    if (modifyField != null)
+                        fieldFloat = modifyField( fieldFloat );
+                    updateBackingField( fieldFloat );
+                }
+
+                // Slider to enter values
+                fieldFloat = GUILayout.HorizontalSlider( backingFieldFloat, sliderMin, sliderMax );
+                if (modifyField != null)
+                    fieldFloat = modifyField( fieldFloat );
+                if (fieldFloat != backingFieldFloat)
+                {
+                    updateBackingField( fieldFloat );
+                }
+            }
+            GUILayout.EndHorizontal();
+        }
+
         #endregion
         #region Rails GUI
         private void modeRails()
@@ -752,52 +799,18 @@ namespace TimeControl
         }
         private void modeHyperHyperMaxRate()
         {
-            string hyperMaxRateText = TimeController.Instance.HyperMaxRate.ToString();
-            float lmaxWarpRatef;
-            string lmaxWarpRatestr;
-
-            GUILayout.Label( "Max Warp Rate: " + Mathf.Round( TimeController.Instance.HyperMaxRate ) );
-            GUILayout.BeginHorizontal();
-            {
-                lmaxWarpRatestr = GUILayout.TextField( hyperMaxRateText, GUILayout.Width( 35 ) );
-                if (lmaxWarpRatestr != hyperMaxRateText && float.TryParse( lmaxWarpRatestr, out lmaxWarpRatef ))
-                {
-                    hyperMaxRateText = lmaxWarpRatestr;
-                    TimeController.Instance.HyperMaxRate = lmaxWarpRatef;
-                }
-                lmaxWarpRatef = GUILayout.HorizontalSlider( TimeController.Instance.HyperMaxRate, 2f, 100f );
-                lmaxWarpRatef = (float)Math.Truncate( lmaxWarpRatef );
-                if (lmaxWarpRatef != TimeController.Instance.HyperMaxRate)
-                {
-                    TimeController.Instance.HyperMaxRate = lmaxWarpRatef;
-                }
-            }
-            GUILayout.EndHorizontal();
+            string hyperMaxRateLabel = "Max Warp Rate: " + Mathf.Round( TimeController.Instance.HyperMaxRate );
+            Action<float> updateHyperMaxRate = delegate (float f) { TimeController.Instance.HyperMaxRate = f; };
+            // Force slider to select integer values between min and max
+            Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor(f); };
+            floatTextBoxAndSliderCombo( hyperMaxRateLabel, TimeController.Instance.HyperMaxRate, TimeController.HyperMaxRateMin, TimeController.HyperMaxRateMax, updateHyperMaxRate, modifyFieldHyperMaxRate);
         }
 
         private void modeHyperHyperMinPhys()
         {
-            float hyperMinPhys = TimeController.Instance.HyperMinPhys;
-            string hyperMinPhysText = TimeController.Instance.HyperMinPhys.ToString();
-            float lhyperMinPhysf;
-            string lhyperMinPhysstr;
-
-            GUILayout.Label( "Min Physics Accuracy: " + 1 / hyperMinPhys );
-            GUILayout.BeginHorizontal();
-            {
-                lhyperMinPhysstr = GUILayout.TextField( hyperMinPhysText, GUILayout.Width( 35 ) );
-                if (lhyperMinPhysstr != hyperMinPhysText && float.TryParse( lhyperMinPhysstr, out lhyperMinPhysf ))
-                {
-                    hyperMinPhysText = lhyperMinPhysstr;
-                    TimeController.Instance.HyperMinPhys = lhyperMinPhysf;
-                }
-                lhyperMinPhysf = GUILayout.HorizontalSlider( hyperMinPhys, 1f, 6f );
-                if (lhyperMinPhysf != hyperMinPhys)
-                {
-                    TimeController.Instance.HyperMinPhys = lhyperMinPhysf;
-                }
-            }
-            GUILayout.EndHorizontal();
+            string hyperMinPhysLabel = "Min Physics Accuracy: " + 1 / TimeController.Instance.HyperMinPhys;
+            Action<float> updatehyperMinPhys = delegate (float f) { TimeController.Instance.HyperMinPhys = f; };
+            floatTextBoxAndSliderCombo( hyperMinPhysLabel, TimeController.Instance.HyperMinPhys, TimeController.HyperMinPhysMin, TimeController.HyperMinPhysMax, updatehyperMinPhys );
         }
 
         private void modeHyperButtons()
@@ -874,7 +887,7 @@ namespace TimeControl
                 GUILayout.Label( "Max Delta Time: " + Time.maximumDeltaTime );
 
                 GUI.enabled = !TimeController.Instance.IsFpsKeeperActive;
-                Settings.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( Settings.Instance.MaxDeltaTimeSlider, 0.12f, 0.02f );
+                TimeController.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( TimeController.Instance.MaxDeltaTimeSlider, TimeController.MaxDeltaTimeSliderMax, TimeController.MaxDeltaTimeSliderMin );
                 GUI.enabled = true;
 
                 //GUILayout.BeginHorizontal();
@@ -899,8 +912,11 @@ namespace TimeControl
 
                 Settings.Instance.ShowScreenMessages = GUILayout.Toggle( Settings.Instance.ShowScreenMessages, "Show Onscreen Messages" );
 
-                GUILayout.Label( "", GUILayout.Height( 5 ) );
+                string saveIntervalLabel = "Save Settings Every " + Mathf.Round( Settings.Instance.SaveInterval ) + "s";
+                Action<float> updateSaveInterval = delegate (float f) { Settings.Instance.SaveInterval = f; };
+                floatTextBoxAndSliderCombo( saveIntervalLabel, Settings.Instance.SaveInterval, Settings.Instance.SaveIntervalMin, Settings.Instance.SaveIntervalMax, updateSaveInterval );
 
+                GUILayout.Label( "", GUILayout.Height( 5 ) );
                 GUILayout.Label( "Key Bindings:" );
 
                 //Keys

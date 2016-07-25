@@ -52,7 +52,7 @@ namespace TimeControl
         /// </summary>
         public IEnumerator StartAfterSettingsReady()
         {
-            while (Settings.Instance == null || !Settings.Instance.IsReady)
+            while (!Settings.IsReady)
                 yield return null;
 
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;

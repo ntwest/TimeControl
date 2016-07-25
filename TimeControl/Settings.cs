@@ -22,8 +22,9 @@ namespace TimeControl
     internal class Settings : MonoBehaviour, SC.INotifyPropertyChanged
     {
         #region Singleton
+        public static bool IsReady { get; private set; } = false;
         private static Settings instance;
-        internal static Settings Instance { get { return instance; } }
+        public static Settings Instance { get { return instance; } }
         #endregion
         #region INotifyPropertyChanged        
         /// <summary>
@@ -31,7 +32,7 @@ namespace TimeControl
         /// No real "binding" in Unity but this helps me decouple the GUI from the back end so a new GUI could be written easily.
         /// Also makes changes a bit easier since the tooling allows renaming of constants much easier than strings.
         /// </summary>
-        internal static class PropertyStrings
+        public static class PropertyStrings
         {
             internal const string WindowVisible = "Visible";
             internal const string WindowMinimized = "Minimized";            
@@ -49,8 +50,11 @@ namespace TimeControl
             internal const string SettingsWindowY = "SettingsWindowY";
             internal const string FpsX = "FpsX";
             internal const string FpsY = "FpsY";
-            internal const string CustomKeySlider = "CustomKeySlider";
             internal const string ShowScreenMessages = "ShowScreenMessages";
+            internal const string MaxDeltaTimeSlider = "MaxDeltaTimeSlider";
+            internal const string WarpLevels = "WarpLevels";
+            internal const string CustomKeySlider = "CustomKeySlider";
+            internal const string SaveInterval = "SaveInterval";
         }
 
         public event SC.PropertyChangedEventHandler PropertyChanged;
@@ -69,6 +73,7 @@ namespace TimeControl
             string logCaller = "Settings.Awake()";
             Log.Trace( "method start", logCaller );
 
+            DontDestroyOnLoad( this );
             instance = this;
 
             Log.Trace( "method end", logCaller );
@@ -77,8 +82,6 @@ namespace TimeControl
         {
             string logCaller = "Settings.Start()";
             Log.Trace( "method start", logCaller );
-
-            UnityEngine.Object.DontDestroyOnLoad( this );
 
             GameEvents.onHideUI.Add( this.onHideUI );
             GameEvents.onShowUI.Add( this.onShowUI );
@@ -284,6 +287,7 @@ namespace TimeControl
             if (!config.HasNode( cSet ))
                 config.AddNode( cSet );
             configSettings = config.GetNode( cSet );
+            
             configSettings.SetValue( PropertyStrings.WindowVisible, visible.ToString(), true );
             configSettings.SetValue( PropertyStrings.WindowMinimized, windowMinimized.ToString(), true );
             configSettings.SetValue( PropertyStrings.WindowSelectedFlightMode, windowSelectedFlightMode.ToString(), true );
@@ -776,7 +780,7 @@ namespace TimeControl
                 return;
             }
             
-            if (warpLevels >= 99)
+            if (WarpLevels >= 99)
             {
                 Log.Warning( "cannot go above 99 warp levels", logCaller );
                 Log.Trace( "method end", logCaller );
@@ -792,7 +796,7 @@ namespace TimeControl
             WarpLevels++;
             SetNeedsSavedFlag();
 
-            if (TimeController.Instance == null || !TimeController.Instance.IsReady)
+            if (TimeController.Instance == null || !TimeController.IsReady)
                 Log.Warning( "Cannot add warp level to TimeController, object not found or is not ready", logCaller );
             else
                 TimeController.Instance.UpdateInternalTimeWarpArrays();
@@ -813,7 +817,7 @@ namespace TimeControl
                 return;
             }
 
-            if (Settings.Instance.WarpLevels <= 8)
+            if (WarpLevels <= 8)
             {
                 Log.Warning( "cannot go below 8 warp levels", logCaller );
                 Log.Trace( "method end", logCaller );
@@ -829,7 +833,7 @@ namespace TimeControl
             WarpLevels--;
             SetNeedsSavedFlag();
 
-            if (TimeController.Instance == null || !TimeController.Instance.IsReady)
+            if (TimeController.Instance == null || !TimeController.IsReady)
                 Log.Warning( "Cannot add warp level to TimeController, object not found or is not ready", logCaller );
             else
                 TimeController.Instance.UpdateInternalTimeWarpArrays();
@@ -841,7 +845,6 @@ namespace TimeControl
 
 
         #region  Properties
-        public bool IsReady { get; private set; }
         public LogSeverity LoggingLevel {
             get {
                 return loggingLevel;
@@ -936,10 +939,8 @@ namespace TimeControl
             set {
                 if (maxDeltaTimeSlider != value)
                 {
-                    Time.maximumDeltaTime = Mathf.Round( value * 100f ) / 100f;
-
                     maxDeltaTimeSlider = value;
-                    OnPropertyChanged( "MaxDeltaTimeSlider" );
+                    OnPropertyChanged( PropertyStrings.MaxDeltaTimeSlider );
                     SetNeedsSavedFlag();
                 }
             }
@@ -953,7 +954,7 @@ namespace TimeControl
                 if (warpLevels != value)
                 {
                     warpLevels = value;
-                    OnPropertyChanged( "WarpLevels" );
+                    OnPropertyChanged( PropertyStrings.WarpLevels );
                     SetNeedsSavedFlag();
                 }
             }
@@ -965,6 +966,7 @@ namespace TimeControl
 
             set {
                 customKeySlider = value;
+                OnPropertyChanged( PropertyStrings.CustomKeySlider );
                 SetNeedsSavedFlag();
             }
         }
@@ -1128,6 +1130,33 @@ namespace TimeControl
             }
         }
 
+
+        public float SaveIntervalMin {
+            get {
+                return 1f;
+            }
+        }
+        public float SaveIntervalMax {
+            get {
+                return 60f;
+            }
+        }
+        /// <summary>
+        /// Number of seconds to wait before saving config file after a change
+        /// Defaults to 30 seconds. Clamps between SaveIntervalMin and SaveIntervalMax
+        /// </summary>
+        public float SaveInterval {
+            get {
+                return saveInterval;
+            }
+
+            set {
+                saveInterval = Mathf.Clamp(Mathf.Round(value), SaveIntervalMin, SaveIntervalMax );
+                OnPropertyChanged( PropertyStrings.SaveInterval );
+                SetNeedsSavedFlag();
+            }
+        }
+
         public bool GUITempHidden {
             get {
                 return (TempGUIHidden.Count != 0);
@@ -1169,23 +1198,6 @@ namespace TimeControl
                 return keyBinds;
             }
         }
-
-        /// <summary>
-        /// Number of seconds to wait before saving config file after a change
-        /// Defaults to 30 seconds
-        /// </summary>
-        public float SaveInterval {
-            get {
-                return saveInterval;
-            }
-
-            set {
-                saveInterval = value;
-                SetNeedsSavedFlag();
-            }
-        }
-
-
 
         #endregion
         #region  Fields
