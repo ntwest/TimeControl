@@ -1,3 +1,9 @@
+Version 2.2 (KSP 1.1.3)
+
+- Logging mode now is properly set up with the settings file as well as in the Settings GUI. Defaulting to INFO mode.
+- Save warp rates, altitudes, window positions, and settings every X seconds is now in the Settings GUI as well. Defaults to 5 seconds. Note that if you have made no changes, it does not perform a save.
+- "Homeworld Timekeeping" option added. If you have modified things with Kopernicus and this is turned on, "Use Kerbin Time" will set up your calendar so that 1 day = 1 sidereal day, and 1 year = 1 sidereal year.
+
 Version 2.1 (KSP 1.1.3)
 
 - Screen Messages now stay on until you change warp. They can be toggled off in the settings menu.
