@@ -93,12 +93,15 @@ namespace TimeControl
         private void Update()
         {
             // Don't do anything until the settings are loaded
-            if (!Settings.IsReady || !IsOperational)
+            if (!Settings.IsReady)
+                return;
+
+            if (HighLogic.LoadedScene == GameScenes.MAINMENU)
             {
-                //SmoothSlider = timeSlider;
+                CurrentWarpState = TimeControllable.None;
+                IsOperational = false;
                 return;
             }
-                
 
             if (timeWarp == null)
             {
@@ -116,21 +119,28 @@ namespace TimeControl
 
             if (!(TimeWarp.CurrentRate > 1))
                 Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
-            
-            switch (CurrentWarpState)
-            {
-                case TimeControllable.SlowMo:
-                    UpdateSlowMo();
-                    break;
-                case TimeControllable.Hyper:
-                    UpdateHyper();
-                    break;
-                case TimeControllable.None:
-                    CurrentControllerMessage = "";
-                    break;
-            }
 
-            UpdatePaused();
+            if (IsOperational)
+            {
+                switch (CurrentWarpState)
+                {
+                    case TimeControllable.SlowMo:
+                        UpdateSlowMo();
+                        break;
+                    case TimeControllable.Hyper:
+                        UpdateHyper();
+                        break;
+                    case TimeControllable.None:
+                        CurrentControllerMessage = "";
+                        break;
+                }
+
+                UpdatePaused();
+            }
+            else
+            {
+                SmoothSlider = timeSlider;
+            }
         }
 
         private void UpdateRails()
@@ -393,7 +403,6 @@ namespace TimeControl
             string logCaller = "onTimeWarpRateChanged";
             Log.Trace( "method start (event)", logCaller );
 
-            /*
             if (TimeWarp.CurrentRateIndex > 0)
             {
                 IsOperational = false;
@@ -402,7 +411,6 @@ namespace TimeControl
             {
                 IsOperational = true;
             }
-            */
 
             Log.Trace( "method end (event)", logCaller );
         }
@@ -750,12 +758,7 @@ namespace TimeControl
         }
         #endregion
 
-        #region Public Methods
-        public bool WarpTypeAvailable(TimeControllable tc)
-        {
-            return ((CanControlWarpType & tc) == tc);
-        }
-                
+        #region Public Methods        
         #region Pause
         public void TogglePause()
         {
@@ -1322,22 +1325,22 @@ namespace TimeControl
         private float defaultDeltaTime = Time.fixedDeltaTime; //0.02
         private float timeSlider = 0f;
         private float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
-        private bool timePaused;
-        private bool pauseOnNextFixedUpdate = false;
+        private Boolean timePaused;
+        private Boolean pauseOnNextFixedUpdate = false;
         private float smoothSlider = 0f;
-        private bool deltaLocked = false;
+        private Boolean deltaLocked = false;
         private int fpsMin = 5;
         private int fpsKeeperFactor = 0;
         private bool fpsKeeperActive;
-        private bool operational = false;
+        private Boolean operational;
         private CelestialBody currentSOI;
         private string currentControllerMessage;
 
         //HYPERWARP   
-        private bool hyperPauseOnTimeReached = false;
+        private Boolean hyperPauseOnTimeReached = false;
         private double hyperWarpEndTime = Mathf.Infinity;
 
-        private bool railsPauseOnTimeReached = false;
+        private Boolean railsPauseOnTimeReached = false;
         private double railsWarpEndTime = Mathf.Infinity;
 
         private float hyperMinPhys = 1f;
