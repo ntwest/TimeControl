@@ -736,6 +736,7 @@ namespace TimeControl
         }
         private void GUIPauseOrResumeButton()
         {
+            GUI.enabled = TimeController.Instance.IsOperational;
             if (!TimeController.Instance.TimePaused)
             {
                 if (GUILayout.Button( "Pause", GUILayout.Width( 60 ) ))
@@ -746,14 +747,14 @@ namespace TimeControl
                 if (GUILayout.Button( "Resume", GUILayout.Width( 60 ) ))
                     TimeController.Instance.TogglePause();
             }
+            GUI.enabled = true;
         }
         private void GUITimeStepButton()
         {
-            bool prevEnabled = GUI.enabled;
-            GUI.enabled = GUI.enabled && TimeController.Instance.TimePaused;
+            GUI.enabled = TimeController.Instance.TimePaused;
             if (GUILayout.Button( ">", GUILayout.Width( 20 ) ))
                 TimeController.Instance.IncrementTimeStep();
-            GUI.enabled = prevEnabled;
+            GUI.enabled = true;
         }
         private void GUIThrottleControl()
         {
@@ -1031,9 +1032,7 @@ namespace TimeControl
                 }
                 GUILayout.EndHorizontal();
 
-                GUI.enabled = TimeController.Instance.WarpTypeAvailable( TimeControllable.SlowMo )
-                    && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo)
-                    && !TimeController.Instance.IsFpsKeeperActive;
+                GUI.enabled = (TimeController.Instance.IsOperational && !TimeController.Instance.IsFpsKeeperActive);
                 {
                     float ts = GUILayout.HorizontalSlider( TimeController.Instance.TimeSlider, 0f, 1f );
                     if (TimeController.Instance.TimeSlider != ts)
@@ -1055,8 +1054,7 @@ namespace TimeControl
         #region Hyper GUI
         private void modeHyper()
         {
-            GUI.enabled = TimeController.Instance.WarpTypeAvailable(TimeControllable.Hyper)
-                && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.Hyper);
+            GUI.enabled = (TimeController.Instance.IsOperational && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.Hyper));
             {
                 GUILayout.BeginVertical();
                 {
