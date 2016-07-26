@@ -642,9 +642,7 @@ namespace TimeControl
 
                     // Update the Settings. Will be automatically saved as needed
                     if (Settings.IsReady)
-                    {
                         Settings.Instance.MaxDeltaTimeSlider = v;
-                    }
                 }
             }
         }

@@ -65,6 +65,8 @@ namespace TimeControl
         // Create the OnPropertyChanged method to raise the event
         protected void OnPropertyChanged(string name)
         {
+            string logCaller = "Settings.OnPropertyChanged()";
+            Log.Trace( "Property Changed: " + name, logCaller );
             PropertyChanged?.Invoke( this, new SC.PropertyChangedEventArgs( name ) );
         }
         #endregion
@@ -264,6 +266,7 @@ namespace TimeControl
             configSettings.SetValue( PropertyStrings.UseCustomDateTimeFormatter, useCustomDateTimeFormatter.ToString(), true );
             configSettings.SetValue( PropertyStrings.SettingsWindowOpen, settingsWindowOpen.ToString(), true );
             configSettings.SetValue( PropertyStrings.SupressFlightResultsDialog, supressFlightResultsDialog.ToString(), true );
+            configSettings.SetValue( PropertyStrings.SaveInterval, saveInterval.ToString(), true );
 
             Log.Trace( "method end", logCaller );
         }
@@ -355,6 +358,7 @@ namespace TimeControl
             assignFromConfigBool( configSettings, PropertyStrings.UseCustomDateTimeFormatter, ref useCustomDateTimeFormatter );
             assignFromConfigBool( configSettings, PropertyStrings.SettingsWindowOpen, ref settingsWindowOpen );
             assignFromConfigBool( configSettings, PropertyStrings.SupressFlightResultsDialog, ref supressFlightResultsDialog );
+            assignFromConfigFloat( configSettings, PropertyStrings.SaveInterval, ref saveInterval );
 
             Log.Trace( "method end", logCaller );
         }
@@ -926,9 +930,12 @@ namespace TimeControl
             }
 
             set {
-                customKeySlider = value;
-                OnPropertyChanged( PropertyStrings.CustomKeySlider );
-                SetNeedsSavedFlag();
+                if (customKeySlider != value)
+                {
+                    customKeySlider = value;
+                    OnPropertyChanged( PropertyStrings.CustomKeySlider );
+                    SetNeedsSavedFlag();
+                }
             }
         }
 

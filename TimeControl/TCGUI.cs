@@ -30,7 +30,7 @@ namespace TimeControl
                 return windowsVisible;
             }
             set {
-                if (!(windowsVisible == value))
+                if (windowsVisible != value)
                 {
                     windowsVisible = value;
                     if (Settings.IsReady)
@@ -43,7 +43,7 @@ namespace TimeControl
                 return showScreenMessages;
             }
             set {
-                if (!(showScreenMessages == value))
+                if (showScreenMessages != value)
                 {
                     showScreenMessages = value;
                     if (Settings.IsReady)
@@ -56,7 +56,7 @@ namespace TimeControl
                 return useStockToolbar;
             }
             set {
-                if (!(useStockToolbar == value))
+                if (useStockToolbar != value)
                 {
                     useStockToolbar = value;
                     if (Settings.IsReady)
@@ -1142,9 +1142,8 @@ namespace TimeControl
         #region Settings GUI
         private void SettingsGUI(int windowId)
         {
-            bool closeButton = UnityEngine.GUI.Button( minimizeButton, "" );
-            //close button
-            if (closeButton)
+            // Close window button
+            if (GUI.Button( minimizeButton, "" ))
                 SettingsWindowOpen = !SettingsWindowOpen;
 
             GUILayout.BeginVertical();
@@ -1152,70 +1151,104 @@ namespace TimeControl
                 GUILayout.Label( "Physics Time Ratio: " + PerformanceManager.ptr.ToString( "0.0000" ) );
                 GUILayout.Label( "UT: " + Planetarium.GetUniversalTime() );
                 GUILayout.Label( "Time Scale: " + Time.timeScale );
-                GUILayout.Label( "Physics Delta: " + Time.fixedDeltaTime );
+                GUILayout.Label( "Physics Delta: " + Time.fixedDeltaTime );                
+                GUILayout.Label( "PPS: " + PerformanceManager.pps );
                 GUILayout.Label( "Max Delta Time: " + Time.maximumDeltaTime );
-
                 GUI.enabled = !TimeController.Instance.IsFpsKeeperActive;
                 TimeController.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( TimeController.Instance.MaxDeltaTimeSlider, TimeController.MaxDeltaTimeSliderMax, TimeController.MaxDeltaTimeSliderMin );
-                GUI.enabled = true;           
+                GUI.enabled = true;
 
-                GUILayout.Label( "PPS: " + PerformanceManager.pps );
+                
                 SupressFlightResultsDialog = GUILayout.Toggle( SupressFlightResultsDialog, "Supress Results Dialog" );
-
                 UseStockToolbar = GUILayout.Toggle( UseStockToolbar, "Use Stock Toolbar" );
                 ShowScreenMessages = GUILayout.Toggle( ShowScreenMessages, "Show Onscreen Messages" );
                 UseCustomDateTimeFormatter = GUILayout.Toggle( UseCustomDateTimeFormatter, "Homeworld Timekeeping" );
-
-                string saveIntervalLabel = "Save Settings Every " + Mathf.Round( SaveInterval ) + "s";
-                Action<float> updateSaveInterval = delegate (float f) { SaveInterval = f; };
-                IMGUIExtensions.floatTextBoxAndSliderCombo( saveIntervalLabel, SaveInterval, saveIntervalMin, saveIntervalMax, updateSaveInterval );
-
-                GUILayout.Label( "", GUILayout.Height( 5 ) );
-                GUILayout.Label( "Key Bindings:" );
-
-                //Keys
-                Color c = UnityEngine.GUI.contentColor;
-                foreach (TCKeyBinding kb in Settings.Instance.KeyBinds)
-                {
-                    if (kb.IsKeyAssigned)
-                        UnityEngine.GUI.contentColor = Color.yellow;
-                    else
-                        UnityEngine.GUI.contentColor = c;
-
-                    string buttonDesc = "";
-                    if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
-                    {
-                        string pos = (PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ) != 1) ? ("1/" + PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ).ToString()) : "1";
-                        buttonDesc = "Custom-" + pos + 'x';
-                    }
-                    else
-                    {
-                        buttonDesc = kb.Description;
-                    }
-
-                    buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None");
-
-                    if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
-                        Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider( Settings.Instance.CustomKeySlider, 0f, 1f );
-
-                    if (currentlyAssigningKey)
-                        UnityEngine.GUI.enabled = false;
-
-                    bool assignKey = GUILayout.Button( buttonDesc );
-                    if (assignKey)
-                    {
-                        settingsGUIAssignKey( buttonDesc, kb );
-                    }
-
-                    UnityEngine.GUI.enabled = true;
-                }
-                UnityEngine.GUI.contentColor = c;
+                
+                settingsGUISaveInterval();
+                settingsGUILoggingLevel();
+                settingsGUIKeyBinding();
             }
             GUILayout.EndVertical();
 
             if (Event.current.button > 0 && Event.current.type != EventType.Repaint && Event.current.type != EventType.Layout) //Ignore right & middle clicks to drag the window
                 Event.current.Use();
             UnityEngine.GUI.DragWindow();
+        }
+
+        private void settingsGUISaveInterval()
+        {
+            string saveIntervalLabel = "Save Settings Every " + Mathf.Round( SaveInterval ) + "s";
+            Action<float> updateSaveInterval = delegate (float f) { SaveInterval = f; };
+            IMGUIExtensions.floatTextBoxAndSliderCombo( saveIntervalLabel, SaveInterval, saveIntervalMin, saveIntervalMax, updateSaveInterval );
+        }
+
+        bool settingsLoggingSeveritySelect = false;
+        private void settingsGUILoggingLevel()
+        {
+            string s = "Logging: " + Settings.Instance.LoggingLevel.ToString();
+
+            if (!settingsLoggingSeveritySelect)
+            {
+                settingsLoggingSeveritySelect = GUILayout.Toggle( settingsLoggingSeveritySelect, s, "button" );
+            }
+            if (settingsLoggingSeveritySelect)
+            {
+                GUILayout.BeginHorizontal();
+                {
+                    foreach (LogSeverity ls in Enum.GetValues( typeof( LogSeverity ) ))
+                    {
+                        if (GUILayout.Button( ls.ToString() ))
+                        {
+                            Settings.Instance.LoggingLevel = ls;
+                            settingsLoggingSeveritySelect = false;
+                        }
+                    }
+                }
+                GUILayout.EndHorizontal();
+            }
+        }
+
+        private void settingsGUIKeyBinding()
+        {
+            GUILayout.Label( "Key Bindings:" );
+
+            //Keys
+            Color c = GUI.contentColor;
+            foreach (TCKeyBinding kb in Settings.Instance.KeyBinds)
+            {
+                if (kb.IsKeyAssigned)
+                    GUI.contentColor = Color.yellow;
+                else
+                    GUI.contentColor = c;
+
+                string buttonDesc = "";
+                if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
+                {
+                    string pos = (PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ) != 1) ? ("1/" + PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ).ToString()) : "1";
+                    buttonDesc = "Custom-" + pos + 'x';
+                }
+                else
+                {
+                    buttonDesc = kb.Description;
+                }
+
+                buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None");
+
+                if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
+                    Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider( Settings.Instance.CustomKeySlider, 0f, 1f );
+
+                if (currentlyAssigningKey)
+                    GUI.enabled = false;
+
+                bool assignKey = GUILayout.Button( buttonDesc );
+                if (assignKey)
+                {
+                    settingsGUIAssignKey( buttonDesc, kb );
+                }
+
+                GUI.enabled = true;
+            }
+            GUI.contentColor = c;
         }
 
         private void settingsGUIAssignKey(string buttonDesc, TCKeyBinding kb)
