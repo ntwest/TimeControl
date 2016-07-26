@@ -39,7 +39,7 @@ namespace TimeControl
             GameEvents.onGUIApplicationLauncherDestroyed.Add( AppLauncherDestroyed );
             GameEvents.onLevelWasLoadedGUIReady.Add( AppLauncherDestroyed );
 
-            StartCoroutine( StartAfterSettingsReady() );
+            StartCoroutine( StartAfterSettingsAndGUIReady() );
         }
 
         #endregion
@@ -50,9 +50,9 @@ namespace TimeControl
         /// <summary>
         /// Configures the Toolbars once the Settings are loaded
         /// </summary>
-        public IEnumerator StartAfterSettingsReady()
+        public IEnumerator StartAfterSettingsAndGUIReady()
         {
-            while (!Settings.IsReady)
+            while (!Settings.IsReady || !TCGUI.IsReady)
                 yield return null;
 
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;
@@ -73,14 +73,14 @@ namespace TimeControl
 
         private void BlizzyToolbarButtonClick(BlizzyToolbar.ClickEvent e)
         {
-            Settings.Instance.WindowVisible = !Settings.Instance.WindowVisible;
+            Settings.Instance.WindowsVisible = !Settings.Instance.WindowsVisible;
         }
 
         private void SettingsPropertyChanged(object sender, System.ComponentModel.PropertyChangedEventArgs e)
         {
-            if (e.PropertyName == Settings.PropertyStrings.WindowVisible)
+            if (e.PropertyName == Settings.PropertyStrings.WindowsVisible)
             {
-                Set( Settings.Instance.WindowVisible );
+                Set( Settings.Instance.WindowsVisible );
             }
 
             if (e.PropertyName == Settings.PropertyStrings.UseStockToolbar)
@@ -94,7 +94,7 @@ namespace TimeControl
             if (!IsReady)
                 return;
 
-            Settings.Instance.WindowVisible = !Settings.Instance.WindowVisible;
+            Settings.Instance.WindowsVisible = !Settings.Instance.WindowsVisible;
         }
 
         private void AppLauncherShow()
@@ -102,14 +102,14 @@ namespace TimeControl
             if (!IsReady)
                 return;
 
-            Settings.Instance.TempUnHideGUI( "StockAppLauncher" );
+           TCGUI.Instance.TempUnHideGUI( "StockAppLauncher" );
         }
         private void AppLancherHide()
         {
             if (!IsReady)
                 return;
-            
-            Settings.Instance.TempHideGUI( "StockAppLauncher" );
+
+            TCGUI.Instance.TempHideGUI( "StockAppLauncher" );
         }
 
         private void AppLauncherReady() { if (!StockToolbarEnabled) return; Init(); }
@@ -130,7 +130,7 @@ namespace TimeControl
             if (appLauncherButton == null)
                 appLauncherButton = ApplicationLauncher.Instance.AddModApplication( OnClick, OnClick, null, null, null, null, AppScenes, buttonTexture );
 
-            Set( Settings.Instance.WindowVisible );
+            Set( Settings.Instance.WindowsVisible );
 
             ApplicationLauncher.Instance.RemoveOnHideCallback( AppLancherHide );
             ApplicationLauncher.Instance.RemoveOnShowCallback( AppLauncherShow );

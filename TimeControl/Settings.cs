@@ -19,7 +19,7 @@ using KSPPluginFramework;
 namespace TimeControl
 {
     [KSPAddon( KSPAddon.Startup.MainMenu, true )]
-    internal class Settings : MonoBehaviour, SC.INotifyPropertyChanged
+    public class Settings : MonoBehaviour, SC.INotifyPropertyChanged
     {
         #region Singleton
         public static bool IsReady { get; private set; } = false;
@@ -29,32 +29,35 @@ namespace TimeControl
         #region INotifyPropertyChanged        
         /// <summary>
         /// This static class defines the magic strings that are checked for the property changed events by a GUI.
-        /// No real "binding" in Unity but this helps me decouple the GUI from the back end so a new GUI could be written easily.
+        /// No real "binding" in Unity but this helps me decouple the GUI from the saving of settings, so a new GUI, in theory, could be written easier.
         /// Also makes changes a bit easier since the tooling allows renaming of constants much easier than strings.
         /// </summary>
         public static class PropertyStrings
         {
-            internal const string WindowVisible = "Visible";
-            internal const string WindowMinimized = "Minimized";            
-            internal const string WindowSelectedFlightMode = "WindowSelectedFlightMode";        
-            internal const string FpsMinSlider = "FpsMinSlider";
-            internal const string ShowFPS = "ShowFPS";
-            internal const string LoggingLevel = "LoggingLevel";
-            internal const string UseStockToolbar = "UseStockToolbar";
-            internal const string UseBlizzyToolbar = "UseBlizzyToolbar";
-            internal const string FlightWindowX = "FlightWindowX";
-            internal const string FlightWindowY = "FlightWindowY";
-            internal const string MainWindowX = "MainWindowX";
-            internal const string MainWindowY = "MainWindowY";
-            internal const string SettingsWindowX = "SettingsWindowX";
-            internal const string SettingsWindowY = "SettingsWindowY";
-            internal const string FpsX = "FpsX";
-            internal const string FpsY = "FpsY";
-            internal const string ShowScreenMessages = "ShowScreenMessages";
-            internal const string MaxDeltaTimeSlider = "MaxDeltaTimeSlider";
-            internal const string WarpLevels = "WarpLevels";
-            internal const string CustomKeySlider = "CustomKeySlider";
-            internal const string SaveInterval = "SaveInterval";
+            public const string WindowsVisible = "WindowsVisible";
+            public const string WindowMinimized = "WindowMinimized";
+            public const string WindowSelectedFlightMode = "WindowSelectedFlightMode";
+            public const string FpsMinSlider = "FpsMinSlider";
+            public const string ShowFPS = "ShowFPS";
+            public const string LoggingLevel = "LoggingLevel";
+            public const string UseStockToolbar = "UseStockToolbar";
+            public const string UseBlizzyToolbar = "UseBlizzyToolbar";
+            public const string FlightWindowX = "FlightWindowX";
+            public const string FlightWindowY = "FlightWindowY";
+            public const string SpaceCenterWindowX = "SpaceCenterWindowX";
+            public const string SpaceCenterWindowY = "SpaceCenterWindowY";
+            public const string SettingsWindowX = "SettingsWindowX";
+            public const string SettingsWindowY = "SettingsWindowY";
+            public const string FpsX = "FpsX";
+            public const string FpsY = "FpsY";
+            public const string ShowScreenMessages = "ShowScreenMessages";
+            public const string MaxDeltaTimeSlider = "MaxDeltaTimeSlider";
+            public const string WarpLevels = "WarpLevels";
+            public const string CustomKeySlider = "CustomKeySlider";
+            public const string SaveInterval = "SaveInterval";
+            public const string UseCustomDateTimeFormatter = "UseCustomDateTimeFormatter";
+            public const string SettingsWindowOpen = "SettingsWindowOpen";
+            public const string SupressFlightResultsDialog = "SupressFlightResultsDialog";
         }
 
         public event SC.PropertyChangedEventHandler PropertyChanged;
@@ -76,17 +79,14 @@ namespace TimeControl
             DontDestroyOnLoad( this );
             instance = this;
 
+            TCResources.loadGUIAssets();
+
             Log.Trace( "method end", logCaller );
         }
         private void Start()
         {
             string logCaller = "Settings.Start()";
             Log.Trace( "method start", logCaller );
-
-            GameEvents.onHideUI.Add( this.onHideUI );
-            GameEvents.onShowUI.Add( this.onShowUI );
-            GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
-            GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
             StartCoroutine( ReloadConfigWhenTimeWarpReady() );
 
@@ -113,51 +113,6 @@ namespace TimeControl
             }
         }
         #endregion
-
-        #region Event Handlers
-        private void onGameSceneLoadRequested(GameScenes gs)
-        {
-            string logCaller = "onGameSceneLoadRequested";
-            Log.Trace( "method start", logCaller );
-
-            onHideUI();
-
-            Log.Trace( "method end", logCaller );
-        }
-
-        private void onLevelWasLoaded(GameScenes gs)
-        {
-            string logCaller = "onLevelWasLoaded";
-            Log.Trace( "method start", logCaller );
-
-            onShowUI();
-
-            Log.Trace( "method end", logCaller );
-        }
-        
-        private void onHideUI()
-        {
-            string logCaller = "Settings.onHideUI";
-            Log.Trace( "method start", logCaller );
-
-            Log.Info( "Hiding GUI for Settings Lock", logCaller );
-            TempHideGUI( "Settings" );
-
-            Log.Trace( "method end", logCaller );
-        }
-        private void onShowUI()
-        {
-            string logCaller = "Settings.onShowUI";
-            Log.Trace( "method start", logCaller );
-
-            Log.Info( "Unhiding GUI for Settings Lock", logCaller );
-            TempUnHideGUI( "Settings" );
-
-            Log.Trace( "method end", logCaller );
-        }
-
-        #endregion
-
 
         #region Coroutines
         public IEnumerator ReloadConfigWhenTimeWarpReady()
@@ -287,9 +242,9 @@ namespace TimeControl
             if (!config.HasNode( cSet ))
                 config.AddNode( cSet );
             configSettings = config.GetNode( cSet );
-            
-            configSettings.SetValue( PropertyStrings.WindowVisible, visible.ToString(), true );
-            configSettings.SetValue( PropertyStrings.WindowMinimized, windowMinimized.ToString(), true );
+
+            configSettings.SetValue( PropertyStrings.WindowsVisible, windowsVisible.ToString(), true );
+            configSettings.SetValue( PropertyStrings.WindowMinimized, windowsMinimized.ToString(), true );
             configSettings.SetValue( PropertyStrings.WindowSelectedFlightMode, windowSelectedFlightMode.ToString(), true );
             configSettings.SetValue( PropertyStrings.FpsMinSlider, fpsMinSlider.ToString(), true );
             configSettings.SetValue( PropertyStrings.ShowFPS, showFPS.ToString(), true );
@@ -298,15 +253,19 @@ namespace TimeControl
             configSettings.SetValue( PropertyStrings.UseBlizzyToolbar, useBlizzyToolbar.ToString(), true );
             configSettings.SetValue( PropertyStrings.FlightWindowX, flightWindowX.ToString(), true );
             configSettings.SetValue( PropertyStrings.FlightWindowY, flightWindowY.ToString(), true );
-            configSettings.SetValue( PropertyStrings.MainWindowX, mainWindowX.ToString(), true );
-            configSettings.SetValue( PropertyStrings.MainWindowY, mainWindowY.ToString(), true );
+            configSettings.SetValue( PropertyStrings.SpaceCenterWindowX, spaceCenterWindowX.ToString(), true );
+            configSettings.SetValue( PropertyStrings.SpaceCenterWindowY, spaceCenterWindowY.ToString(), true );
             configSettings.SetValue( PropertyStrings.SettingsWindowX, settingsWindowX.ToString(), true );
             configSettings.SetValue( PropertyStrings.SettingsWindowY, settingsWindowY.ToString(), true );
             configSettings.SetValue( PropertyStrings.FpsX, fpsPosition.yMin.ToString(), true );
             configSettings.SetValue( PropertyStrings.FpsY, fpsPosition.yMin.ToString(), true );
             configSettings.SetValue( PropertyStrings.CustomKeySlider, customKeySlider.ToString(), true );
-            configSettings.SetValue( PropertyStrings.ShowScreenMessages, ShowScreenMessages.ToString(), true );
-        Log.Trace( "method end", logCaller );
+            configSettings.SetValue( PropertyStrings.ShowScreenMessages, showScreenMessages.ToString(), true );
+            configSettings.SetValue( PropertyStrings.UseCustomDateTimeFormatter, useCustomDateTimeFormatter.ToString(), true );
+            configSettings.SetValue( PropertyStrings.SettingsWindowOpen, settingsWindowOpen.ToString(), true );
+            configSettings.SetValue( PropertyStrings.SupressFlightResultsDialog, supressFlightResultsDialog.ToString(), true );
+
+            Log.Trace( "method end", logCaller );
         }
         private void assignFromConfigBool(ConfigNode cn, string property, ref bool v)
         {
@@ -374,9 +333,9 @@ namespace TimeControl
                 Log.Warning( PropertyStrings.LoggingLevel + " has error in settings configuration. Using default.", logCaller );
 
             //INTERNAL
-            assignFromConfigBool( configSettings, PropertyStrings.WindowVisible, ref visible );
-            assignFromConfigBool( configSettings, PropertyStrings.WindowMinimized, ref windowMinimized );
-            assignFromConfigInt( configSettings, PropertyStrings.WindowSelectedFlightMode, ref windowSelectedFlightMode );    
+            assignFromConfigBool( configSettings, PropertyStrings.WindowsVisible, ref windowsVisible );
+            assignFromConfigBool( configSettings, PropertyStrings.WindowMinimized, ref windowsMinimized );
+            assignFromConfigInt( configSettings, PropertyStrings.WindowSelectedFlightMode, ref windowSelectedFlightMode );
             assignFromConfigInt( configSettings, PropertyStrings.FpsMinSlider, ref fpsMinSlider );
             assignFromConfigBool( configSettings, PropertyStrings.ShowFPS, ref showFPS );
 
@@ -385,14 +344,17 @@ namespace TimeControl
 
             assignFromConfigInt( configSettings, PropertyStrings.FlightWindowX, ref flightWindowX );
             assignFromConfigInt( configSettings, PropertyStrings.FlightWindowY, ref flightWindowY );
-            assignFromConfigInt( configSettings, PropertyStrings.MainWindowX, ref mainWindowX );
-            assignFromConfigInt( configSettings, PropertyStrings.MainWindowY, ref mainWindowY );
+            assignFromConfigInt( configSettings, PropertyStrings.SpaceCenterWindowX, ref spaceCenterWindowX );
+            assignFromConfigInt( configSettings, PropertyStrings.SpaceCenterWindowY, ref spaceCenterWindowY );
             assignFromConfigInt( configSettings, PropertyStrings.SettingsWindowX, ref settingsWindowX );
             assignFromConfigInt( configSettings, PropertyStrings.SettingsWindowY, ref settingsWindowY );
             assignFromConfigInt( configSettings, PropertyStrings.FpsX, ref fpsX );
             assignFromConfigInt( configSettings, PropertyStrings.FpsY, ref fpsY );
             assignFromConfigFloat( configSettings, PropertyStrings.CustomKeySlider, ref customKeySlider );
             assignFromConfigBool( configSettings, PropertyStrings.ShowScreenMessages, ref showScreenMessages );
+            assignFromConfigBool( configSettings, PropertyStrings.UseCustomDateTimeFormatter, ref useCustomDateTimeFormatter );
+            assignFromConfigBool( configSettings, PropertyStrings.SettingsWindowOpen, ref settingsWindowOpen );
+            assignFromConfigBool( configSettings, PropertyStrings.SupressFlightResultsDialog, ref supressFlightResultsDialog );
 
             Log.Trace( "method end", logCaller );
         }
@@ -442,7 +404,7 @@ namespace TimeControl
 
             TimeWarp tw = TimeWarp.fetch;
             IEnumerable<TCWarpRate> defaultWarpRates = tw.warpRates.Select( x => new TCWarpRate() { WarpRate = Convert.ToInt64( x ).ToString() } );
-            
+
             standardWarpRates = standardWarpRates ?? new List<TCWarpRate>();
             standardWarpRates.Clear();
             standardWarpRates.AddRange( defaultWarpRates );
@@ -576,7 +538,7 @@ namespace TimeControl
                 customAltitudeLimits.Clear();
 
             Dictionary<CelestialBody, IEnumerable<TCAltitudeLimit>> customLimits = new Dictionary<CelestialBody, IEnumerable<TCAltitudeLimit>>();
-            
+
             foreach (CelestialBody cb in FlightGlobals.Bodies)
             {
                 IEnumerable<TCAltitudeLimit> defaultCurrentBodyLimits = cb.timeWarpAltitudeLimits.Select( x => new TCAltitudeLimit { AltitudeLimit = Convert.ToInt64( x ).ToString() } );
@@ -724,22 +686,7 @@ namespace TimeControl
             Log.Trace( "method end", logCaller );
         }
         #endregion
-
-
-
-        internal void ToggleGUIVisibility()
-        {
-            WindowVisible = !WindowVisible;
-            //toolbarButton.TexturePath = Settings.Instance.Visible ? "TimeControl/active" : "TimeControl/inactive";
-        }
-
-        internal void SetGUIVisibility(bool v)
-        {
-            WindowVisible = v;
-            //toolbarButton.TexturePath = Settings.Instance.Visible ? "TimeControl/active" : "TimeControl/inactive";
-        }
-
-        internal void SetNeedsSavedFlag()
+        public void SetNeedsSavedFlag()
         {
             needsSaved = true;
         }
@@ -748,17 +695,17 @@ namespace TimeControl
         {
             SetNeedsSavedFlag();
         }
-        
-        internal void ResetWarpRates()
+
+        public void ResetWarpRates()
         {
-            for (int i = 0; i < standardWarpRates.Count; i++)            
+            for (int i = 0; i < standardWarpRates.Count; i++)
                 customWarpRates[i].WarpRate = standardWarpRates[i].WarpRate;
 
             TimeController.Instance.UpdateInternalTimeWarpArrays();
             SetNeedsSavedFlag();
         }
 
-        internal void ResetCustomAltitudeLimitsForBody(CelestialBody cb)
+        public void ResetCustomAltitudeLimitsForBody(CelestialBody cb)
         {
             for (int i = 0; i < standardAltitudeLimits[cb].Count; i++)
             {
@@ -766,9 +713,9 @@ namespace TimeControl
             }
 
             TimeController.Instance.UpdateInternalTimeWarpArrays();
-            SetNeedsSavedFlag();            
+            SetNeedsSavedFlag();
         }
-        
+
         public void AddWarpLevel()
         {
             string logCaller = "TimeController.AddWarpLevel";
@@ -779,7 +726,7 @@ namespace TimeControl
                 Log.Trace( "method end", logCaller );
                 return;
             }
-            
+
             if (WarpLevels >= 99)
             {
                 Log.Warning( "cannot go above 99 warp levels", logCaller );
@@ -842,9 +789,24 @@ namespace TimeControl
 
             Log.Trace( "method end", logCaller );
         }
-
-
-        #region  Properties
+        #region Properties
+        #region Static Properties
+        public static float SaveIntervalMin {
+            get {
+                return 1f;
+            }
+        }
+        public static float SaveIntervalMax {
+            get {
+                return 60f;
+            }
+        }
+        public static float SaveIntervalDefault {
+            get {
+                return 5f;
+            }
+        }
+        #endregion
         public LogSeverity LoggingLevel {
             get {
                 return loggingLevel;
@@ -860,7 +822,6 @@ namespace TimeControl
                 }
             }
         }
-
         public bool UseStockToolbar {
             get {
                 return useStockToolbar;
@@ -1001,30 +962,30 @@ namespace TimeControl
                 }
             }
         }
-        public int MainWindowX {
+        public int SpaceCenterWindowX {
             get {
-                return mainWindowX;
+                return spaceCenterWindowX;
             }
 
             set {
-                if (mainWindowX != value)
+                if (spaceCenterWindowX != value)
                 {
-                    mainWindowX = value;
-                    OnPropertyChanged( PropertyStrings.MainWindowX );
+                    spaceCenterWindowX = value;
+                    OnPropertyChanged( PropertyStrings.SpaceCenterWindowX );
                     SetNeedsSavedFlag();
                 }
             }
         }
-        public int MainWindowY {
+        public int SpaceCenterWindowY {
             get {
-                return mainWindowY;
+                return spaceCenterWindowY;
             }
 
             set {
-                if (mainWindowY != value)
+                if (spaceCenterWindowY != value)
                 {
-                    mainWindowY = value;
-                    OnPropertyChanged( PropertyStrings.MainWindowY );
+                    spaceCenterWindowY = value;
+                    OnPropertyChanged( PropertyStrings.SpaceCenterWindowY );
                     SetNeedsSavedFlag();
                 }
             }
@@ -1090,28 +1051,28 @@ namespace TimeControl
         }
         public bool WindowMinimized {
             get {
-                return windowMinimized;
+                return windowsMinimized;
             }
 
             set {
-                if (windowMinimized != value)
+                if (windowsMinimized != value)
                 {
-                    windowMinimized = value;
+                    windowsMinimized = value;
                     OnPropertyChanged( PropertyStrings.WindowMinimized );
                     SetNeedsSavedFlag();
                 }
             }
         }
-        public bool WindowVisible {
+        public bool WindowsVisible {
             get {
-                return visible;
+                return windowsVisible;
             }
 
             set {
-                if (visible != value)
+                if (windowsVisible != value)
                 {
-                    visible = value;
-                    OnPropertyChanged( PropertyStrings.WindowVisible );
+                    windowsVisible = value;
+                    OnPropertyChanged( PropertyStrings.WindowsVisible );
                     SetNeedsSavedFlag();
                 }
             }
@@ -1129,18 +1090,20 @@ namespace TimeControl
                 }
             }
         }
-
-
-        public float SaveIntervalMin {
+        public bool UseCustomDateTimeFormatter {
             get {
-                return 1f;
+                return useCustomDateTimeFormatter;
+            }
+            set {
+                if (useCustomDateTimeFormatter != value)
+                {
+                    useCustomDateTimeFormatter = value;
+                    OnPropertyChanged( PropertyStrings.UseCustomDateTimeFormatter );
+                    SetNeedsSavedFlag();
+                }
             }
         }
-        public float SaveIntervalMax {
-            get {
-                return 60f;
-            }
-        }
+
         /// <summary>
         /// Number of seconds to wait before saving config file after a change
         /// Defaults to 30 seconds. Clamps between SaveIntervalMin and SaveIntervalMax
@@ -1151,25 +1114,39 @@ namespace TimeControl
             }
 
             set {
-                saveInterval = Mathf.Clamp(Mathf.Round(value), SaveIntervalMin, SaveIntervalMax );
-                OnPropertyChanged( PropertyStrings.SaveInterval );
-                SetNeedsSavedFlag();
+                if (saveInterval != value)
+                {
+                    saveInterval = Mathf.Clamp( Mathf.Round( value ), SaveIntervalMin, SaveIntervalMax );
+                    OnPropertyChanged( PropertyStrings.SaveInterval );
+                    SetNeedsSavedFlag();
+                }
             }
         }
-
-        public bool GUITempHidden {
+        public bool SettingsWindowOpen {
             get {
-                return (TempGUIHidden.Count != 0);
+                return settingsWindowOpen;
             }
-        }        
-        private List<string> TempGUIHidden = new List<string>();
-        public void TempHideGUI(string lockedBy)
-        {
-            TempGUIHidden.Add( lockedBy );
+            set {
+                if (settingsWindowOpen != value)
+                {
+                    settingsWindowOpen = value;
+                    OnPropertyChanged( PropertyStrings.SettingsWindowOpen );
+                    SetNeedsSavedFlag();
+                }
+            }
         }
-        public void TempUnHideGUI(string lockedBy)
-        {
-            TempGUIHidden.RemoveAll( x => x == lockedBy );
+        public bool SupressFlightResultsDialog {
+            get {
+                return supressFlightResultsDialog;
+            }
+            set {
+                if (supressFlightResultsDialog != value)
+                {
+                    supressFlightResultsDialog = value;
+                    OnPropertyChanged( PropertyStrings.SupressFlightResultsDialog );
+                    SetNeedsSavedFlag();
+                }
+            }
         }
         #endregion
 
@@ -1198,7 +1175,6 @@ namespace TimeControl
                 return keyBinds;
             }
         }
-
         #endregion
         #region  Fields
         //Plugin Configuration
@@ -1207,8 +1183,8 @@ namespace TimeControl
         //Window Positions
         private int flightWindowX = 100;
         private int flightWindowY = 100;
-        private int mainWindowX = 100;
-        private int mainWindowY = 100;
+        private int spaceCenterWindowX = 100;
+        private int spaceCenterWindowY = 100;
         private int settingsWindowX = 100;
         private int settingsWindowY = 100;
 
@@ -1218,22 +1194,25 @@ namespace TimeControl
         private int fpsY = 0;
 
         //Display
-        private Boolean windowMinimized = false; //small mode
-        private Boolean visible = true; //toolbar and hiding
-        private Boolean useStockToolbar = true;
-        private Boolean useBlizzyToolbar = true;
-
+        private bool windowsMinimized = false; //small mode
+        private bool windowsVisible = true; //toolbar and hiding
+        private bool settingsWindowOpen = false;
+        private bool supressFlightResultsDialog = false;
+        private bool useStockToolbar = true;
+        private bool useBlizzyToolbar = true;
+        private bool useCustomDateTimeFormatter = false;
         private bool configLoadSuccessful = false;
+        private bool showScreenMessages = true;
 
         //Options
         private int windowSelectedFlightMode = 2;
-        private Boolean showFPS = false;       
+        private bool showFPS = false;
         private int fpsMinSlider = 5;
         private float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
         private float customKeySlider = 0f;
         private bool needsSaved = false;
         private float lastSave = 0f;
-        private float saveInterval = 5f; // Save changes every 5 seconds, if there are changes to save
+        private float saveInterval = SaveIntervalDefault; // Save changes every 5 seconds, if there are changes to save
 
         //Rails warp
         private int warpLevels = 8;
@@ -1243,9 +1222,9 @@ namespace TimeControl
         private Dictionary<CelestialBody, List<TCAltitudeLimit>> customAltitudeLimits;
         private List<TCKeyBinding> keyBinds;
 
-        private bool showScreenMessages = true;
-
         private LogSeverity loggingLevel = Log.LoggingLevel;
+
+
 
         #endregion
     }

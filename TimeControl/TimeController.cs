@@ -543,6 +543,18 @@ namespace TimeControl
                 }
             }
         }
+        public float SmoothSlider {
+            get {
+                return smoothSlider;
+            }
+
+            private set {
+                if (smoothSlider != value)
+                {
+                    smoothSlider = value;
+                }
+            }
+        }
         public bool TimePaused {
             get {
                 return timePaused;
@@ -603,7 +615,6 @@ namespace TimeControl
             }
         }
         #endregion
-
         #region Read Write Properties
         public bool DeltaLocked {
             get {
@@ -613,18 +624,6 @@ namespace TimeControl
                 if (deltaLocked != value)
                 {
                     deltaLocked = value;
-                }
-            }
-        }
-        public float SmoothSlider {
-            get {
-                return smoothSlider;
-            }
-
-            set {
-                if (smoothSlider != value)
-                {
-                    smoothSlider = value;
                 }
             }
         }
@@ -960,13 +959,12 @@ namespace TimeControl
                 return false;
             }
 
-            double warpTime;
-
-            if (GameSettings.KERBIN_TIME)
-                warpTime = years * 9201600 + days * 21600 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
-            else
-                warpTime = years * 31536000 + days * 86400 + hours * 3600 + minutes * 60 + seconds + Planetarium.GetUniversalTime();
-
+            double warpTime = years * KSPUtil.dateTimeFormatter.Year 
+                + days * KSPUtil.dateTimeFormatter.Day 
+                + hours * KSPUtil.dateTimeFormatter.Hour 
+                + minutes * KSPUtil.dateTimeFormatter.Minute 
+                + seconds + Planetarium.GetUniversalTime();
+            
             bool result = RailsWarpToTime( warpTime );
 
             Log.Trace( "method end", logCaller );
@@ -1261,7 +1259,7 @@ namespace TimeControl
                 return false;
             }
 
-            double warpTime = (hours * 3600) + (minutes * 60) + seconds + Planetarium.GetUniversalTime();
+            double warpTime = (hours * KSPUtil.dateTimeFormatter.Hour) + (minutes * KSPUtil.dateTimeFormatter.Minute) + seconds + Planetarium.GetUniversalTime();
 
             bool result = HyperWarpToTime( warpTime );
             Log.Trace( "method end", logCaller );

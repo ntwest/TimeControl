@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TimeControl
 {
-    internal class TCAltitudeLimit
+    public class TCAltitudeLimit
     { 
         private string altitudeLimit;
 

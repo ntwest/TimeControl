@@ -57,8 +57,8 @@ namespace TimeControl
 
         private void Update()
         {
-            // Don't do anything until the Settings Object & TimeController Object are ready
-            if (!Settings.IsReady || !TimeController.IsReady)
+            // Don't do anything until the Settings, TimeController, and TCGUI Objects are ready
+            if (!Settings.IsReady || !TimeController.IsReady || !TCGUI.IsReady)
                 return;            
             // Only check for keypresses when we can actually do something
             if (TimeController.Instance.CanControlWarpType == TimeControllable.None)
@@ -374,7 +374,7 @@ namespace TimeControl
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
                 LogKeyPress( k, "ToggleGUIKeyPress" );
-                Settings.Instance.ToggleGUIVisibility();
+                TCGUI.Instance.ToggleGUIVisibility();
             }   
         }
 

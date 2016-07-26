@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace TimeControl
 {
-    internal class TCKeyBinding
+    public class TCKeyBinding
     { 
         public bool IsKeyAssigned { get { return KeyCombination.Count != 0; } }        
         public string Description { get; set; }

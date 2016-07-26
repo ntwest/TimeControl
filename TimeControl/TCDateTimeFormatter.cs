@@ -7,38 +7,46 @@ using KSP;
 
 namespace TimeControl
 {
-    public class TCDateTimeFormatter : KSPUtil.DefaultDateTimeFormatter
+    public class TCDateTimeFormatter : IDateTimeFormatter
     {
         /// <summary>
-        /// Length of a Kerbin Year in Seconds? I think. Orbital period of home body.
+        /// Orbital period of home body.
         /// </summary>
-        new public int KerbinYear {
+        public int KerbinYear {
             get {
-                return Convert.ToInt32( FlightGlobals.GetHomeBody().orbit.period );
+                int yearLength = 9203400;
+                int homeBodyOrbitalPeriod = Convert.ToInt32( FlightGlobals.GetHomeBody().orbit.period );
+                if (homeBodyOrbitalPeriod != 0)
+                    yearLength = homeBodyOrbitalPeriod;
+                return yearLength;
             }
         }
 
         /// <summary>
-        /// Length of a Kerbin Solar Day in seconds?
+        /// Orbital Rotation in Seconds (sidereal day)
         /// </summary>
-        new public int KerbinDay {
+        public int KerbinDay {
             get {
-                return Convert.ToInt32( FlightGlobals.GetHomeBody().solarDayLength );
+                int dayLength = 21600;
+                int homeBodyRotationPeriod = Convert.ToInt32( FlightGlobals.GetHomeBody().rotationPeriod );
+                if (homeBodyRotationPeriod != 0)
+                    dayLength = homeBodyRotationPeriod;
+                return dayLength;
             }
         }
 
-        new public int EarthDay {
+        public int EarthDay {
             get {
                 return (86400);
             }
         }
-        new public int EarthYear {
+        public int EarthYear {
             get {
                 return (31536000);
             }
         }
 
-        new public int Day {
+        public int Day {
             get {
                 if (GameSettings.KERBIN_TIME)
                     return KerbinDay;
@@ -46,7 +54,7 @@ namespace TimeControl
                     return EarthDay;
             }
         }
-        new public int Year {
+        public int Year {
             get {
                 if (GameSettings.KERBIN_TIME)
                     return KerbinYear;
@@ -55,10 +63,22 @@ namespace TimeControl
             }
         }
 
+        public int Minute {
+            get {
+                return 60;
+            }
+        }
+
+        public int Hour {
+            get {
+                return 3600;
+            }
+        }
+
         /// <summary>
         /// Returns an array that appears to be Second, Minute, Hour, Day, Year
         /// </summary>
-        new public int[] GetDateFromUT(double time)
+        public int[] GetDateFromUT(double time)
         {
             if (GameSettings.KERBIN_TIME)
                 return GetKerbinDateFromUT( time );
@@ -68,74 +88,96 @@ namespace TimeControl
         /// <summary>
         /// Returns an array that appears to be Second, Minute, Hour, Day, Year
         /// </summary>
-        new public int[] GetEarthDateFromUT(double time)
+        public int[] GetEarthDateFromUT(double time)
         {
             int t = Convert.ToInt32( time );
 
-            // Current Year
-            int year = t / EarthYear;
-            t = t - (year * EarthYear);
-
-            // Current Day
-            int day = t / EarthDay;
-            t = t - (day * EarthDay);
-
-            // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
-            int hour = (t * (1 / 60) * (1 / 60)) % (EarthDay * (1 / 60) * (1 / 60));
-            t = t - (hour * 60 ^ 2);
-
-            // Current Minute of the Day
-            int minute = (t / 60) % 60;
-
-            // Current Second
-            int second = t % 60;
-
-            return new int[]
+            try
             {
+                // Current Year
+                int year = t / EarthYear;
+                t = t - (year * EarthYear);
+
+                // Current Day
+                int day = t / EarthDay;
+                t = t - (day * EarthDay);
+
+                // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
+                int hour = (t / 3600) % (EarthDay / 3600);
+                t = t - (hour * (60 ^ 2));
+
+                // Current Minute of the Day
+                int minute = (t / 60) % 60;
+
+                // Current Second
+                int second = t % 60;
+
+                return new int[]
+                {
                 second,
                 minute,
                 hour,
                 day,
                 year
-            };
+                };
+            }
+            catch (DivideByZeroException dbze)
+            {
+                Log.Write( dbze.Message, "GetEarthDateFromUT", LogSeverity.Error );
+                Log.Write( dbze.StackTrace, "GetEarthDateFromUT", LogSeverity.Error );
+                return new int[] { 0, 0, 0, 0, 0 };
+            }
         }
 
         /// <summary>
         /// Returns an array that appears to be Second, Minute, Hour, Day, Year
         /// </summary>
-        new public int[] GetKerbinDateFromUT(double time)
+        public int[] GetKerbinDateFromUT(double time)
         {
             int t = Convert.ToInt32( time );
-
-            // Current Year
-            int year = t / KerbinYear;
-            t = t - (year * KerbinYear);
-
-            // Current Day
-            int day = t / KerbinDay;
-            t = t - (day * KerbinDay);
-            
-            // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
-            int hour = (t * (1 / 60) * (1 / 60)) % (KerbinDay * (1 / 60) * (1 / 60));
-            t = t - (hour * 60 ^ 2);
-
-            // Current Minute of the Day
-            int minute = (t / 60) % 60;
-
-            // Current Second
-            int second = t % 60;
-            
-            return new int[]
+            try
             {
+                // Current Year
+                int year = t / KerbinYear;
+                t = t - (year * KerbinYear);
+
+                // Current Day
+                int day = t / KerbinDay;
+                t = t - (day * KerbinDay);
+
+                // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
+                int hour = (t / 3600) % (KerbinDay / 3600);
+                t = t - (hour * (60 ^ 2));
+
+                // Current Minute of the Day
+                int minute = (t / 60) % 60;
+
+                // Current Second
+                int second = t % 60;
+
+                return new int[]
+                {
                 second,
                 minute,
                 hour,
                 day,
                 year
-            };
+                };
+            }
+            catch (DivideByZeroException dbze)
+            {
+                Log.Write( dbze.Message, "GetKerbinDateFromUT", LogSeverity.Error );
+                Log.Write( dbze.StackTrace, "GetKerbinDateFromUT", LogSeverity.Error );
+                return new int[] { 0,0,0,0,0 };
+            }
         }
-        new public string PrintDate(double time, bool includeTime, bool includeSeconds = false)
+        public string PrintDate(double time, bool includeTime, bool includeSeconds = false)
         {
+            //Log.Trace( "PrintDate for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             // Add 1 to Year
@@ -157,8 +199,13 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintDateCompact(double time, bool includeTime, bool includeSeconds = false)
+        public string PrintDateCompact(double time, bool includeTime, bool includeSeconds = false)
         {
+            //Log.Trace( "PrintDateCompact for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             // Add 1 to Year
@@ -181,8 +228,13 @@ namespace TimeControl
             }
             return string.Format(s, t[4], t[3], t[2], t[1], t[0]) ;
         }
-        new public string PrintDateDelta(double time, bool includeTime, bool includeSeconds, bool useAbs)
+        public string PrintDateDelta(double time, bool includeTime, bool includeSeconds, bool useAbs)
         {
+            //Log.Trace( "PrintDateDelta for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             bool y = (t[4] != 0);
@@ -232,8 +284,13 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintDateDeltaCompact(double time, bool includeTime, bool includeSeconds, bool useAbs)
+        public string PrintDateDeltaCompact(double time, bool includeTime, bool includeSeconds, bool useAbs)
         {
+            //Log.Trace( "PrintDateDeltaCompact for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             bool y = (t[4] != 0);
@@ -283,8 +340,13 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintDateNew(double time, bool includeTime)
+        public string PrintDateNew(double time, bool includeTime)
         {
+            //Log.Trace( "PrintDateNew for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             // Add 1 to Year
@@ -300,8 +362,13 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintTime(double time, int valuesOfInterest, bool explicitPositive)
+        public string PrintTime(double time, int valuesOfInterest, bool explicitPositive)
         {
+            //Log.Trace( "PrintTime for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
 
             string s = "";
@@ -319,8 +386,13 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintTimeCompact(double time, bool explicitPositive)
+        public string PrintTimeCompact(double time, bool explicitPositive)
         {
+            //Log.Trace( "PrintTimeCompact for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             string s = "{1}{2:00}{3:00{4:00}s";
             if (explicitPositive && time >= 0)
             {
@@ -335,15 +407,25 @@ namespace TimeControl
 
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintTimeLong(double time)
+        public string PrintTimeLong(double time)
         {
+            //Log.Trace( "PrintTimeLong for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
             string s;
             s = "{0}Years, {1}Days, {2}Hours, {3}Mins, {4}Secs";            
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintTimeStamp(double time, bool days = false, bool years = false)
+        public string PrintTimeStamp(double time, bool days = false, bool years = false)
         {
+            //Log.Trace( "PrintTimeStamp for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );            
             string s;
             if (days)
@@ -370,26 +452,31 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
-        new public string PrintTimeStampCompact(double time, bool days = false, bool years = false)
+        public string PrintTimeStampCompact(double time, bool days = false, bool years = false)
         {
+            //Log.Trace( "PrintTimeStampCompact for UT " + time );
+
+            if (IsInvalidTime( time ))
+                return InvalidTimeStr( time );
+
             int[] t = GetDateFromUT( time );
             string s;
             if (days)
             {
                 if (years)
                 {
-                    s = "{0}y, {1}d - {2:00}:{3:00}:{4:00}";
+                    s = "{0}y, {1}d, {2:00}:{3:00}:{4:00}";
                 }
                 else
                 {
-                    s = "{1}d - {2:00}:{3:00}:{4:00}";
+                    s = "{1}d, {2:00}:{3:00}:{4:00}";
                 }
             }
             else
             {
                 if (years)
                 {
-                    s = "{0}y - {2:00}:{3:00}:{4:00}";
+                    s = "{0}y, {2:00}:{3:00}:{4:00}";
                 }
                 else
                 {
@@ -398,5 +485,29 @@ namespace TimeControl
             }
             return string.Format( s, t[4], t[3], t[2], t[1], t[0] );
         }
+
+        protected bool IsInvalidTime(double time)
+        {
+            if (double.IsNaN( time ) || double.IsPositiveInfinity( time ) || double.IsNegativeInfinity( time ))
+                return true;
+            else
+                return false;
+        }
+        protected string InvalidTimeStr(double time)
+        {
+            if (double.IsNaN( time ))
+            {
+                return "NaN";
+            }
+            if (double.IsPositiveInfinity( time ))
+            {
+                return "+Inf";
+            }
+            if (double.IsNegativeInfinity( time ))
+            {
+                return "-Inf";
+            }
+            return null;
+        }        
     }
 }

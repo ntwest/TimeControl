@@ -60,6 +60,7 @@
     <Compile Include="Enums\TimeControllerUserAction.cs" />
     <Compile Include="Framework\ConfigNodeStorage.cs" />
     <Compile Include="Framework\ExtensionsUnity.cs" />
+    <Compile Include="Framework\IMGUIExtensions.cs" />
     <Compile Include="Framework\MonoBehaviourExtended.cs" />
     <Compile Include="POCOs\TCAltitudeLimit.cs" />
     <Compile Include="Log.cs" />
@@ -73,7 +74,6 @@
     <Compile Include="TCGUI.cs" />
     <Compile Include="PluginUtilities.cs" />
     <Compile Include="Toolbars.cs" />
-    <Compile Include="TimeControl.cs" />
     <Compile Include="PerformanceManager.cs" />
     <Compile Include="Settings.cs" />
     <Compile Include="BlizzyToolbarWrapper.cs" />

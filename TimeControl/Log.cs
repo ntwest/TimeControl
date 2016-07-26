@@ -8,8 +8,8 @@ namespace TimeControl
 
     static class Log
     {
-        internal readonly static string VERSION = Assembly.GetAssembly( typeof( TimeControl ) ).GetName().Version.Major + "." + Assembly.GetAssembly( typeof( TimeControl ) ).GetName().Version.Minor + Assembly.GetAssembly( typeof( TimeControl ) ).GetName().Version.Build;
-        internal readonly static string MOD = Assembly.GetAssembly( typeof( TimeControl ) ).GetName().Name;
+        internal readonly static string VERSION = Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Major + "." + Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Minor + Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Build;
+        internal readonly static string MOD = Assembly.GetAssembly( typeof( Log ) ).GetName().Name;
         private static string logPrefix = MOD + "(" + VERSION + "): ";
 
         /// <summary>
@@ -20,7 +20,7 @@ namespace TimeControl
         static Log()
         {
             // Start out writing only info, warnings or errors. Can be changed in config file.
-            LoggingLevel = LogSeverity.Info;
+            LoggingLevel = LogSeverity.Trace;
         }
 
         static public void Trace(string message, string caller = "")

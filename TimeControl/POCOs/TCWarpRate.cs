@@ -5,7 +5,7 @@ using UnityEngine;
 namespace TimeControl
 {
 
-    internal class TCWarpRate
+    public class TCWarpRate
     { 
         private string warpRate;
 
