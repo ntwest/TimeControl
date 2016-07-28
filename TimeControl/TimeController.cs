@@ -1162,7 +1162,7 @@ namespace TimeControl
                 return;
             }
 
-            if (!TrySetSlowMo())
+            if (!TrySetSlowMo() && ts != 1f)
             {
                 Log.Trace( "method end", logCaller );
                 return;
