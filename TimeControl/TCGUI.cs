@@ -634,18 +634,19 @@ namespace TimeControl
             GUILayout.BeginHorizontal();
             {
                 string rate = "";
-
+                
+                // Cache all string concatenations
                 if (TimeController.Instance.CurrentWarpState == TimeControllable.Rails || TimeController.Instance.CurrentWarpState == TimeControllable.Physics)
                 {
-                    rate = TimeController.Instance.CurrentRailsWarpRateText + "x";
+                    rate = TimeController.Instance.CurrentRailsWarpRateText.MemoizedConcat("x");
                 }
                 else
                 {
-                    rate = (PerformanceManager.ptr / 1 * 100).ToString( "0" ) + "%";
+                    rate = ((PerformanceManager.ptr / 1 * 100).MemoizedToString( "0" )).MemoizedConcat("%");
                 }
 
-                GUILayout.Label( "Time: " + rate );
-                GUILayout.Label( "FPS: " + Mathf.Floor( PerformanceManager.fps ) );
+                GUILayout.Label( "Time: ".MemoizedConcat(rate) );
+                GUILayout.Label( "FPS: ".MemoizedConcat((Mathf.Floor( PerformanceManager.fps )).MemoizedToString()) );
                 GUILayout.FlexibleSpace();
 
                 // Button to resturn to realtime
@@ -736,6 +737,7 @@ namespace TimeControl
         }
         private void GUIPauseOrResumeButton()
         {
+            bool priorEnabled = GUI.enabled;
             GUI.enabled = TimeController.Instance.IsOperational;
             if (!TimeController.Instance.TimePaused)
             {
@@ -747,14 +749,15 @@ namespace TimeControl
                 if (GUILayout.Button( "Resume", GUILayout.Width( 60 ) ))
                     TimeController.Instance.TogglePause();
             }
-            GUI.enabled = true;
+            GUI.enabled = priorEnabled;
         }
         private void GUITimeStepButton()
         {
+            bool priorEnabled = GUI.enabled;
             GUI.enabled = TimeController.Instance.TimePaused;
             if (GUILayout.Button( ">", GUILayout.Width( 20 ) ))
                 TimeController.Instance.IncrementTimeStep();
-            GUI.enabled = true;
+            GUI.enabled = priorEnabled;
         }
         private void GUIThrottleControl()
         {
@@ -927,17 +930,16 @@ namespace TimeControl
                     SOISelect = false;
                     warpScroll.y = 0;
                 }
-                int i = 0;
-
-                foreach (CelestialBody c in FlightGlobals.Bodies)
+                
+                for (int i = 0; i < FlightGlobals.Bodies.Count; i++)
                 {
+                    CelestialBody c = FlightGlobals.Bodies[i];
                     if (GUILayout.Button( c.name ))
                     {
                         selectedSOI = c;
                         SOISelect = false;
                         warpScroll.y = 0;
                     }
-                    i++;
                 }
             }
             GUILayout.EndVertical();
@@ -1007,54 +1009,59 @@ namespace TimeControl
 
         private void modeSlowmoFPSKeeper()
         {
+            GUI.enabled = (TimeController.Instance.IsOperational
+                && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo));
+
             bool fpsKeeperActive = GUILayout.Toggle( TimeController.Instance.IsFpsKeeperActive, "FPS Keeper: " + Mathf.Round( Settings.Instance.FpsMinSlider / 5 ) * 5 + " fps" );
             if (fpsKeeperActive != TimeController.Instance.IsFpsKeeperActive)
                 TimeController.Instance.SetFPSKeeper( fpsKeeperActive );
+            
+            Settings.Instance.FpsMinSlider = (int)GUILayout.HorizontalSlider( Settings.Instance.FpsMinSlider, 5, 60 );
 
             GUI.enabled = true;
-            Settings.Instance.FpsMinSlider = (int)GUILayout.HorizontalSlider( Settings.Instance.FpsMinSlider, 5, 60 );
         }
         private void modeSlowmoTimeScale()
         {
+            GUI.enabled = (TimeController.Instance.IsOperational
+                && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo))
+                && !TimeController.Instance.IsFpsKeeperActive;
+            
             GUILayout.BeginVertical();
             {
                 GUILayout.BeginHorizontal();
-                {
-                    GUI.enabled = (!TimeController.Instance.IsFpsKeeperActive);
-                    {
-                        if (TimeController.Instance.TruePOS != 1)
-                            GUILayout.Label( "Time Scale: 1/" + TimeController.Instance.TruePOS.ToString() + "x" );
-                        else
-                            GUILayout.Label( "Time Scale: " + TimeController.Instance.TruePOS.ToString() + "x" );
-                    }
+                {                    
+                    if (TimeController.Instance.TruePOS != 1)
+                        GUILayout.Label( "Time Scale: 1/".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x") );
+                    else
+                        GUILayout.Label( "Time Scale: ".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x"));
+                    
                     GUIPauseOrResumeButton();
                     GUITimeStepButton();
                 }
                 GUILayout.EndHorizontal();
 
-                GUI.enabled = (TimeController.Instance.IsOperational && !TimeController.Instance.IsFpsKeeperActive);
-                {
-                    float ts = GUILayout.HorizontalSlider( TimeController.Instance.TimeSlider, 0f, 1f );
-                    if (TimeController.Instance.TimeSlider != ts)
-                        TimeController.Instance.UpdateTimeSlider( ts );
+                float ts = GUILayout.HorizontalSlider( TimeController.Instance.TimeSlider, 0f, 1f );
+                if (TimeController.Instance.TimeSlider != ts)
+                    TimeController.Instance.UpdateTimeSlider( ts );
 
-                    TimeController.Instance.DeltaLocked = (TimeController.Instance.IsFpsKeeperActive
-                        ? GUILayout.Toggle( TimeController.Instance.IsFpsKeeperActive, "Lock physics delta to default" )
-                        : GUILayout.Toggle( TimeController.Instance.DeltaLocked, "Lock physics delta to default" ));
+                TimeController.Instance.DeltaLocked = (TimeController.Instance.IsFpsKeeperActive
+                    ? GUILayout.Toggle( TimeController.Instance.IsFpsKeeperActive, "Lock physics delta to default" )
+                    : GUILayout.Toggle( TimeController.Instance.DeltaLocked, "Lock physics delta to default" ));
 
-                    GUILayout.Label( "", GUILayout.Height( 5 ) );
+                GUILayout.Label( "", GUILayout.Height( 5 ) );
 
-                    GUIThrottleControl();
-                }
-                GUI.enabled = true;
+                GUIThrottleControl();
             }
             GUILayout.EndVertical();
+            
+            GUI.enabled = true;
         }
         #endregion
         #region Hyper GUI
         private void modeHyper()
         {
-            GUI.enabled = (TimeController.Instance.IsOperational && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.Hyper));
+            GUI.enabled = (TimeController.Instance.IsOperational 
+                && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.Hyper));
             {
                 GUILayout.BeginVertical();
                 {
@@ -1090,14 +1097,14 @@ namespace TimeControl
         {
             GUILayout.BeginHorizontal();
             {
-                if (TimeController.Instance.CurrentWarpState == TimeControllable.None)
+                if (TimeController.Instance.CurrentWarpState != TimeControllable.Hyper)
                 {
                     if (GUILayout.Button( "HyperWarp" ))
                     {
                         TimeController.Instance.ToggleHyperWarp();
                     }
                 }
-                else if (TimeController.Instance.CurrentWarpState == TimeControllable.Hyper)
+                else
                 {
                     if (GUILayout.Button( "End HyperWarp" ))
                     {
@@ -1149,11 +1156,15 @@ namespace TimeControl
             GUILayout.BeginVertical();
             {
                 GUILayout.Label( "Physics Time Ratio: " + PerformanceManager.ptr.ToString( "0.0000" ) );
-                GUILayout.Label( "UT: " + Planetarium.GetUniversalTime() );
-                GUILayout.Label( "Time Scale: " + Time.timeScale );
-                GUILayout.Label( "Physics Delta: " + Time.fixedDeltaTime );                
+                GUILayout.Label( "UT: " + Planetarium.GetUniversalTime() ); // Creates garbage, but not worth caching since it's monotonically increasing
+                GUILayout.Label( "Time Scale: ".MemoizedConcat(Time.timeScale.MemoizedToString()) );
+                GUILayout.Label( "Physics Delta: ".MemoizedConcat(Time.fixedDeltaTime.MemoizedToString()) );                
                 GUILayout.Label( "PPS: " + PerformanceManager.pps );
-                GUILayout.Label( "Max Delta Time: " + Time.maximumDeltaTime );
+
+                GUILayout.BeginHorizontal();
+                GUILayout.Label( "Max Delta Time: ");
+                GUILayout.Label( Time.maximumDeltaTime.MemoizedToString() );
+                GUILayout.EndHorizontal();
                 GUI.enabled = !TimeController.Instance.IsFpsKeeperActive;
                 TimeController.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( TimeController.Instance.MaxDeltaTimeSlider, TimeController.MaxDeltaTimeSliderMax, TimeController.MaxDeltaTimeSliderMin );
                 GUI.enabled = true;
@@ -1177,15 +1188,16 @@ namespace TimeControl
 
         private void settingsGUISaveInterval()
         {
-            string saveIntervalLabel = "Save Settings Every " + Mathf.Round( SaveInterval ) + "s";
+            string saveIntervalLabel = "Save Settings Every ".MemoizedConcat( (Mathf.Round( SaveInterval )).MemoizedToString().MemoizedConcat("s") );
             Action<float> updateSaveInterval = delegate (float f) { SaveInterval = f; };
             IMGUIExtensions.floatTextBoxAndSliderCombo( saveIntervalLabel, SaveInterval, saveIntervalMin, saveIntervalMax, updateSaveInterval );
         }
 
         bool settingsLoggingSeveritySelect = false;
+        List<LogSeverity> lsList = Enum.GetValues( typeof( LogSeverity ) ).Cast<LogSeverity>().ToList();
         private void settingsGUILoggingLevel()
         {
-            string s = "Logging: " + Settings.Instance.LoggingLevel.ToString();
+            string s = "Logging: ".MemoizedConcat(Settings.Instance.LoggingLevel.MemoizedToString());
 
             if (!settingsLoggingSeveritySelect)
             {
@@ -1195,8 +1207,9 @@ namespace TimeControl
             {
                 GUILayout.BeginHorizontal();
                 {
-                    foreach (LogSeverity ls in Enum.GetValues( typeof( LogSeverity ) ))
+                    for (int i = 0; i < lsList.Count; i++)
                     {
+                        LogSeverity ls = lsList[i];
                         if (GUILayout.Button( ls.ToString() ))
                         {
                             Settings.Instance.LoggingLevel = ls;

@@ -112,35 +112,27 @@ namespace TimeControl
 
             UpdateRails();
 
-            bool canWarp = (CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Physics || CurrentWarpState == TimeControllable.Rails);
-
-            HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = canWarp;
-            HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = canWarp;
-
-            if (!(TimeWarp.CurrentRate > 1))
-                Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
-
-            if (IsOperational)
+            //if (IsOperational)
+            //{
+            switch (CurrentWarpState)
             {
-                switch (CurrentWarpState)
-                {
-                    case TimeControllable.SlowMo:
-                        UpdateSlowMo();
-                        break;
-                    case TimeControllable.Hyper:
-                        UpdateHyper();
-                        break;
-                    case TimeControllable.None:
-                        CurrentControllerMessage = "";
-                        break;
-                }
+                case TimeControllable.SlowMo:
+                    UpdateSlowMo();
+                    break;
+                case TimeControllable.Hyper:
+                    UpdateHyper();
+                    break;
+                case TimeControllable.None:
+                    CurrentControllerMessage = "";
+                    break;
+            }
 
-                UpdatePaused();
-            }
-            else
-            {
-                SmoothSlider = timeSlider;
-            }
+            UpdatePaused();
+            //}
+            //else
+            //{
+                //SmoothSlider = timeSlider;
+            //}
         }
 
         private void UpdateRails()
@@ -167,11 +159,19 @@ namespace TimeControl
             else
             {
                 if (CurrentWarpState == TimeControllable.Rails || CurrentWarpState == TimeControllable.Physics)
-                    CancelRailsWarp();
+                    CurrentWarpState = TimeControllable.None;
+                Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
             }
+
+            bool canWarp = (CurrentWarpState == TimeControllable.None || CurrentWarpState == TimeControllable.Physics || CurrentWarpState == TimeControllable.Rails);
+            HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = canWarp;
+            HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = canWarp;
         }
         private void UpdateHyper()
         {
+            if (CurrentWarpState != TimeControllable.Hyper)
+                return;
+
             Time.timeScale = Mathf.Round( HyperMaxRate );
             Time.fixedDeltaTime = defaultDeltaTime * HyperMinPhys;
             Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
@@ -180,6 +180,9 @@ namespace TimeControl
         }
         private void UpdateSlowMo()
         {
+            if (CurrentWarpState != TimeControllable.SlowMo)
+                return;
+
             UpdateSlowMoFPSKeeper();
 
             if (TimeSlider == 0f)
@@ -265,7 +268,7 @@ namespace TimeControl
 
         private void FixedUpdateRails()
         {
-            double UT = Planetarium.GetUniversalTime();
+            // Return if we aren't warping to a specific time
             if (CurrentWarpState != TimeControllable.Rails)
             {
                 railsWarpEndTime = Mathf.Infinity;
@@ -274,6 +277,7 @@ namespace TimeControl
             {
                 return;
             }
+            double UT = Planetarium.GetUniversalTime();
 
             // If we've gone past or equal to the time we are warping to, cancel and return
             if (UT >= railsWarpEndTime)
@@ -503,7 +507,28 @@ namespace TimeControl
                 }
                 else if (CurrentWarpState == TimeControllable.Physics)
                 {
-                    return (timeWarp.current_rate_index + 1).ToString();
+                    string r = "";
+                    // switch and return literal instead of generating new strings
+                    // this way, we return interned strings.
+                    switch (timeWarp.current_rate_index + 1)
+                    {
+                        case 1:
+                            r = "1";
+                            break;
+                        case 2:
+                            r = "2";
+                            break;
+                        case 3:
+                            r = "3";
+                            break;
+                        case 4:
+                            r = "4";
+                            break;
+                        default:
+                            r = (timeWarp.current_rate_index + 1).ToString(); // If someone is messing with the physical warp rates, create garbage :-(
+                            break;
+                    }
+                    return r;
                 }
                 else return "0";
             }
@@ -957,19 +982,19 @@ namespace TimeControl
                 return false;
             }
 
-            double warpTime = years * KSPUtil.dateTimeFormatter.Year 
-                + days * KSPUtil.dateTimeFormatter.Day 
-                + hours * KSPUtil.dateTimeFormatter.Hour 
-                + minutes * KSPUtil.dateTimeFormatter.Minute 
+            double warpTime = years * KSPUtil.dateTimeFormatter.Year
+                + days * KSPUtil.dateTimeFormatter.Day
+                + hours * KSPUtil.dateTimeFormatter.Hour
+                + minutes * KSPUtil.dateTimeFormatter.Minute
                 + seconds + Planetarium.GetUniversalTime();
-            
+
             bool result = RailsWarpToTime( warpTime );
 
             Log.Trace( "method end", logCaller );
             return result;
         }
 
-        public void CancelRailsWarp()
+        public void CancelRailsWarp(bool cancelAuto = true)
         {
             string logCaller = "TimeController.CancelRailsWarp";
             Log.Trace( "method start", logCaller );
@@ -994,8 +1019,11 @@ namespace TimeControl
                 }
             }
 
-            Log.Info( "Cancelling auto warp if it is running.", logCaller );
-            TimeWarp.fetch.CancelAutoWarp();
+            if (cancelAuto)
+            {
+                Log.Info( "Cancelling auto warp if it is running.", logCaller );
+                TimeWarp.fetch.CancelAutoWarp();
+            }
 
             Log.Info( "Setting warp rate to 0.", logCaller );
             TimeWarp.SetRate( 0, true, true );
