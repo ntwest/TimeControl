@@ -387,7 +387,7 @@ namespace TimeControl
             string logCaller = "onPartDestroyed";
             Log.Trace( "method start (event)", logCaller );
 
-            if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || p.vessel == FlightGlobals.ActiveVessel))
+            if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel != null || p.vessel == FlightGlobals.ActiveVessel))
                 CancelHyperWarp();
 
             Log.Trace( "method end (event)", logCaller );
@@ -397,7 +397,7 @@ namespace TimeControl
             string logCaller = "onVesselDestroy";
             Log.Trace( "method start (event)", logCaller );
 
-            if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel == null || v == FlightGlobals.ActiveVessel))
+            if (CurrentWarpState == TimeControllable.Hyper && HighLogic.LoadedSceneIsFlight && (FlightGlobals.ActiveVessel != null || v == FlightGlobals.ActiveVessel))
                 CancelHyperWarp();
 
             Log.Trace( "method end (event)", logCaller );
