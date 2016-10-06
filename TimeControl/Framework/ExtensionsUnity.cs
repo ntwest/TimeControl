@@ -1,9 +1,9 @@
-﻿/* Part of KSPPluginFramework
-Version 1.2
-
+﻿/* ntwest - Pulled portions of code from KSPPluginFramework Version 1.2, 
 Forum Thread:http://forum.kerbalspaceprogram.com/threads/66503-KSP-Plugin-Framework
 Author: TriggerAu, 2014
 License: The MIT License (MIT)
+
+Other code written by ntwest, MIT Licensed.
 */
 using System;
 using System.Collections.Generic;
@@ -16,12 +16,10 @@ using UnityEngine;
 namespace KSPPluginFramework
 {
     /// <summary>
-    /// CLass containing some useful extension methods for Unity Objects as well as Memoization
+    /// CLass containing some useful extension methods for Unity Objects as well as Memoization for string representations of things.
     /// </summary>
     public static class ExtensionMethods
     {
-        
-
         private static Func<object, string> memoizedToStringFunc1 = 
             ((Func<object, string>)( (o) => { return o.ToString(); } )).Memoize();
 
