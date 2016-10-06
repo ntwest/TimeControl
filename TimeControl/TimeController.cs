@@ -111,9 +111,7 @@ namespace TimeControl
             }
 
             UpdateRails();
-
-            //if (IsOperational)
-            //{
+            
             switch (CurrentWarpState)
             {
                 case TimeControllable.SlowMo:
@@ -128,11 +126,6 @@ namespace TimeControl
             }
 
             UpdatePaused();
-            //}
-            //else
-            //{
-                //SmoothSlider = timeSlider;
-            //}
         }
 
         private void UpdateRails()
@@ -191,7 +184,7 @@ namespace TimeControl
                 return;
             }
 
-            SmoothSlider = Mathf.Lerp( SmoothSlider, TimeSlider, .01f ); // TCUtilitieslinearInterpolate(SmoothSlider, timeSlider, .01f);
+            SmoothSlider = Mathf.Lerp( SmoothSlider, TimeSlider, .01f );
             float inverseTimeScale = PluginUtilities.convertToExponential( SmoothSlider );
             // InverseTimeScale property is modified when SmoothSlider is changed
             Time.timeScale = 1f / inverseTimeScale;

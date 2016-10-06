@@ -56,8 +56,8 @@ namespace TimeControl
         {
             Log.Write( "Loading GUI Assets Started", "TCResources.loadGUIAssets", LogSeverity.Info );
 
-            stockIcon = GameDatabase.Instance.GetTexture( PluginUtilities.PathStockToolbarIcons + "/enabled" , false );
-            blizzyIcon = GameDatabase.Instance.GetTexture( PluginUtilities.PathBlizzyToolbarIcons + "/enabled", false );
+            stockIcon = GameDatabase.Instance.GetTexture( PluginUtilities.GameDatabasePathStockToolbarIcons + "/enabled" , false );
+            blizzyIcon = GameDatabase.Instance.GetTexture( PluginUtilities.GameDatabasePathBlizzyToolbarIcons + "/enabled", false );
 
             Log.Write( "Loading GUI Assets Complete", "TCResources.loadGUIAssets", LogSeverity.Info );
         }
