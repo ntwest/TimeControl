@@ -87,6 +87,7 @@ namespace KSPPluginFramework
         {
             return memoizedStringConcatFunc( str, str2 );
         }
+
         public static string MemoizedToString(this object o)
         {
             return memoizedToStringFunc1( o );
