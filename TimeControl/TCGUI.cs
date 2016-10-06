@@ -673,7 +673,7 @@ namespace TimeControl
                 }
                 else
                 {
-                    GUILayout.Label( "NORM" );
+                    GUILayout.Label( "NORMAL" );
                 }
                 if (returnButton)
                 {
