@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace TimeControl.Framework
 {
+    /// <summary>
+    /// Collection of functions that create IMGUI objects with backing fields
+    /// </summary>
     public static class IMGUIExtensions
     {
         /// <summary>
