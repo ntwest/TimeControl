@@ -98,6 +98,8 @@ namespace TimeControl
         {
             if (!IsReady)
                 return;
+            if (HighLogic.LoadedScene == GameScenes.EDITOR)
+                return;
 
             if (needsSaved && (Time.realtimeSinceStartup - lastSave > saveInterval))
             {
