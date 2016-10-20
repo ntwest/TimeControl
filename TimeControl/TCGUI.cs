@@ -1181,8 +1181,10 @@ namespace TimeControl
                 SupressFlightResultsDialog = GUILayout.Toggle( SupressFlightResultsDialog, "Supress Results Dialog" );
                 UseStockToolbar = GUILayout.Toggle( UseStockToolbar, "Use Stock Toolbar" );
                 ShowScreenMessages = GUILayout.Toggle( ShowScreenMessages, "Show Onscreen Messages" );
-                UseCustomDateTimeFormatter = GUILayout.Toggle( UseCustomDateTimeFormatter, "Homeworld Timekeeping" );
-                
+
+                // Disable for now
+                // UseCustomDateTimeFormatter = GUILayout.Toggle( UseCustomDateTimeFormatter, "Homeworld Timekeeping" );
+
                 settingsGUISaveInterval();
                 settingsGUILoggingLevel();
                 settingsGUIKeyBinding();

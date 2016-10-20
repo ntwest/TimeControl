@@ -212,16 +212,16 @@ namespace TimeControl
             if (includeTime)
             {
                 if (includeSeconds)
-                    s = "Y{0}, D{1}, {2}:{3:00}:{4:00}";
+                    s = "Y{0}, D{01}, {2}:{3:00}:{4:00}";
                 else
-                    s = "Y{0}, D{1}, {2}:{3:00}";
+                    s = "Y{0}, D{01}, {2}:{3:00}";
             }
             else
             {
                 if (includeSeconds)
-                    s = "Y{0}, D{1}:{4:00}";
+                    s = "Y{0}, D{01}:{4:00}";
                 else
-                    s = "Y{0}, D{1}";
+                    s = "Y{0}, D{01}";
             }
             return string.Format(s, t[4], t[3], t[2], t[1], t[0]) ;
         }
