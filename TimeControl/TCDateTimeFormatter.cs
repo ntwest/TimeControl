@@ -90,27 +90,22 @@ namespace TimeControl
         /// </summary>
         public int[] GetEarthDateFromUT(double time)
         {
-            int t = Convert.ToInt32( time );
+            long t = Convert.ToInt64( time );
 
             try
             {
                 // Current Year
-                int year = t / EarthYear;
+                int year = (int)(t / EarthYear);
                 t = t - (year * EarthYear);
 
                 // Current Day
-                int day = t / EarthDay;
-                t = t - (day * EarthDay);
-
+                int day = (int)(t / EarthDay);
                 // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
-                int hour = (t / 3600) % (EarthDay / 3600);
-                t = t - (hour * (60 ^ 2));
-
-                // Current Minute of the Day
-                int minute = (t / 60) % 60;
-
+                int hour = (int)((t / 3600) % (EarthDay / 3600));
+                // Current Minute of the Hour
+                int minute = (int)((t / 60) % 60);
                 // Current Second
-                int second = t % 60;
+                int second = (int)(t % 60);
 
                 return new int[]
                 {
@@ -138,22 +133,17 @@ namespace TimeControl
             try
             {
                 // Current Year
-                int year = t / KerbinYear;
+                int year = (int)(t / KerbinYear);
                 t = t - (year * KerbinYear);
 
                 // Current Day
-                int day = t / KerbinDay;
-                t = t - (day * KerbinDay);
-
+                int day = (int)(t / KerbinDay);
                 // Current Hour of the day = Total seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) % ( Day Length in Seconds * (1 minutes / 60 seconds) * (1 hours / 60 minutes) )
-                int hour = (t / 3600) % (KerbinDay / 3600);
-                t = t - (hour * (60 ^ 2));
-
-                // Current Minute of the Day
-                int minute = (t / 60) % 60;
-
+                int hour = (int)((t / 3600) % (KerbinDay / 3600));
+                // Current Minute of the Hour
+                int minute = (int)((t / 60) % 60);
                 // Current Second
-                int second = t % 60;
+                int second = (int)(t % 60);
 
                 return new int[]
                 {
@@ -182,6 +172,10 @@ namespace TimeControl
 
             // Add 1 to Year
             t[4] = t[4] + 1;
+
+            // Add 1 to Day
+            t[3] = t[3] + 1;
+
             string s;
             if (includeTime)
             {
@@ -210,6 +204,9 @@ namespace TimeControl
 
             // Add 1 to Year
             t[4] = t[4] + 1;
+
+            // Add 1 to Day
+            t[3] = t[3] + 1;
 
             string s;
             if (includeTime)
@@ -351,6 +348,10 @@ namespace TimeControl
 
             // Add 1 to Year
             t[4] = t[4] + 1;
+
+            // Add 1 to Day
+            t[3] = t[3] + 1;
+
             string s;
             if (includeTime)
             {
@@ -372,14 +373,26 @@ namespace TimeControl
             int[] t = GetDateFromUT( time );
 
             string s = "";
-            if (valuesOfInterest >= 4)
-                s = "{1}d, {2}h, {3}m, {4}s";
+            if (valuesOfInterest >= 5 && t[4] != 0)
+                s += "{0}y, ";
+            if (   (valuesOfInterest >= 4 && t[3] != 0 )
+                || (valuesOfInterest >= 5 && t[4] != 0)
+               )
+                s += "{1}d, ";
+            if ((valuesOfInterest >= 3 && t[2] != 0)
+                || (valuesOfInterest >= 4 && t[3] != 0)
+                || (valuesOfInterest >= 5 && t[4] != 0)
+               )
+                s += "{2}h, ";
+
             else if (valuesOfInterest == 3)
-                s = "{2}h, {3}m, {4}s";
+                s = "{0}y, {1}d, {2}h";
             else if (valuesOfInterest == 2)
-                s = "{3}m, {4}s";
-            else if (valuesOfInterest <= 1)
-                s = "{4}s";            
+                s = "{0}y, {1}d";
+            else if (valuesOfInterest == 1)
+                s = "{0}y";
+            else
+                s = "";
             if (explicitPositive)
             {
                 s = "+ " + s;
@@ -393,7 +406,7 @@ namespace TimeControl
             if (IsInvalidTime( time ))
                 return InvalidTimeStr( time );
 
-            string s = "{1}{2:00}{3:00{4:00}s";
+            string s = "{1}:{2:00}:{3:00}:{4:00}";
             if (explicitPositive && time >= 0)
             {
                 s = "T+ " + s; 

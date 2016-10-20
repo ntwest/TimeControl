@@ -316,11 +316,17 @@ namespace TimeControl
             {
                 Log.Info( "Changing Date Time Formatter to customDTFormatter" );
                 KSPUtil.dateTimeFormatter = customDTFormatter;
+                // Only run this test in trace mode
+                if (Log.LoggingLevel == LogSeverity.Trace)
+                    TestDateTimeDisplay.RunDateTimeDisplayTest(HighLogic.CurrentGame.UniversalTime);
             }
             else
             {
                 Log.Info( "Changing Date Time Formatter to defaultDTFormatter" );
                 KSPUtil.dateTimeFormatter = defaultDTFormatter;
+                // Only run this test in trace mode
+                if (Log.LoggingLevel == LogSeverity.Trace)
+                    TestDateTimeDisplay.RunDateTimeDisplayTest(HighLogic.CurrentGame.UniversalTime);
             }
         }        
         private void UpdateFlightWindowRectSize()
@@ -378,6 +384,7 @@ namespace TimeControl
             string logCaller = "TCGUI.StartAfterSettingsAndControllerAreReady";
             Log.Trace( "coroutine start", logCaller );
 
+            // Wait for the Settings object to be ready
             while (!Settings.IsReady)
                 yield return null;
 
@@ -399,7 +406,7 @@ namespace TimeControl
             Log.Trace( "TCGUI Property String Count : " + propStrings.Count(), logCaller );
             foreach (string s in propStrings)
             {
-                Log.Trace( "Setting TCGUI Property From Settigns: " + s, logCaller );
+                Log.Trace( "Setting TCGUI Property From Settings: " + s, logCaller );
                 SettingsPropertyChanged( Settings.Instance, new SC.PropertyChangedEventArgs( s ) );
             }
 
@@ -408,6 +415,7 @@ namespace TimeControl
             Log.Info( "Wire Up Settings Property Changed Event Subscription", logCaller );
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;
 
+            // Wait for TimeController object to be ready
             while (TimeController.Instance == null || !TimeController.IsReady)
                 yield return null;
 
