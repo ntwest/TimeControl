@@ -1,3 +1,17 @@
+Version 2.2.3 (KSP 1.2)
+
+- KSP 1.2 Compatibility.
+- New KSP 1.2 version of MiniAVC.
+- Fixes bug where debris leaving the physics area causes hyper warp to cut out on current vessel.
+- Fixes bug where it was saving the game settings in the editor view, which was breaking editor extensions redux. Thanks to linuxgurugamer.
+
+Version 2.2.2 (KSP 1.1.3)
+- 2.2.1 had a slow-motion bug when returning to 1x. Corrected.
+
+Version 2.2.1 (KSP 1.1.3)
+- Bug fix: TC will no longer interfere with the stock warp to on rails.
+- Remove some string concatenation from the OnGUI calls.
+
 Version 2.2 (KSP 1.1.3)
 
 - Logging mode now is properly set up with the settings file as well as in the Settings GUI. Defaulting to INFO mode.
