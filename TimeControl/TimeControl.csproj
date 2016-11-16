@@ -72,9 +72,6 @@
     <Folder Include="GameData\TimeControl\PluginData\" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GameData\TimeControl\MiniAVC.dll" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="GameData\TimeControl\TimeControl.version" />
   </ItemGroup>
   <ItemGroup>
@@ -123,14 +120,14 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>SET KSPTest=Q:\KSP12_win64 - TEST
+    <PostBuildEvent>SET KSPTest=Q:\KSP121_win64 - TEST
 SET GameDataTarget=%25KSPTest%25\GameData\$(TargetName)
 IF NOT EXIST %25GameDataTarget%25 (
    MKDIR "%25GameDataTarget%25"
 )
 
 copy "$(TargetPath)" "%25GameDataTarget%25"
-copy "$(TargetDir)\MiniAVC.dll" "%25GameDataTarget%25"
+:: copy "$(TargetDir)\MiniAVC.dll" "%25GameDataTarget%25"
 robocopy "$(ProjectDir)GameData\$(TargetName)" "%25GameDataTarget%25" /E
 exit 0</PostBuildEvent>
   </PropertyGroup>

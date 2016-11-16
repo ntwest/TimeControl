@@ -63,7 +63,7 @@ namespace TimeControl
         }
 
         /// <summary>
-        /// Shamelessly borrowed this feature from Kerbal Alarm Clock
+        /// Shamelessly trying to borrow this feature from Kerbal Alarm Clock
         /// There is probably a better way with a PackedSprite but as I don't know how, this will have to do.
         /// TODO actually use this
         /// </summary>

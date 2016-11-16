@@ -7,6 +7,6 @@ Images
 /TimeControl/bin/Release/
 /TimeControl/bin/Debug
 /TimeControl/libs
-
+/Release
 /.vs/config
 /Release/netkan.exe

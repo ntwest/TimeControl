@@ -1,4 +1,13 @@
-Version 2.2.3 (KSP 1.2)
+Version 2.4 (KSP 1.2.1)
+
+- KSP 1.2.1 Compatibility.
+- MiniAVC removed until AVC is updated for 1.2.1.
+- Fixes bug for "Homeworld Time" breaking RSS Time Formatter. Will rethink this feature...
+
+Version 2.3.1 (KSP 1.2)
+- Fixes toolbar integration code
+
+Version 2.3 (KSP 1.2)
 
 - KSP 1.2 Compatibility.
 - New KSP 1.2 version of MiniAVC.
