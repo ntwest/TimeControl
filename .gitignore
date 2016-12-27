@@ -10,3 +10,4 @@ Images
 /Release
 /.vs/config
 /Release/netkan.exe
+*.dll

@@ -38,7 +38,7 @@ using TimeControl.Framework;
 
 namespace TimeControl
 {
-    [KSPAddon( KSPAddon.Startup.MainMenu, true )]
+    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
     internal class TCGUI : MonoBehaviour
     {
         #region Singleton
@@ -50,11 +50,14 @@ namespace TimeControl
         #endregion
 
         #region Public Properties
-        public bool WindowsVisible {
-            get {
+        public bool WindowsVisible
+        {
+            get
+            {
                 return windowsVisible;
             }
-            set {
+            set
+            {
                 if (windowsVisible != value)
                 {
                     windowsVisible = value;
@@ -63,11 +66,14 @@ namespace TimeControl
                 }
             }
         }
-        public bool ShowScreenMessages {
-            get {
+        public bool ShowScreenMessages
+        {
+            get
+            {
                 return showScreenMessages;
             }
-            set {
+            set
+            {
                 if (showScreenMessages != value)
                 {
                     showScreenMessages = value;
@@ -76,11 +82,14 @@ namespace TimeControl
                 }
             }
         }
-        public bool UseStockToolbar {
-            get {
+        public bool UseStockToolbar
+        {
+            get
+            {
                 return useStockToolbar;
             }
-            set {
+            set
+            {
                 if (useStockToolbar != value)
                 {
                     useStockToolbar = value;
@@ -89,11 +98,14 @@ namespace TimeControl
                 }
             }
         }
-        public int WindowSelectedFlightMode { 
-            get {
+        public int WindowSelectedFlightMode
+        {
+            get
+            {
                 return windowSelectedFlightMode;
             }
-            set {
+            set
+            {
                 if (windowSelectedFlightMode != value)
                 {
                     windowSelectedFlightMode = value;
@@ -103,12 +115,15 @@ namespace TimeControl
                 }
             }
         }
-        public bool SupressFlightResultsDialog {
-            get {
+        public bool SupressFlightResultsDialog
+        {
+            get
+            {
                 return supressFlightResultsDialog;
             }
 
-            set {
+            set
+            {
                 if (supressFlightResultsDialog != value)
                 {
                     supressFlightResultsDialog = value;
@@ -117,12 +132,15 @@ namespace TimeControl
                 }
             }
         }
-        public bool SettingsWindowOpen {
-            get {
+        public bool SettingsWindowOpen
+        {
+            get
+            {
                 return settingsWindowOpen;
             }
 
-            set {
+            set
+            {
                 if (settingsWindowOpen != value)
                 {
                     settingsWindowOpen = value;
@@ -131,25 +149,15 @@ namespace TimeControl
                 }
             }
         }
-        public bool WindowMinimized {
-            get {
-                return windowMinimized;
-            }
 
-            set {
-                if (windowMinimized != value)
-                {
-                    windowMinimized = value;
-                    if (Settings.IsReady)
-                        Settings.Instance.WindowMinimized = value;
-                }
-            }
-        }
-        public float SaveInterval {
-            get {
+        public float SaveInterval
+        {
+            get
+            {
                 return saveInterval;
             }
-            set {
+            set
+            {
                 if (saveInterval != value)
                 {
                     saveInterval = value;
@@ -158,11 +166,14 @@ namespace TimeControl
                 }
             }
         }
-        public bool UseCustomDateTimeFormatter {
-            get {
+        public bool UseCustomDateTimeFormatter
+        {
+            get
+            {
                 return useCustomDateTimeFormatter;
             }
-            set {
+            set
+            {
                 if (useCustomDateTimeFormatter != value)
                 {
                     useCustomDateTimeFormatter = value;
@@ -182,31 +193,32 @@ namespace TimeControl
         {
             WindowsVisible = v;
         }
-        public bool GUITempHidden {
-            get {
+        public bool GUITempHidden
+        {
+            get
+            {
                 return (TempGUIHidden.Count != 0);
             }
         }
         public void TempHideGUI(string lockedBy)
         {
-            TempGUIHidden.Add( lockedBy );
+            TempGUIHidden.Add(lockedBy);
         }
         public void TempUnHideGUI(string lockedBy)
         {
-            TempGUIHidden.RemoveAll( x => x == lockedBy );
+            TempGUIHidden.RemoveAll(x => x == lockedBy);
         }
         public void TempUnHideGUI()
         {
             TempGUIHidden.Clear();
         }
-        #endregion        
+        #endregion
         #region Fields
         // Temp Hide/Show GUI Windows
         private List<string> TempGUIHidden = new List<string>();
 
         // Fields backed by properties, updated by SETTINGS object
         private bool windowsVisible = false;
-        private bool windowMinimized = false;
         private bool showScreenMessages = false;
         private bool useStockToolbar = false;
         private int windowSelectedFlightMode = 0;
@@ -236,15 +248,15 @@ namespace TimeControl
         private Color screenMsgsColor;
         private ScreenMessage warpScreenMessage;
         //GUI Layout
-        private static Rect minimizeButton = new Rect( 5, 5, 10, 10 );
-        private static Rect closeButton = new Rect( 5, 5, 10, 10 );
-        private static Rect settingsButton = new Rect( 360, -1, 25, 20 );
-        private static Rect mode0Button = new Rect( 10, -1, 25, 20 );
-        private static Rect mode1Button = new Rect( 25, -1, 25, 20 );
-        private static Rect mode2Button = new Rect( 40, -1, 25, 20 );
-        private Rect flightWindowRect = new Rect( 100, 100, 375, 0 );
-        private Rect spaceCenterWindowRect = new Rect( 100, 100, 375, 0 );
-        private Rect settingsWindowRect = new Rect( 100, 100, 220, 0 );
+        private static Rect minimizeButton = new Rect(5, 5, 10, 10);
+        private static Rect closeButton = new Rect(5, 5, 10, 10);
+        private static Rect settingsButton = new Rect(360, -1, 25, 20);
+        private static Rect mode0Button = new Rect(10, -1, 25, 20);
+        private static Rect mode1Button = new Rect(25, -1, 25, 20);
+        private static Rect mode2Button = new Rect(40, -1, 25, 20);
+        private Rect flightWindowRect = new Rect(100, 100, 375, 0);
+        private Rect spaceCenterWindowRect = new Rect(100, 100, 375, 0);
+        private Rect settingsWindowRect = new Rect(100, 100, 220, 0);
         private int tcsSpaceCenterWindowHashCode = "Time Control Space Center".GetHashCode();
         private int tcsFlightWindowHashCode = "Time Control Flight".GetHashCode();
         private int tcsSettingsWindowHashCode = "Time Control Settings".GetHashCode();
@@ -320,10 +332,6 @@ namespace TimeControl
                 case Settings.PropertyStrings.UseStockToolbar:
                     useStockToolbar = ((Settings)sender).UseStockToolbar;
                     break;
-                case Settings.PropertyStrings.WindowMinimized:
-                    windowMinimized = ((Settings)sender).WindowMinimized;
-                    UpdateFlightWindowRectSize();
-                    break;
                 case Settings.PropertyStrings.WindowSelectedFlightMode:
                     windowSelectedFlightMode = ((Settings)sender).WindowSelectedFlightMode;
                     UpdateFlightWindowRectSize();
@@ -355,7 +363,7 @@ namespace TimeControl
                     TestDateTimeDisplay.RunDateTimeDisplayTest(HighLogic.CurrentGame.UniversalTime);
             }
             */
-        }        
+        }
         private void UpdateFlightWindowRectSize()
         {
             flightWindowRect.height = 0;
@@ -377,31 +385,31 @@ namespace TimeControl
         #region One-Time
         private void Awake()
         {
-            Log.Write( "method start", "TCGUI.Awake", LogSeverity.Trace );
+            Log.Write("method start", "TCGUI.Awake", LogSeverity.Trace);
 
-            UnityEngine.Object.DontDestroyOnLoad( this ); //Don't go away on scene changes
+            UnityEngine.Object.DontDestroyOnLoad(this); //Don't go away on scene changes
             instance = this;
 
-            Log.Write( "method end", "TCGUI.Awake", LogSeverity.Trace );
+            Log.Write("method end", "TCGUI.Awake", LogSeverity.Trace);
         }
         private void Start()
         {
-            Log.Write( "method start", "TCGUI.Start", LogSeverity.Trace );
+            Log.Write("method start", "TCGUI.Start", LogSeverity.Trace);
 
             // Hide / Show UI on these events
-            GameEvents.onGameSceneLoadRequested.Add( onGameSceneLoadRequested );
-            GameEvents.onLevelWasLoaded.Add( onLevelWasLoaded );
-            GameEvents.onHideUI.Add( onHideUI );
-            GameEvents.onShowUI.Add( onShowUI );
+            GameEvents.onGameSceneLoadRequested.Add(onGameSceneLoadRequested);
+            GameEvents.onLevelWasLoaded.Add(onLevelWasLoaded);
+            GameEvents.onHideUI.Add(onHideUI);
+            GameEvents.onShowUI.Add(onShowUI);
 
             ScreenMessages screenMsgs = FindObjectOfType<ScreenMessages>();
             screenMsgsColor = screenMsgs.defaultColor;
 
             defaultDTFormatter = KSPUtil.dateTimeFormatter;
 
-            StartCoroutine( StartAfterSettingsAndControllerAreReady() );
+            StartCoroutine(StartAfterSettingsAndControllerAreReady());
 
-            Log.Write( "method end", "TCGUI.Start", LogSeverity.Trace );
+            Log.Write("method end", "TCGUI.Start", LogSeverity.Trace);
         }
         /// <summary>
         /// Configures the GUI once the Settings are loaded and the TimeController is ready to operate
@@ -409,7 +417,7 @@ namespace TimeControl
         private IEnumerator StartAfterSettingsAndControllerAreReady()
         {
             string logCaller = "TCGUI.StartAfterSettingsAndControllerAreReady";
-            Log.Trace( "coroutine start", logCaller );
+            Log.Trace("coroutine start", logCaller);
 
             // Wait for the Settings object to be ready
             while (!Settings.IsReady)
@@ -426,34 +434,34 @@ namespace TimeControl
 
             // Get all the property strings from the Settings object, and call the SettingsPropertyChanged function in order to load up the initial settings           
             IEnumerable<string> propStrings =
-                typeof( Settings.PropertyStrings ).GetFields( BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy )
-                .Where( f => f.IsLiteral && f.FieldType == typeof( string ) )
-                .Select( f => (string)f.GetValue( null ) );
+                typeof(Settings.PropertyStrings).GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                .Where(f => f.IsLiteral && f.FieldType == typeof(string))
+                .Select(f => (string)f.GetValue(null));
 
-            Log.Trace( "TCGUI Property String Count : " + propStrings.Count(), logCaller );
+            Log.Trace("TCGUI Property String Count : " + propStrings.Count(), logCaller);
             foreach (string s in propStrings)
             {
-                Log.Trace( "Setting TCGUI Property From Settings: " + s, logCaller );
-                SettingsPropertyChanged( Settings.Instance, new SC.PropertyChangedEventArgs( s ) );
+                Log.Trace("Setting TCGUI Property From Settings: " + s, logCaller);
+                SettingsPropertyChanged(Settings.Instance, new SC.PropertyChangedEventArgs(s));
             }
 
             OnGUIUpdateConfigWithWindowLocations();
 
-            Log.Info( "Wire Up Settings Property Changed Event Subscription", logCaller );
+            Log.Info("Wire Up Settings Property Changed Event Subscription", logCaller);
             Settings.Instance.PropertyChanged += SettingsPropertyChanged;
 
             // Wait for TimeController object to be ready
             while (TimeController.Instance == null || !TimeController.IsReady)
                 yield return null;
 
-            Log.Info( "Getting selected SOI as Current SOI", logCaller );
+            Log.Info("Getting selected SOI as Current SOI", logCaller);
             if (selectedSOI == null)
                 selectedSOI = TimeController.Instance.CurrentSOI;
 
-            Log.Info( "TCGUI.Instance is Ready!", logCaller );
+            Log.Info("TCGUI.Instance is Ready!", logCaller);
             IsReady = true;
 
-            Log.Trace( "coroutine end", logCaller );
+            Log.Trace("coroutine end", logCaller);
             yield break;
         }
         #endregion
@@ -462,42 +470,42 @@ namespace TimeControl
         private void onGameSceneLoadRequested(GameScenes gs)
         {
             string logCaller = "TCGUI.onGameSceneLoadRequested";
-            Log.Trace( "method start", logCaller );
+            Log.Trace("method start", logCaller);
 
             onHideUI();
 
-            Log.Trace( "method end", logCaller );
+            Log.Trace("method end", logCaller);
         }
 
         private void onLevelWasLoaded(GameScenes gs)
         {
             string logCaller = "TCGUI.onLevelWasLoaded";
-            Log.Trace( "method start", logCaller );
+            Log.Trace("method start", logCaller);
 
             onShowUI();
 
-            Log.Trace( "method end", logCaller );
+            Log.Trace("method end", logCaller);
         }
 
         private void onHideUI()
         {
             string logCaller = "TCGUI.onHideUI";
-            Log.Trace( "method start", logCaller );
+            Log.Trace("method start", logCaller);
 
-            Log.Info( "Hiding GUI for Settings Lock", logCaller );
-            TempHideGUI( "GameEventsUI" );
+            Log.Info("Hiding GUI for Settings Lock", logCaller);
+            TempHideGUI("GameEventsUI");
 
-            Log.Trace( "method end", logCaller );
+            Log.Trace("method end", logCaller);
         }
         private void onShowUI()
         {
             string logCaller = "TCGUI.onShowUI";
-            Log.Trace( "method start", logCaller );
+            Log.Trace("method start", logCaller);
 
-            Log.Info( "Unhiding GUI for Settings Lock", logCaller );
-            TempUnHideGUI( "GameEventsUI" );
+            Log.Info("Unhiding GUI for Settings Lock", logCaller);
+            TempUnHideGUI("GameEventsUI");
 
-            Log.Trace( "method end", logCaller );
+            Log.Trace("method end", logCaller);
         }
 
         #endregion
@@ -524,22 +532,22 @@ namespace TimeControl
             {
                 if (!(showScreenMessages))
                 {
-                    if (ScreenMessages.Instance.ActiveMessages.Contains( warpScreenMessage ))
+                    if (ScreenMessages.Instance.ActiveMessages.Contains(warpScreenMessage))
                     {
-                        ScreenMessages.RemoveMessage( warpScreenMessage );
+                        ScreenMessages.RemoveMessage(warpScreenMessage);
                     }
                     warpScreenMessage = null;
                     return;
                 }
-                if (ScreenMessages.Instance.ActiveMessages.Contains( warpScreenMessage ))
+                if (ScreenMessages.Instance.ActiveMessages.Contains(warpScreenMessage))
                 {
                     if (TimeController.Instance.CurrentControllerMessage != warpScreenMessage.message)
                     {
-                        ScreenMessages.RemoveMessage( warpScreenMessage );
+                        ScreenMessages.RemoveMessage(warpScreenMessage);
                         warpScreenMessage = null;
                         if (TimeController.Instance.CurrentControllerMessage != "")
                         {
-                            warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
+                            warpScreenMessage = ScreenMessages.PostScreenMessage(TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER);
                         }
                     }
                 }
@@ -551,7 +559,7 @@ namespace TimeControl
             else if (TimeController.Instance.CurrentControllerMessage != "")
             {
                 if (showScreenMessages)
-                    warpScreenMessage = ScreenMessages.PostScreenMessage( TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
+                    warpScreenMessage = ScreenMessages.PostScreenMessage(TimeController.Instance.CurrentControllerMessage, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER);
             }
         }
 
@@ -587,7 +595,7 @@ namespace TimeControl
                 {
                     OnGUISpaceCenterWindow();
                 }
-                if (SettingsWindowOpen && !WindowMinimized)
+                if (SettingsWindowOpen)
                 {
                     OnGUISettingsWindow();
                 }
@@ -598,16 +606,16 @@ namespace TimeControl
         private void OnGUIFlightWindow()
         {
             settingsButton.x = flightWindowRect.xMax - flightWindowRect.xMin - 25; //Move the ?
-            flightWindowRect = GUILayout.Window( tcsFlightWindowHashCode, flightWindowRect, MainGUI, "Time Control" );
+            flightWindowRect = GUILayout.Window(tcsFlightWindowHashCode, flightWindowRect, MainGUI, "Time Control");
         }
         private void OnGUISpaceCenterWindow()
         {
             settingsButton.x = spaceCenterWindowRect.xMax - spaceCenterWindowRect.xMin - 25; //Move the ?
-            spaceCenterWindowRect = GUILayout.Window( tcsSpaceCenterWindowHashCode, spaceCenterWindowRect, MainGUI, "Time Control" );
+            spaceCenterWindowRect = GUILayout.Window(tcsSpaceCenterWindowHashCode, spaceCenterWindowRect, MainGUI, "Time Control");
         }
         private void OnGUISettingsWindow()
         {
-            settingsWindowRect = GUILayout.Window( tcsSettingsWindowHashCode, settingsWindowRect, SettingsGUI, "Time Control Settings" );
+            settingsWindowRect = GUILayout.Window(tcsSettingsWindowHashCode, settingsWindowRect, SettingsGUI, "Time Control Settings");
         }
         private void OnGUIUpdateConfigWithWindowLocations()
         {
@@ -627,35 +635,35 @@ namespace TimeControl
             UnityEngine.GUI.enabled = true;
 
             //Minimize button
-            if (UnityEngine.GUI.Button( minimizeButton, "" ))
-                WindowMinimized = !WindowMinimized;
+            if (UnityEngine.GUI.Button(minimizeButton, ""))
+                Settings.Instance.WindowsVisible = !Settings.Instance.WindowsVisible;
 
-            if (!WindowMinimized)
+
+
+            modeButtons();
+
+            GUIHeaderCurrentWarpState();
+
+            if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
             {
-                modeButtons();
-
-                GUIHeaderCurrentWarpState();
-
-                if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
+                modeRails();
+            }
+            else if (HighLogic.LoadedSceneIsFlight)
+            {
+                switch (WindowSelectedFlightMode)
                 {
-                    modeRails();
-                }
-                else if (HighLogic.LoadedSceneIsFlight)
-                {
-                    switch (WindowSelectedFlightMode)
-                    {
-                        case 0:
-                            modeSlowmo();
-                            break;
-                        case 1:
-                            modeHyper();
-                            break;
-                        case 2:
-                            modeRails();
-                            break;
-                    }
+                    case 0:
+                        modeSlowmo();
+                        break;
+                    case 1:
+                        modeHyper();
+                        break;
+                    case 2:
+                        modeRails();
+                        break;
                 }
             }
+
 
             UnityEngine.GUI.enabled = true;
 
@@ -669,7 +677,7 @@ namespace TimeControl
             GUILayout.BeginHorizontal();
             {
                 string rate = "";
-                
+
                 // Cache all string concatenations
                 if (TimeController.Instance.CurrentWarpState == TimeControllable.Rails || TimeController.Instance.CurrentWarpState == TimeControllable.Physics)
                 {
@@ -677,38 +685,38 @@ namespace TimeControl
                 }
                 else
                 {
-                    rate = ((PerformanceManager.ptr / 1 * 100).MemoizedToString( "0" )).MemoizedConcat("%");
+                    rate = ((PerformanceManager.ptr / 1 * 100).MemoizedToString("0")).MemoizedConcat("%");
                 }
 
-                GUILayout.Label( "Time: ".MemoizedConcat(rate) );
-                GUILayout.Label( "FPS: ".MemoizedConcat((Mathf.Floor( PerformanceManager.fps )).MemoizedToString()) );
+                GUILayout.Label("Time: ".MemoizedConcat(rate));
+                GUILayout.Label("FPS: ".MemoizedConcat((Mathf.Floor(PerformanceManager.fps)).MemoizedToString()));
                 GUILayout.FlexibleSpace();
 
                 // Button to resturn to realtime
                 bool returnButton = false;
                 if (TimeController.Instance.TimePaused || FlightDriver.Pause)
                 {
-                    returnButton = GUILayout.Button( "PAUSED" );
+                    returnButton = GUILayout.Button("PAUSED");
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Hyper)
                 {
-                    returnButton = GUILayout.Button( "HYPER" );
+                    returnButton = GUILayout.Button("HYPER");
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Rails)
                 {
-                    returnButton = GUILayout.Button( "RAILS" );
+                    returnButton = GUILayout.Button("RAILS");
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.Physics)
                 {
-                    returnButton = GUILayout.Button( "PHYS" );
+                    returnButton = GUILayout.Button("PHYS");
                 }
                 else if (TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo)
                 {
-                    returnButton = GUILayout.Button( "SLOWMO" );
+                    returnButton = GUILayout.Button("SLOWMO");
                 }
                 else
                 {
-                    GUILayout.Label( "NORMAL" );
+                    GUILayout.Label("NORMAL");
                 }
                 if (returnButton)
                 {
@@ -727,9 +735,9 @@ namespace TimeControl
             //Settings Window Toggle
             {
                 if (!SettingsWindowOpen)
-                    UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
+                    UnityEngine.GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
 
-                if (UnityEngine.GUI.Button( settingsButton, "?" ))
+                if (UnityEngine.GUI.Button(settingsButton, "?"))
                     SettingsWindowOpen = !SettingsWindowOpen;
 
                 UnityEngine.GUI.contentColor = cc;
@@ -741,8 +749,8 @@ namespace TimeControl
                 //Slow-mo mode
                 {
                     if (WindowSelectedFlightMode != 0)
-                        UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
-                    if (UnityEngine.GUI.Button( mode0Button, "S" ))
+                        UnityEngine.GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+                    if (UnityEngine.GUI.Button(mode0Button, "S"))
                         WindowSelectedFlightMode = 0;
                     UnityEngine.GUI.contentColor = cc;
                 }
@@ -750,8 +758,8 @@ namespace TimeControl
                 //Hyper mode
                 {
                     if (WindowSelectedFlightMode != 1)
-                        UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
-                    if (UnityEngine.GUI.Button( mode1Button, "H" ))
+                        UnityEngine.GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+                    if (UnityEngine.GUI.Button(mode1Button, "H"))
                         WindowSelectedFlightMode = 1;
                     UnityEngine.GUI.contentColor = cc;
                 }
@@ -759,8 +767,8 @@ namespace TimeControl
                 //Rails mode
                 {
                     if (WindowSelectedFlightMode != 2)
-                        UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
-                    if (UnityEngine.GUI.Button( mode2Button, "R" ))
+                        UnityEngine.GUI.contentColor = new Color(0.5f, 0.5f, 0.5f);
+                    if (UnityEngine.GUI.Button(mode2Button, "R"))
                         WindowSelectedFlightMode = 2;
                     UnityEngine.GUI.contentColor = cc;
                 }
@@ -776,12 +784,12 @@ namespace TimeControl
             GUI.enabled = TimeController.Instance.IsOperational;
             if (!TimeController.Instance.TimePaused)
             {
-                if (GUILayout.Button( "Pause", GUILayout.Width( 60 ) ))
+                if (GUILayout.Button("Pause", GUILayout.Width(60)))
                     TimeController.Instance.TogglePause();
             }
             else
             {
-                if (GUILayout.Button( "Resume", GUILayout.Width( 60 ) ))
+                if (GUILayout.Button("Resume", GUILayout.Width(60)))
                     TimeController.Instance.TogglePause();
             }
             GUI.enabled = priorEnabled;
@@ -790,18 +798,18 @@ namespace TimeControl
         {
             bool priorEnabled = GUI.enabled;
             GUI.enabled = TimeController.Instance.TimePaused;
-            if (GUILayout.Button( ">", GUILayout.Width( 20 ) ))
+            if (GUILayout.Button(">", GUILayout.Width(20)))
                 TimeController.Instance.IncrementTimeStep();
             GUI.enabled = priorEnabled;
         }
         private void GUIThrottleControl()
         {
-            throttleToggle = GUILayout.Toggle( throttleToggle, "Throttle Control: " + Mathf.Round( throttleSet * 100 ) + "%" );
-            
+            throttleToggle = GUILayout.Toggle(throttleToggle, "Throttle Control: " + Mathf.Round(throttleSet * 100) + "%");
+
             Action<float> updateThrottle = delegate (float f) { throttleSet = f / 100.0f; };
             // Force slider to select 1 decimal place values between min and max
-            Func<float, float> modifyFieldThrottle = delegate (float f) { return (Mathf.Floor( f ) ); };
-            IMGUIExtensions.floatTextBoxAndSliderCombo( null, (throttleSet * 100f), 0.0f, 100.0f, updateThrottle, modifyFieldThrottle );
+            Func<float, float> modifyFieldThrottle = delegate (float f) { return (Mathf.Floor(f)); };
+            IMGUIExtensions.floatTextBoxAndSliderCombo(null, (throttleSet * 100f), 0.0f, 100.0f, updateThrottle, modifyFieldThrottle);
         }
 
 
@@ -814,7 +822,7 @@ namespace TimeControl
             GUILayout.BeginVertical();
             {
                 modeRailsHeader();
-                warpScroll = GUILayout.BeginScrollView( warpScroll, GUILayout.Height( 210 ) );
+                warpScroll = GUILayout.BeginScrollView(warpScroll, GUILayout.Height(210));
                 {
                     GUILayout.BeginHorizontal();
                     {
@@ -832,7 +840,7 @@ namespace TimeControl
                     modeRailsResetRates();
                 }
                 GUILayout.EndHorizontal();
-                GUILayout.Label( "", GUILayout.Height( 5 ) );
+                GUILayout.Label("", GUILayout.Height(5));
                 modeRailsWarpTo();
             }
             GUILayout.EndVertical();
@@ -844,35 +852,35 @@ namespace TimeControl
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label( "Current SOI: " + TimeController.Instance.CurrentSOI.name );
+                GUILayout.Label("Current SOI: " + TimeController.Instance.CurrentSOI.name);
                 GUILayout.FlexibleSpace();
-                GameSettings.KERBIN_TIME = GUILayout.Toggle( GameSettings.KERBIN_TIME, "Use Kerbin Time" );
+                GameSettings.KERBIN_TIME = GUILayout.Toggle(GameSettings.KERBIN_TIME, "Use Kerbin Time");
             }
             GUILayout.EndHorizontal();
-            GUILayout.Label( "", GUILayout.Height( 5 ) );
+            GUILayout.Label("", GUILayout.Height(5));
             GUILayout.BeginHorizontal();
             {
                 modeRailsWarpLevelsButtons();
-                GUILayout.Label( "Altitude Limit" );
+                GUILayout.Label("Altitude Limit");
                 GUILayout.FlexibleSpace();
                 string s = (TimeController.Instance.CurrentSOI == selectedSOI) ? TimeController.Instance.CurrentSOI.name : selectedSOI.name;
-                SOISelect = GUILayout.Toggle( SOISelect, s, "button", GUILayout.Width( 80 ) );
+                SOISelect = GUILayout.Toggle(SOISelect, s, "button", GUILayout.Width(80));
             }
             GUILayout.EndHorizontal();
         }
         private void modeRailsWarpLevelsButtons()
         {
-            GUILayout.BeginHorizontal( GUILayout.Width( 175 ) );
+            GUILayout.BeginHorizontal(GUILayout.Width(175));
             {
-                GUILayout.Label( "Warp Rate" );
-                if (GUILayout.Button( "+", GUILayout.Width( 20 ) ))
+                GUILayout.Label("Warp Rate");
+                if (GUILayout.Button("+", GUILayout.Width(20)))
                 {
                     if (Settings.Instance.WarpLevels < 99)
                     {
                         Settings.Instance.AddWarpLevel();
                     }
                 }
-                if (GUILayout.Button( "-", GUILayout.Width( 20 ) ))
+                if (GUILayout.Button("-", GUILayout.Width(20)))
                 {
                     if (Settings.Instance.WarpLevels > 8)
                     {
@@ -887,25 +895,25 @@ namespace TimeControl
             int WRCount = Settings.Instance.CustomWarpRates.Count;
             List<TCWarpRate> cwr = Settings.Instance.CustomWarpRates;
 
-            GUILayout.BeginVertical( GUILayout.Width( 20 ) );
+            GUILayout.BeginVertical(GUILayout.Width(20));
             {
                 for (int i = 0; i < WRCount; i++)
                 {
-                    GUILayout.Label( i + 1 + ":" );
+                    GUILayout.Label(i + 1 + ":");
                 }
             }
             GUILayout.EndVertical();
 
-            GUILayout.BeginVertical( GUILayout.Width( 145 ) );
+            GUILayout.BeginVertical(GUILayout.Width(145));
             {
                 GUI.enabled = false;
-                cwr[0].WarpRate = GUILayout.TextField( cwr[0].WarpRate, 10 );
+                cwr[0].WarpRate = GUILayout.TextField(cwr[0].WarpRate, 10);
                 GUI.enabled = true;
 
                 for (int i = 1; i < WRCount; i++)
                 {
                     string wr = cwr[i].WarpRate;
-                    cwr[i].WarpRate = GUILayout.TextField( cwr[i].WarpRate, 10 );
+                    cwr[i].WarpRate = GUILayout.TextField(cwr[i].WarpRate, 10);
                     if (wr != cwr[i].WarpRate)
                     {
                         Settings.Instance.SetNeedsSavedFlag();
@@ -919,17 +927,17 @@ namespace TimeControl
         {
             List<TCAltitudeLimit> calSOI = Settings.Instance.CustomAltitudeLimits[selectedSOI];
 
-            GUILayout.BeginVertical( GUILayout.Width( 145 ) );
+            GUILayout.BeginVertical(GUILayout.Width(145));
             {
                 GUI.enabled = false;
                 try
                 {
-                    calSOI[0].AltitudeLimit = GUILayout.TextField( calSOI[0].AltitudeLimit, 20 );
+                    calSOI[0].AltitudeLimit = GUILayout.TextField(calSOI[0].AltitudeLimit, 20);
                 }
                 catch (Exception e)
                 {
-                    Log.Error( "Exception " + e.Message, "TCGUI.altitudeLimitsList" );
-                    Log.Error( "Altitude 0" );
+                    Log.Error("Exception " + e.Message, "TCGUI.altitudeLimitsList");
+                    Log.Error("Altitude 0");
                 }
                 GUI.enabled = true;
 
@@ -939,7 +947,7 @@ namespace TimeControl
                     try
                     {
                         string al = tcal.AltitudeLimit;
-                        tcal.AltitudeLimit = GUILayout.TextField( tcal.AltitudeLimit, 20 );
+                        tcal.AltitudeLimit = GUILayout.TextField(tcal.AltitudeLimit, 20);
                         if (al != tcal.AltitudeLimit)
                         {
                             Settings.Instance.SetNeedsSavedFlag();
@@ -948,8 +956,8 @@ namespace TimeControl
                     }
                     catch (Exception e)
                     {
-                        Log.Error( "Exception " + e.Message, "TCGUI.altitudeLimitsList" );
-                        Log.Error( "Altitude " + i.ToString() );
+                        Log.Error("Exception " + e.Message, "TCGUI.altitudeLimitsList");
+                        Log.Error("Altitude " + i.ToString());
                     }
                 }
             }
@@ -957,19 +965,19 @@ namespace TimeControl
         }
         private void modeRailsSoiSelector()
         {
-            GUILayout.BeginVertical( GUILayout.Width( 150 ) );
+            GUILayout.BeginVertical(GUILayout.Width(150));
             {
-                if (GUILayout.Button( "Current" ))
+                if (GUILayout.Button("Current"))
                 {
                     selectedSOI = TimeController.Instance.CurrentSOI;
                     SOISelect = false;
                     warpScroll.y = 0;
                 }
-                
+
                 for (int i = 0; i < FlightGlobals.Bodies.Count; i++)
                 {
                     CelestialBody c = FlightGlobals.Bodies[i];
-                    if (GUILayout.Button( c.name ))
+                    if (GUILayout.Button(c.name))
                     {
                         selectedSOI = c;
                         SOISelect = false;
@@ -985,28 +993,28 @@ namespace TimeControl
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label( "Time Warp:" );
+                GUILayout.Label("Time Warp:");
 
-                warpYears = GUILayout.TextField( warpYears, GUILayout.Width( 35 ) );
-                GUILayout.Label( "y " );
-                warpDays = GUILayout.TextField( warpDays, GUILayout.Width( 35 ) );
-                GUILayout.Label( "d " );
-                warpHours = GUILayout.TextField( warpHours, GUILayout.Width( 35 ) );
-                GUILayout.Label( "h " );
-                warpMinutes = GUILayout.TextField( warpMinutes, GUILayout.Width( 35 ) );
-                GUILayout.Label( "m " );
-                warpSeconds = GUILayout.TextField( warpSeconds, GUILayout.Width( 35 ) );
-                GUILayout.Label( "s" );
+                warpYears = GUILayout.TextField(warpYears, GUILayout.Width(35));
+                GUILayout.Label("y ");
+                warpDays = GUILayout.TextField(warpDays, GUILayout.Width(35));
+                GUILayout.Label("d ");
+                warpHours = GUILayout.TextField(warpHours, GUILayout.Width(35));
+                GUILayout.Label("h ");
+                warpMinutes = GUILayout.TextField(warpMinutes, GUILayout.Width(35));
+                GUILayout.Label("m ");
+                warpSeconds = GUILayout.TextField(warpSeconds, GUILayout.Width(35));
+                GUILayout.Label("s");
             }
             GUILayout.EndHorizontal();
 
-            TimeController.Instance.RailsPauseOnTimeReached = GUILayout.Toggle( TimeController.Instance.RailsPauseOnTimeReached, "Pause on time reached" );
+            TimeController.Instance.RailsPauseOnTimeReached = GUILayout.Toggle(TimeController.Instance.RailsPauseOnTimeReached, "Pause on time reached");
 
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Auto Warp", GUILayout.Width( 174 ) ))
+                if (GUILayout.Button("Auto Warp", GUILayout.Width(174)))
                 {
-                    bool result = TimeController.Instance.AutoWarpForDuration( warpYears, warpDays, warpHours, warpMinutes, warpSeconds );
+                    bool result = TimeController.Instance.AutoWarpForDuration(warpYears, warpDays, warpHours, warpMinutes, warpSeconds);
                     if (result)
                     {
                         warpYears = "0";
@@ -1018,7 +1026,7 @@ namespace TimeControl
                 }
 
                 GUI.enabled = (TimeWarp.CurrentRateIndex != 0);
-                if (GUILayout.Button( "Cancel Warp" ))
+                if (GUILayout.Button("Cancel Warp"))
                 {
                     TimeController.Instance.CancelRailsWarp();
                 }
@@ -1029,10 +1037,10 @@ namespace TimeControl
         }
         private void modeRailsResetRates()
         {
-            if (GUILayout.Button( "Reset warp rates", GUILayout.Width( 174 ) ))
+            if (GUILayout.Button("Reset warp rates", GUILayout.Width(174)))
                 Settings.Instance.ResetWarpRates();
-            if (GUILayout.Button( "Reset body altitude limits" ))
-                Settings.Instance.ResetCustomAltitudeLimitsForBody( selectedSOI );
+            if (GUILayout.Button("Reset body altitude limits"))
+                Settings.Instance.ResetCustomAltitudeLimitsForBody(selectedSOI);
         }
         #endregion Rails GUI
         #region Slow-Mo GUI
@@ -1047,11 +1055,11 @@ namespace TimeControl
             GUI.enabled = (TimeController.Instance.IsOperational
                 && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo));
 
-            bool fpsKeeperActive = GUILayout.Toggle( TimeController.Instance.IsFpsKeeperActive, "FPS Keeper: " + Mathf.Round( Settings.Instance.FpsMinSlider / 5 ) * 5 + " fps" );
+            bool fpsKeeperActive = GUILayout.Toggle(TimeController.Instance.IsFpsKeeperActive, "FPS Keeper: " + Mathf.Round(Settings.Instance.FpsMinSlider / 5) * 5 + " fps");
             if (fpsKeeperActive != TimeController.Instance.IsFpsKeeperActive)
-                TimeController.Instance.SetFPSKeeper( fpsKeeperActive );
-            
-            Settings.Instance.FpsMinSlider = (int)GUILayout.HorizontalSlider( Settings.Instance.FpsMinSlider, 5, 60 );
+                TimeController.Instance.SetFPSKeeper(fpsKeeperActive);
+
+            Settings.Instance.FpsMinSlider = (int)GUILayout.HorizontalSlider(Settings.Instance.FpsMinSlider, 5, 60);
 
             GUI.enabled = true;
         }
@@ -1060,42 +1068,42 @@ namespace TimeControl
             GUI.enabled = (TimeController.Instance.IsOperational
                 && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.SlowMo))
                 && !TimeController.Instance.IsFpsKeeperActive;
-            
+
             GUILayout.BeginVertical();
             {
                 GUILayout.BeginHorizontal();
-                {                    
+                {
                     if (TimeController.Instance.TruePOS != 1)
-                        GUILayout.Label( "Time Scale: 1/".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x") );
+                        GUILayout.Label("Time Scale: 1/".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x"));
                     else
-                        GUILayout.Label( "Time Scale: ".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x"));
-                    
+                        GUILayout.Label("Time Scale: ".MemoizedConcat(TimeController.Instance.TruePOS.MemoizedToString()).MemoizedConcat("x"));
+
                     GUIPauseOrResumeButton();
                     GUITimeStepButton();
                 }
                 GUILayout.EndHorizontal();
 
-                float ts = GUILayout.HorizontalSlider( TimeController.Instance.TimeSlider, 0f, 1f );
+                float ts = GUILayout.HorizontalSlider(TimeController.Instance.TimeSlider, 0f, 1f);
                 if (TimeController.Instance.TimeSlider != ts)
-                    TimeController.Instance.UpdateTimeSlider( ts );
+                    TimeController.Instance.UpdateTimeSlider(ts);
 
                 TimeController.Instance.DeltaLocked = (TimeController.Instance.IsFpsKeeperActive
-                    ? GUILayout.Toggle( TimeController.Instance.IsFpsKeeperActive, "Lock physics delta to default" )
-                    : GUILayout.Toggle( TimeController.Instance.DeltaLocked, "Lock physics delta to default" ));
+                    ? GUILayout.Toggle(TimeController.Instance.IsFpsKeeperActive, "Lock physics delta to default")
+                    : GUILayout.Toggle(TimeController.Instance.DeltaLocked, "Lock physics delta to default"));
 
-                GUILayout.Label( "", GUILayout.Height( 5 ) );
+                GUILayout.Label("", GUILayout.Height(5));
 
                 GUIThrottleControl();
             }
             GUILayout.EndVertical();
-            
+
             GUI.enabled = true;
         }
         #endregion
         #region Hyper GUI
         private void modeHyper()
         {
-            GUI.enabled = (TimeController.Instance.IsOperational 
+            GUI.enabled = (TimeController.Instance.IsOperational
                 && (TimeController.Instance.CurrentWarpState == TimeControllable.None || TimeController.Instance.CurrentWarpState == TimeControllable.Hyper));
             {
                 GUILayout.BeginVertical();
@@ -1103,9 +1111,9 @@ namespace TimeControl
                     modeHyperHyperMaxRate();
                     modeHyperHyperMinPhys();
                     modeHyperButtons();
-                    GUILayout.Label( "", GUILayout.Height( 5 ) );
+                    GUILayout.Label("", GUILayout.Height(5));
                     modeHyperWarpTime();
-                    GUILayout.Label( "", GUILayout.Height( 5 ) );
+                    GUILayout.Label("", GUILayout.Height(5));
                     GUIThrottleControl();
                 }
                 GUILayout.EndVertical();
@@ -1114,18 +1122,18 @@ namespace TimeControl
         }
         private void modeHyperHyperMaxRate()
         {
-            string hyperMaxRateLabel = "Max Warp Rate: " + Mathf.Round( TimeController.Instance.HyperMaxRate );
+            string hyperMaxRateLabel = "Max Warp Rate: " + Mathf.Round(TimeController.Instance.HyperMaxRate);
             Action<float> updateHyperMaxRate = delegate (float f) { TimeController.Instance.HyperMaxRate = f; };
             // Force slider to select integer values between min and max
             Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor(f); };
-            IMGUIExtensions.floatTextBoxAndSliderCombo( hyperMaxRateLabel, TimeController.Instance.HyperMaxRate, TimeController.HyperMaxRateMin, TimeController.HyperMaxRateMax, updateHyperMaxRate, modifyFieldHyperMaxRate);
+            IMGUIExtensions.floatTextBoxAndSliderCombo(hyperMaxRateLabel, TimeController.Instance.HyperMaxRate, TimeController.HyperMaxRateMin, TimeController.HyperMaxRateMax, updateHyperMaxRate, modifyFieldHyperMaxRate);
         }
 
         private void modeHyperHyperMinPhys()
         {
             string hyperMinPhysLabel = "Min Physics Accuracy: " + 1 / TimeController.Instance.HyperMinPhys;
             Action<float> updatehyperMinPhys = delegate (float f) { TimeController.Instance.HyperMinPhys = f; };
-            IMGUIExtensions.floatTextBoxAndSliderCombo( hyperMinPhysLabel, TimeController.Instance.HyperMinPhys, TimeController.HyperMinPhysMin, TimeController.HyperMinPhysMax, updatehyperMinPhys );
+            IMGUIExtensions.floatTextBoxAndSliderCombo(hyperMinPhysLabel, TimeController.Instance.HyperMinPhys, TimeController.HyperMinPhysMin, TimeController.HyperMinPhysMax, updatehyperMinPhys);
         }
 
         private void modeHyperButtons()
@@ -1134,14 +1142,14 @@ namespace TimeControl
             {
                 if (TimeController.Instance.CurrentWarpState != TimeControllable.Hyper)
                 {
-                    if (GUILayout.Button( "HyperWarp" ))
+                    if (GUILayout.Button("HyperWarp"))
                     {
                         TimeController.Instance.ToggleHyperWarp();
                     }
                 }
                 else
                 {
-                    if (GUILayout.Button( "End HyperWarp" ))
+                    if (GUILayout.Button("End HyperWarp"))
                     {
                         TimeController.Instance.CancelHyperWarp();
                     }
@@ -1156,21 +1164,21 @@ namespace TimeControl
         {
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label( "Timed Warp:" );
-                hyperWarpHours = GUILayout.TextField( hyperWarpHours, GUILayout.Width( 35 ) );
-                GUILayout.Label( "h " );
-                hyperWarpMinutes = GUILayout.TextField( hyperWarpMinutes, GUILayout.Width( 35 ) );
-                GUILayout.Label( "m " );
-                hyperWarpSeconds = GUILayout.TextField( hyperWarpSeconds, GUILayout.Width( 35 ) );
-                GUILayout.Label( "s" );
+                GUILayout.Label("Timed Warp:");
+                hyperWarpHours = GUILayout.TextField(hyperWarpHours, GUILayout.Width(35));
+                GUILayout.Label("h ");
+                hyperWarpMinutes = GUILayout.TextField(hyperWarpMinutes, GUILayout.Width(35));
+                GUILayout.Label("m ");
+                hyperWarpSeconds = GUILayout.TextField(hyperWarpSeconds, GUILayout.Width(35));
+                GUILayout.Label("s");
             }
             GUILayout.EndHorizontal();
 
-            TimeController.Instance.HyperPauseOnTimeReached = GUILayout.Toggle( TimeController.Instance.HyperPauseOnTimeReached, "Pause on time reached" );
+            TimeController.Instance.HyperPauseOnTimeReached = GUILayout.Toggle(TimeController.Instance.HyperPauseOnTimeReached, "Pause on time reached");
 
-            if (GUILayout.Button( "Timed Warp" ))
+            if (GUILayout.Button("Timed Warp"))
             {
-                bool result = TimeController.Instance.HyperWarpForDuration( hyperWarpHours, hyperWarpMinutes, hyperWarpSeconds );
+                bool result = TimeController.Instance.HyperWarpForDuration(hyperWarpHours, hyperWarpMinutes, hyperWarpSeconds);
                 if (result)
                 {
                     hyperWarpHours = "0";
@@ -1185,29 +1193,29 @@ namespace TimeControl
         private void SettingsGUI(int windowId)
         {
             // Close window button
-            if (GUI.Button( minimizeButton, "" ))
+            if (GUI.Button(minimizeButton, ""))
                 SettingsWindowOpen = !SettingsWindowOpen;
 
             GUILayout.BeginVertical();
             {
-                GUILayout.Label( "Physics Time Ratio: " + PerformanceManager.ptr.ToString( "0.0000" ) );
-                GUILayout.Label( "UT: " + Planetarium.GetUniversalTime() ); // Creates garbage, but not worth caching since it's monotonically increasing
-                GUILayout.Label( "Time Scale: ".MemoizedConcat(Time.timeScale.MemoizedToString()) );
-                GUILayout.Label( "Physics Delta: ".MemoizedConcat(Time.fixedDeltaTime.MemoizedToString()) );                
-                GUILayout.Label( "PPS: " + PerformanceManager.pps );
+                GUILayout.Label("Physics Time Ratio: " + PerformanceManager.ptr.ToString("0.0000"));
+                GUILayout.Label("UT: " + Planetarium.GetUniversalTime()); // Creates garbage, but not worth caching since it's monotonically increasing
+                GUILayout.Label("Time Scale: ".MemoizedConcat(Time.timeScale.MemoizedToString()));
+                GUILayout.Label("Physics Delta: ".MemoizedConcat(Time.fixedDeltaTime.MemoizedToString()));
+                GUILayout.Label("PPS: " + PerformanceManager.pps);
 
                 GUILayout.BeginHorizontal();
-                GUILayout.Label( "Max Delta Time: ");
-                GUILayout.Label( Time.maximumDeltaTime.MemoizedToString() );
+                GUILayout.Label("Max Delta Time: ");
+                GUILayout.Label(Time.maximumDeltaTime.MemoizedToString());
                 GUILayout.EndHorizontal();
                 GUI.enabled = !TimeController.Instance.IsFpsKeeperActive;
-                TimeController.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider( TimeController.Instance.MaxDeltaTimeSlider, TimeController.MaxDeltaTimeSliderMax, TimeController.MaxDeltaTimeSliderMin );
+                TimeController.Instance.MaxDeltaTimeSlider = GUILayout.HorizontalSlider(TimeController.Instance.MaxDeltaTimeSlider, TimeController.MaxDeltaTimeSliderMax, TimeController.MaxDeltaTimeSliderMin);
                 GUI.enabled = true;
 
-                
-                SupressFlightResultsDialog = GUILayout.Toggle( SupressFlightResultsDialog, "Supress Results Dialog" );
-                UseStockToolbar = GUILayout.Toggle( UseStockToolbar, "Use Stock Toolbar" );
-                ShowScreenMessages = GUILayout.Toggle( ShowScreenMessages, "Show Onscreen Messages" );
+
+                SupressFlightResultsDialog = GUILayout.Toggle(SupressFlightResultsDialog, "Supress Results Dialog");
+                UseStockToolbar = GUILayout.Toggle(UseStockToolbar, "Use Stock Toolbar");
+                ShowScreenMessages = GUILayout.Toggle(ShowScreenMessages, "Show Onscreen Messages");
 
                 // Disable for now
                 // UseCustomDateTimeFormatter = GUILayout.Toggle( UseCustomDateTimeFormatter, "Homeworld Timekeeping" );
@@ -1225,20 +1233,20 @@ namespace TimeControl
 
         private void settingsGUISaveInterval()
         {
-            string saveIntervalLabel = "Save Settings Every ".MemoizedConcat( (Mathf.Round( SaveInterval )).MemoizedToString().MemoizedConcat("s") );
+            string saveIntervalLabel = "Save Settings Every ".MemoizedConcat((Mathf.Round(SaveInterval)).MemoizedToString().MemoizedConcat("s"));
             Action<float> updateSaveInterval = delegate (float f) { SaveInterval = f; };
-            IMGUIExtensions.floatTextBoxAndSliderCombo( saveIntervalLabel, SaveInterval, saveIntervalMin, saveIntervalMax, updateSaveInterval );
+            IMGUIExtensions.floatTextBoxAndSliderCombo(saveIntervalLabel, SaveInterval, saveIntervalMin, saveIntervalMax, updateSaveInterval);
         }
 
         bool settingsLoggingSeveritySelect = false;
-        List<LogSeverity> lsList = Enum.GetValues( typeof( LogSeverity ) ).Cast<LogSeverity>().ToList();
+        List<LogSeverity> lsList = Enum.GetValues(typeof(LogSeverity)).Cast<LogSeverity>().ToList();
         private void settingsGUILoggingLevel()
         {
             string s = "Logging: ".MemoizedConcat(Settings.Instance.LoggingLevel.MemoizedToString());
 
             if (!settingsLoggingSeveritySelect)
             {
-                settingsLoggingSeveritySelect = GUILayout.Toggle( settingsLoggingSeveritySelect, s, "button" );
+                settingsLoggingSeveritySelect = GUILayout.Toggle(settingsLoggingSeveritySelect, s, "button");
             }
             if (settingsLoggingSeveritySelect)
             {
@@ -1247,7 +1255,7 @@ namespace TimeControl
                     for (int i = 0; i < lsList.Count; i++)
                     {
                         LogSeverity ls = lsList[i];
-                        if (GUILayout.Button( ls.ToString() ))
+                        if (GUILayout.Button(ls.ToString()))
                         {
                             Settings.Instance.LoggingLevel = ls;
                             settingsLoggingSeveritySelect = false;
@@ -1260,7 +1268,7 @@ namespace TimeControl
 
         private void settingsGUIKeyBinding()
         {
-            GUILayout.Label( "Key Bindings:" );
+            GUILayout.Label("Key Bindings:");
 
             //Keys
             Color c = GUI.contentColor;
@@ -1274,7 +1282,7 @@ namespace TimeControl
                 string buttonDesc = "";
                 if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
                 {
-                    string pos = (PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ) != 1) ? ("1/" + PluginUtilities.convertToExponential( Settings.Instance.CustomKeySlider ).ToString()) : "1";
+                    string pos = (PluginUtilities.convertToExponential(Settings.Instance.CustomKeySlider) != 1) ? ("1/" + PluginUtilities.convertToExponential(Settings.Instance.CustomKeySlider).ToString()) : "1";
                     buttonDesc = "Custom-" + pos + 'x';
                 }
                 else
@@ -1285,15 +1293,15 @@ namespace TimeControl
                 buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None");
 
                 if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
-                    Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider( Settings.Instance.CustomKeySlider, 0f, 1f );
+                    Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider(Settings.Instance.CustomKeySlider, 0f, 1f);
 
                 if (currentlyAssigningKey)
                     GUI.enabled = false;
 
-                bool assignKey = GUILayout.Button( buttonDesc );
+                bool assignKey = GUILayout.Button(buttonDesc);
                 if (assignKey)
                 {
-                    settingsGUIAssignKey( buttonDesc, kb );
+                    settingsGUIAssignKey(buttonDesc, kb);
                 }
 
                 GUI.enabled = true;
@@ -1307,17 +1315,17 @@ namespace TimeControl
             if (Event.current.button == 0 && !currentlyAssigningKey)
             {
                 currentlyAssigningKey = true;
-                KeyboardInputManager.Instance.GetPressedKeyCombination( (lkc) =>
-                {
-                    string logCaller = "OnSettingsGUI Key Binding Callback for button " + buttonDesc;
-                    Log.Trace( "method start", logCaller );
-                    currentlyAssigningKey = false;
-                    kb.KeyCombination = new List<KeyCode>( lkc );
-                    kb.KeyCombinationString = KeyboardInputManager.GetKeyCombinationString( lkc );
-                    Settings.Instance.SetNeedsSavedFlag();
-                    Log.Info( "Key Combination " + kb.KeyCombinationString + " assigned to button " + buttonDesc, logCaller );
-                    Log.Trace( "method end", logCaller );
-                } );
+                KeyboardInputManager.Instance.GetPressedKeyCombination((lkc) =>
+               {
+                   string logCaller = "OnSettingsGUI Key Binding Callback for button " + buttonDesc;
+                   Log.Trace("method start", logCaller);
+                   currentlyAssigningKey = false;
+                   kb.KeyCombination = new List<KeyCode>(lkc);
+                   kb.KeyCombinationString = KeyboardInputManager.GetKeyCombinationString(lkc);
+                   Settings.Instance.SetNeedsSavedFlag();
+                   Log.Info("Key Combination " + kb.KeyCombinationString + " assigned to button " + buttonDesc, logCaller);
+                   Log.Trace("method end", logCaller);
+               });
             }
             // Right Mouse Button, Clear Assigned Key
             else if (Event.current.button == 1 && !currentlyAssigningKey)

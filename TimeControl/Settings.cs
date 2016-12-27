@@ -54,7 +54,6 @@ namespace TimeControl
         public static class PropertyStrings
         {
             public const string WindowsVisible = "WindowsVisible";
-            public const string WindowMinimized = "WindowMinimized";
             public const string WindowSelectedFlightMode = "WindowSelectedFlightMode";
             public const string FpsMinSlider = "FpsMinSlider";
             public const string ShowFPS = "ShowFPS";
@@ -267,7 +266,6 @@ namespace TimeControl
             configSettings = config.GetNode( cSet );
 
             configSettings.SetValue( PropertyStrings.WindowsVisible, windowsVisible.ToString(), true );
-            configSettings.SetValue( PropertyStrings.WindowMinimized, windowsMinimized.ToString(), true );
             configSettings.SetValue( PropertyStrings.WindowSelectedFlightMode, windowSelectedFlightMode.ToString(), true );
             configSettings.SetValue( PropertyStrings.FpsMinSlider, fpsMinSlider.ToString(), true );
             configSettings.SetValue( PropertyStrings.ShowFPS, showFPS.ToString(), true );
@@ -358,7 +356,6 @@ namespace TimeControl
 
             //INTERNAL
             assignFromConfigBool( configSettings, PropertyStrings.WindowsVisible, ref windowsVisible );
-            assignFromConfigBool( configSettings, PropertyStrings.WindowMinimized, ref windowsMinimized );
             assignFromConfigInt( configSettings, PropertyStrings.WindowSelectedFlightMode, ref windowSelectedFlightMode );
             assignFromConfigInt( configSettings, PropertyStrings.FpsMinSlider, ref fpsMinSlider );
             assignFromConfigBool( configSettings, PropertyStrings.ShowFPS, ref showFPS );
@@ -1077,20 +1074,7 @@ namespace TimeControl
                 }
             }
         }
-        public bool WindowMinimized {
-            get {
-                return windowsMinimized;
-            }
 
-            set {
-                if (windowsMinimized != value)
-                {
-                    windowsMinimized = value;
-                    OnPropertyChanged( PropertyStrings.WindowMinimized );
-                    SetNeedsSavedFlag();
-                }
-            }
-        }
         public bool WindowsVisible {
             get {
                 return windowsVisible;
@@ -1176,7 +1160,7 @@ namespace TimeControl
                 }
             }
         }
-        #endregion
+#endregion
 
         public List<TCWarpRate> StandardWarpRates {
             get {
@@ -1203,8 +1187,8 @@ namespace TimeControl
                 return keyBinds;
             }
         }
-        #endregion
-        #region  Fields
+#endregion
+#region  Fields
         //Plugin Configuration
         private ConfigNode config;
 
@@ -1222,7 +1206,6 @@ namespace TimeControl
         private int fpsY = 0;
 
         //Display
-        private bool windowsMinimized = false; //small mode
         private bool windowsVisible = true; //toolbar and hiding
         private bool settingsWindowOpen = false;
         private bool supressFlightResultsDialog = false;
@@ -1254,6 +1237,6 @@ namespace TimeControl
 
 
 
-        #endregion
+#endregion
     }
 }
