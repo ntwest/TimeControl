@@ -57,7 +57,7 @@
     <Compile Include="BlizzyToolbarWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="GameData\TimeControl\PluginData\" />
+    <Folder Include="GameData\TimeControl\PluginData\TimeControl\" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GameData\TimeControl\TimeControl.version" />
@@ -67,6 +67,7 @@
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
     </Content>
+    <Content Include="GameData\TimeControl\MiniAVC.dll" />
     <Content Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\enabled.png" />
     <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\disabled.png" />
     <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\enabled.png" />
@@ -89,7 +90,6 @@
     <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_080.png" />
     <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_100.png" />
     <None Include="GameData\TimeControl\Flags\TimeControl.png" />
-    <Content Include="GameData\TimeControl\LICENSE.txt" />
     <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\disabled.png" />
     <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_000.png" />
     <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_020.png" />
@@ -112,19 +112,19 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp">
-      <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
+      <HintPath>libs\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+      <HintPath>libs\Assembly-CSharp-firstpass.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine">
-      <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
+      <HintPath>libs\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>libs\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -132,16 +132,18 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>
-    </PostBuildEvent>
+    <PostBuildEvent>SET KSPTest=E:\KSP_win64-1.2.2-TEST
+SET GameDataTarget=%25KSPTest%25\GameData\$(TargetName)
+IF NOT EXIST %25GameDataTarget%25 (
+   MKDIR "%25GameDataTarget%25"
+)
+copy "$(TargetPath)" "%25GameDataTarget%25"
+robocopy "$(ProjectDir)GameData\$(TargetName)" "%25GameDataTarget%25" /E
+exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
-    <PreBuildEvent>set textTemplatingPath="%25CommonProgramFiles(x86)%25\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe"
-
-if %25textTemplatingPath%25=="\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe" set textTemplatingPath="%25CommonProgramFiles%25\Microsoft Shared\TextTemplating\$(VisualStudioVersion)\texttransform.exe"
-
-%25textTemplatingPath%25 "$(ProjectDir)AssemblyVersion.tt"
-</PreBuildEvent>
+    <PreBuildEvent>
+    </PreBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

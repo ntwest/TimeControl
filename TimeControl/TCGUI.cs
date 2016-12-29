@@ -248,8 +248,8 @@ namespace TimeControl
         private Color screenMsgsColor;
         private ScreenMessage warpScreenMessage;
         //GUI Layout
-        private static Rect minimizeButton = new Rect(5, 5, 10, 10);
         private static Rect closeButton = new Rect(5, 5, 10, 10);
+        private static Rect closeSettingsButton = new Rect(5, 5, 10, 10);
         private static Rect settingsButton = new Rect(360, -1, 25, 20);
         private static Rect mode0Button = new Rect(10, -1, 25, 20);
         private static Rect mode1Button = new Rect(25, -1, 25, 20);
@@ -635,7 +635,7 @@ namespace TimeControl
             UnityEngine.GUI.enabled = true;
 
             //Minimize button
-            if (UnityEngine.GUI.Button(minimizeButton, ""))
+            if (UnityEngine.GUI.Button(closeButton, ""))
                 Settings.Instance.WindowsVisible = !Settings.Instance.WindowsVisible;
 
 
@@ -1193,7 +1193,7 @@ namespace TimeControl
         private void SettingsGUI(int windowId)
         {
             // Close window button
-            if (GUI.Button(minimizeButton, ""))
+            if (GUI.Button(closeSettingsButton, ""))
                 SettingsWindowOpen = !SettingsWindowOpen;
 
             GUILayout.BeginVertical();

@@ -2,12 +2,8 @@
 *.suo
 *.csproj.user
 obj
-old_source
-Images
-/TimeControl/bin/Release/
-/TimeControl/bin/Debug
-/TimeControl/libs
+TimeControl/bin
+TimeControl/libs
+TimeControl/obj
 /Release
-/.vs/config
-/Release/netkan.exe
-*.dll
+/.vs
