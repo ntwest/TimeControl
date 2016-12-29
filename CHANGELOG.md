@@ -1,3 +1,7 @@
+Version 2.5 (KSP 1.2.2)
+- Added back MiniAVC
+- Thanks to @linuxgurugamer who updated for KSP 1.2.2. Also fixed up the close button on the window so it closes instead of minimizing.
+
 Version 2.4 (KSP 1.2.1)
 
 - KSP 1.2.1 Compatibility.
