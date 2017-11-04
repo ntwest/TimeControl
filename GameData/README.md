@@ -1,0 +1,1 @@
+This Project is simply a placeholder to manage the static GameData files in visual studio. It is not built as part of the solution.

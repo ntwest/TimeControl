@@ -12,23 +12,19 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>DEBUG;TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Build|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>bin\Build\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup>
+    <SignAssembly>false</SignAssembly>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyVersion.cs">
@@ -36,109 +32,97 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
+    <Compile Include="Enums\LogSeverity.cs" />
     <Compile Include="Enums\TimeControllerUserAction.cs" />
-    <Compile Include="Framework\ExtensionsUnity.cs" />
-    <Compile Include="Framework\IMGUIExtensions.cs" />
-    <Compile Include="POCOs\TCAltitudeLimit.cs" />
-    <Compile Include="Framework\Log.cs" />
+    <Compile Include="FPSKeeperController.cs" />
+    <Compile Include="IMGUI\QuickWarpToIMGUI.cs" />
+    <Compile Include="IMGUI\SharedIMGUI.cs" />
+    <Compile Include="IMGUI\RailsWarpToIMGUI.cs" />
+    <Compile Include="IMGUI\KeyBindingsEditorIMGUI.cs" />
+    <Compile Include="IMGUI\SlowMoIMGUI.cs" />
+    <Compile Include="IMGUI\DetailsIMGUI.cs" />
+    <Compile Include="IMGUI\HyperIMGUI.cs" />
+    <Compile Include="IMGUI\RailsEditorIMGUI.cs" />
+    <Compile Include="ModIntegration\KerbalAlarmClock\KACWrapper.cs" />
+    <Compile Include="SlowMoController.cs" />
+    <Compile Include="TimeControlEvents.cs" />
+    <Compile Include="ExtensionMethods.cs" />
+    <Compile Include="RailsWarpController.cs" />
+    <Compile Include="KSPPluginFramework\ExtensionMethods.cs" />
+    <Compile Include="KSPPluginFramework\IMGUIExtensions.cs" />
+    <Compile Include="EntryExitLogger.cs" />
+    <Compile Include="Logging\Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="POCOs\TCWarpRate.cs" />
-    <Compile Include="POCOs\TCKeyBinding.cs" />
+    <Compile Include="POCO\KeyBinding.cs" />
+    <Compile Include="GlobalSettings.cs" />
     <Compile Include="TCDateTimeFormatter.cs" />
-    <Compile Include="TCResources.cs" />
-    <Compile Include="TestDateTimeDisplay.cs" />
+    <Compile Include="HyperWarpController.cs" />
+    <Compile Include="TimeControlParameters.cs" />
     <Compile Include="TimeController.cs" />
     <Compile Include="KeyboardInputManager.cs" />
-    <Compile Include="TCGUI.cs" />
-    <Compile Include="PluginUtilities.cs" />
+    <Compile Include="IMGUI\TimeControlIMGUI.cs" />
+    <Compile Include="PluginAssemblyUtilities.cs" />
     <Compile Include="Toolbars.cs" />
     <Compile Include="PerformanceManager.cs" />
-    <Compile Include="Settings.cs" />
-    <Compile Include="BlizzyToolbarWrapper.cs" />
+    <Compile Include="ModIntegration\BlizzyToolbar\BlizzyToolbarWrapper.cs" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="GameData\TimeControl\PluginData\TimeControl\" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="GameData\TimeControl\TimeControl.version" />
-  </ItemGroup>
+  <ItemGroup />
   <ItemGroup>
     <Content Include="AssemblyVersion.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
     </Content>
-    <Content Include="GameData\TimeControl\MiniAVC.dll" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\enabled.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\disabled.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\enabled.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_000.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_020.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_040.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_060.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_080.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\hyper_100.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_000.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_020.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_040.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_060.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_080.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\rails_100.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_000.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_020.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_040.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_060.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_080.png" />
-    <Content Include="GameData\TimeControl\ToolbarIcons\StockToolbarIcons\slowmo_100.png" />
-    <None Include="GameData\TimeControl\Flags\TimeControl.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\disabled.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_000.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_020.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_040.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_060.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_080.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\hyper_100.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_000.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_020.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_040.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_060.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_080.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\rails_100.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_000.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_020.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_040.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_060.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_080.png" />
-    <None Include="GameData\TimeControl\ToolbarIcons\BlizzyToolbarIcons\slowmo_100.png" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>libs\Assembly-CSharp.dll</HintPath>
-    </Reference>
-    <Reference Include="Assembly-CSharp-firstpass">
-      <HintPath>libs\Assembly-CSharp-firstpass.dll</HintPath>
+    <Reference Include="Assembly-CSharp, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\KSP\KSP_win64-1.3-TEST\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine">
-      <HintPath>libs\UnityEngine.dll</HintPath>
+    <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\KSP\KSP_win64-1.3-TEST\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
-    <Reference Include="UnityEngine.UI">
-      <HintPath>libs\UnityEngine.UI.dll</HintPath>
+    <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\..\..\..\KSP\KSP_win64-1.3-TEST\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- Build-time Text Templating -->
   <PropertyGroup>
-    <PostBuildEvent>SET KSPTest=E:\KSP_win64-1.2.2-TEST
-SET GameDataTarget=%25KSPTest%25\GameData\$(TargetName)
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(VSToolsPath)\TextTemplating\Microsoft.TextTemplating.targets" />
+  <PropertyGroup>
+    <TransformOnBuild>true</TransformOnBuild>
+    <OverwriteReadOnlyOutputFiles>true</OverwriteReadOnlyOutputFiles>
+    <TransformOutOfDateOnly>false</TransformOutOfDateOnly>
+  </PropertyGroup>
+  <!-- Make the property available to the visual studio build: -->
+  <PropertyGroup>
+    <GameDataDirectory>$(MSBuildProjectDirectory)\..\GameData</GameDataDirectory>
+  </PropertyGroup>
+  <!-- Tell the MSBuild T4 task to make the property available: -->
+  <ItemGroup>
+    <T4ParameterValues Include="GameDataDirectory">
+      <Value>$(GameDataDirectory)</Value>
+      <Visible>false</Visible>
+    </T4ParameterValues>
+  </ItemGroup>
+  <PropertyGroup>
+    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.3-TEST
+SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF NOT EXIST %25GameDataTarget%25 (
    MKDIR "%25GameDataTarget%25"
 )
 copy "$(TargetPath)" "%25GameDataTarget%25"
-robocopy "$(ProjectDir)GameData\$(TargetName)" "%25GameDataTarget%25" /E
 exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
