@@ -263,6 +263,11 @@ namespace TimeControl
             GUIBreak();
         }
 
+
+        private void CheckTargetUT()
+        {
+
+        }
         /// <summary>
         /// Add or remove X seconds, minutes, hours, days, years
         /// </summary>
@@ -280,6 +285,7 @@ namespace TimeControl
                 {
                     if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                     {
+                        CheckTargetUT();
                         TargetUT = TargetUT + (Event.current.button == rightMouseButton ? -x : x);
                     }
                 }
@@ -294,6 +300,7 @@ namespace TimeControl
                 {
                     if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                     {
+                        CheckTargetUT();
                         if (GameSettings.KERBIN_TIME)
                         {
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * CurrentDTF.Minute);
@@ -315,12 +322,13 @@ namespace TimeControl
                 {
                     if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                     {
+                        CheckTargetUT();
                         if (GameSettings.KERBIN_TIME)
-                        {
+                        {                            
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * CurrentDTF.Hour);
                         }
                         else
-                        {
+                        {                            
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * 60 * 60);
                         }
                     }
@@ -338,6 +346,7 @@ namespace TimeControl
                     {
                         if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                         {
+                            CheckTargetUT();
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * CurrentDTF.Day);
                         }
                     }
@@ -350,8 +359,9 @@ namespace TimeControl
                     {
                         if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                         {
-                        TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * 60 * 60 * 24);
-                    }
+                            CheckTargetUT();
+                            TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * 60 * 60 * 24);
+                        }
                     }
                 }
             }
@@ -367,6 +377,7 @@ namespace TimeControl
                     {
                         if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                         {
+                            CheckTargetUT();
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * CurrentDTF.Year);
                         }
                     }
@@ -379,6 +390,7 @@ namespace TimeControl
                     {
                         if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                         {
+                            CheckTargetUT();
                             TargetUT = TargetUT + ((Event.current.button == rightMouseButton ? -x : x) * 60 * 60 * 24 * 365);
                         }
                     }
@@ -404,23 +416,24 @@ namespace TimeControl
             {
                 return;
             }
-            
+
             if (!UnstableOrbitTransitions.Contains( v.orbit.patchEndTransition ))
             {
-                    GUILayout.BeginHorizontal();
-                    {
-                        GUILayout.Label( "Orbits +/-", GUILayout.Width( labelWidth ) );
+                GUILayout.BeginHorizontal();
+                {
+                    GUILayout.Label( "Orbits +/-", GUILayout.Width( labelWidth ) );
 
-                        foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
+                    foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
+                    {
+                        if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                         {
-                            if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
-                            {
-                                double p = v.orbit.period * x;
-                                TargetUT = TargetUT + (Event.current.button == rightMouseButton ? -p : p);
-                            }
+                            CheckTargetUT();
+                            double p = v.orbit.period * x;
+                            TargetUT = TargetUT + (Event.current.button == rightMouseButton ? -p : p);
                         }
                     }
-                    GUILayout.EndHorizontal();
+                }
+                GUILayout.EndHorizontal();
             }
 
             GUIBreak();
@@ -525,6 +538,8 @@ namespace TimeControl
                         && int.TryParse( warpSeconds, out int sec )
                         )
                     {
+                        CheckTargetUT();
+
                         double computedOffset = 0f;
                         if (GameSettings.KERBIN_TIME)
                         {

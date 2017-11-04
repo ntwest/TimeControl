@@ -44,7 +44,6 @@ namespace TimeControl
         #region Singleton        
         public static RailsWarpController Instance { get; private set; }
         public static bool IsReady { get; private set; } = false;
-        private static ConfigNode settingsCN;
         public static ConfigNode SettingsCN { get; set; }
 
         private static List<Orbit.PatchTransitionType> SOITransitions = new List<Orbit.PatchTransitionType> { Orbit.PatchTransitionType.ENCOUNTER, Orbit.PatchTransitionType.ESCAPE };
@@ -318,7 +317,9 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Start );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                StartCoroutine( StartAfterKSPObjectsReady() );
+                StartCoroutine( Configure() );
+
+                GameEvents.onGameStatePostLoad.Add( onGameStatePostLoad );
             }
         }
 
@@ -351,9 +352,9 @@ namespace TimeControl
         /// <summary>
         /// Configures the Rails Warp Controller once game state is ready to go
         /// </summary>
-        private IEnumerator StartAfterKSPObjectsReady()
+        private IEnumerator Configure()
         {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( StartAfterKSPObjectsReady );
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 while (!(this.CanCacheDefaultWarpRates && this.CanCacheDefaultAltitudeLimits))
@@ -362,7 +363,7 @@ namespace TimeControl
                 }
 
                 Log.Info( "Caching Warp Rates and Altitude Limits", logBlockName );
-                this.CacheDefaultWarpRates();                
+                this.CacheDefaultWarpRates();
                 this.CacheDefaultAltitudeLimits();
 
                 if (!(defaultWarpRatesCached && defaultAltitudeLimitsCached))
@@ -385,9 +386,8 @@ namespace TimeControl
                     newCustomAltitudeLimits.Add( kp.Key, kp.Value.ToList() );
                 }
 
-                Log.Info( "Waiting for time control parameters object to become available", logBlockName );
                 while (SettingsCN == null)
-                {                    
+                {
                     yield return new WaitForSeconds( 1f );
                 }
                 Log.Info( "Time control parameters object found. Loading any saved rates and limits from parameters object.", logBlockName );
@@ -402,7 +402,7 @@ namespace TimeControl
                 yield break;
             }
         }
-        
+
         private void ExecRateUpdateAndSave()
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( ExecRateUpdateAndSave );
@@ -551,7 +551,19 @@ namespace TimeControl
         }
 
         #endregion
-        
+
+        #region Game Events
+        private void onGameStatePostLoad(ConfigNode cn)
+        {
+            if (RailsWarpController.IsReady)
+            {
+                RailsWarpController.IsReady = false;
+                RailsWarpController.SettingsCN = cn;
+                StartCoroutine( Configure() );
+            }
+        }
+        #endregion Game Events
+
         #region Modify Warp Rates and Altitude Limits
         /// <summary>
         /// Resets the custom warp rates back to the defaults
