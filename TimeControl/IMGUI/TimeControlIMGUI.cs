@@ -118,7 +118,7 @@ namespace TimeControl
 
         private int tcsWindowHashCode = "Time Control IMGUI".GetHashCode();
         
-        private RailsEditorIMGUI railsGUI;
+        private RailsEditorIMGUI railsEditorGUI;
         private HyperIMGUI hyperGUI;
         private DetailsIMGUI detailsGUI;
         private SlowMoIMGUI slomoGUI;
@@ -240,11 +240,14 @@ namespace TimeControl
                     
 
                 railsWarpToGUI = new RailsWarpToIMGUI();
-                railsGUI = new RailsEditorIMGUI();
+                railsEditorGUI = new RailsEditorIMGUI();
                 slomoGUI = new SlowMoIMGUI();
                 hyperGUI = new HyperIMGUI();
                 detailsGUI = new DetailsIMGUI();
                 keyBindingsGUI = new KeyBindingsEditorIMGUI();
+
+
+                GameEvents.onGameStatePostLoad.Add( onGameStatePostLoad );
 
                 Log.Info( "TCGUI.Instance is Ready!", logBlockName );
                 IsReady = true;
@@ -291,6 +294,14 @@ namespace TimeControl
                 Log.Info( "Unhiding GUI for Settings Lock", logBlockName );
                 TempUnHideGUI( "GameEventsUI" );
             }
+        }
+
+        private void onGameStatePostLoad(ConfigNode cn)
+        {
+            //if (RailsWarpController.IsReady)
+            //{
+            //    railsEditorGUI = new RailsEditorIMGUI();
+            //}
         }
         #endregion
 
@@ -457,7 +468,7 @@ namespace TimeControl
                     hyperGUI.HyperGUI();
                     break;
                 case GUIMode.RailsEditor:
-                    railsGUI.RailsEditorGUI();
+                    railsEditorGUI.RailsEditorGUI();
                     break;
                 case GUIMode.RailsWarpTo:
                     railsWarpToGUI.WarpToGUI();

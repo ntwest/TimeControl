@@ -395,9 +395,8 @@ namespace TimeControl
                 this.LoadCustomWarpRates();
                 this.LoadCustomAltitudeLimits();
 
-                ExecRateUpdateAndSave();
-
                 IsReady = true;
+                ExecRateUpdateAndSave();
                 
                 yield break;
             }
@@ -459,7 +458,6 @@ namespace TimeControl
                 RatesNeedUpdatedAndSaved = false;
 
                 TimeControlEvents.OnTimeControlCustomWarpRatesChanged.Fire( true );
-
             }
         }
 
