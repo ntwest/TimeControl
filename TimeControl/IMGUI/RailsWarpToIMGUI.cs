@@ -206,7 +206,7 @@ namespace TimeControl
 
             GUI.enabled = priorEnabled;
         }
-
+        
         /// <summary>
         /// Header with current UT / warping to UT, and toggle for pause on time reached
         /// </summary>
@@ -218,7 +218,7 @@ namespace TimeControl
             }
             else
             {
-                GUILayout.Label( "Current UT: " + Math.Floor(this.CurrentUT) );
+                GUILayout.Label( "Current UT: " + this.CurrentUT );
             }
 
             GUIBreak();
@@ -410,97 +410,105 @@ namespace TimeControl
             const int buttonWidth = 40;
             const int rightMouseButton = 1;
 
+            bool priorEnabled = GUI.enabled;
+
             Vessel v = this.currentV;
+            bool vesselHasOrbit = !(v?.orbit == null || v.Landed);
 
-            if (v?.orbit == null || v.Landed)
+            GUI.enabled = priorEnabled && vesselHasOrbit && !UnstableOrbitTransitions.Contains( v.orbit.patchEndTransition );
+            GUILayout.BeginHorizontal();
             {
-                return;
-            }
+                GUILayout.Label( "Orbits", GUILayout.Width( labelWidth ) );
 
-            if (!UnstableOrbitTransitions.Contains( v.orbit.patchEndTransition ))
-            {
-                GUILayout.BeginHorizontal();
+                foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
                 {
-                    GUILayout.Label( "Orbits +/-", GUILayout.Width( labelWidth ) );
-
-                    foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
+                    if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                     {
-                        if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
-                        {
-                            CheckTargetUT();
-                            double p = v.orbit.period * x;
-                            TargetUT = TargetUT + (Event.current.button == rightMouseButton ? -p : p);
-                        }
+                        double p = v.orbit.period * x;
+                        TargetUT = CurrentUT + (Event.current.button == rightMouseButton ? -p : p);
                     }
                 }
-                GUILayout.EndHorizontal();
             }
+            GUILayout.EndHorizontal();
+            GUI.enabled = priorEnabled;
 
             GUIBreak();
 
             GUILayout.BeginHorizontal();
             {
+                GUI.enabled = priorEnabled && v != null;
                 GUILayout.Label( "Vessel", GUILayout.Width( labelWidth ) );
+                GUI.enabled = priorEnabled;
 
-                if (v.orbit.ApA >= 0)
+                GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.ApA >= 0);
+                if (GUILayout.Button( "Ap", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Ap", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = CurrentUT + v.orbit.timeToAp;
-                    }
+                    TargetUT = CurrentUT + v.orbit.timeToAp;
                 }
+                GUI.enabled = priorEnabled;
 
-                if (v.orbit.PeA >= 0)
+                GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.PeA >= 0);
+                if (GUILayout.Button( "Pe", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Pe", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = CurrentUT + v.orbit.timeToPe;
-                    }
+                    TargetUT = CurrentUT + v.orbit.timeToPe;
                 }
+                GUI.enabled = priorEnabled;
+
 
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
-                    if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
-                    {
-                        if (v.targetObject == null)
-                        {
-                            TargetUT = v.orbit.GetAscendingNodeUT();
-                        }
-                        else if (v.targetObject.GetOrbit() != null)
-                        {
-                            TargetUT = v.orbit.GetAscendingNodeUT( v.targetObject.GetOrbit() );
-                        }
-                    }
+                    var tgtOrbit = v.targetObject?.GetOrbit();
 
-                    if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
+                    if (tgtOrbit == null)
                     {
-                        if (v.targetObject == null)
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeEquatorialExists());
+                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
                         {
-                            TargetUT = v.orbit.GetDescendingNodeUT();
+                            TargetUT = v.orbit.TimeOfAscendingNodeEquatorial( CurrentUT );
                         }
-                        else if (v.targetObject.GetOrbit() != null)
+                        GUI.enabled = priorEnabled;
+
+
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeEquatorialExists());
+                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
                         {
-                            TargetUT = v.orbit.GetDescendingNodeUT( v.targetObject.GetOrbit() );
+                            TargetUT = v.orbit.TimeOfDescendingNodeEquatorial( CurrentUT );
                         }
+                        GUI.enabled = priorEnabled;
+                    }
+                    else
+                    {
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeExists( tgtOrbit ));
+                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
+                        {
+                            TargetUT = v.orbit.TimeOfAscendingNode( tgtOrbit, CurrentUT );
+                        }
+                        GUI.enabled = priorEnabled;
+
+
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeExists( tgtOrbit ));
+                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
+                        {
+                            TargetUT = v.orbit.TimeOfDescendingNode( tgtOrbit, CurrentUT );
+                        }
+                        GUI.enabled = priorEnabled;
                     }
                 }
 
-                if (SOITransitions.Contains( v.orbit.patchEndTransition ))
+                GUI.enabled = priorEnabled && vesselHasOrbit && (SOITransitions.Contains( v.orbit.patchEndTransition ));
+                if (GUILayout.Button( "SOI", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "SOI", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = v.orbit.EndUT;
-                    }
+                    TargetUT = v.orbit.EndUT;
                 }
+                GUI.enabled = priorEnabled;
 
-                var mn = v.FirstUpcomingManuverNode( this.CurrentUT );
-                if (mn != null)
+                var mn = v?.FirstUpcomingManuverNode( this.CurrentUT );
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "Mnv", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Mnv", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = mn.UT;
-                    }
+                    TargetUT = mn.UT;
                 }
+                GUI.enabled = priorEnabled;
             }
             GUILayout.EndHorizontal();
 
@@ -562,19 +570,23 @@ namespace TimeControl
         /// </summary>
         private void GUINextKAC()
         {
-            if (TimeControlIMGUI.Instance.ClosestKACAlarm == null)
+            if (!TimeControlIMGUI.Instance.KACAPIIntegrated)
             {
                 return;
             }
-            
+
+            bool priorEnabled = GUI.enabled;
+
+            GUI.enabled = priorEnabled && !(TimeControlIMGUI.Instance.ClosestKACAlarm == null);
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Closest KAC Alarm" ))
+                if (GUILayout.Button( "Upcoming KAC Alarm" ))
                 {
                     TargetUT = TimeControlIMGUI.Instance.ClosestKACAlarm.AlarmTime;
                 }
             }
             GUILayout.EndHorizontal();
+            GUI.enabled = priorEnabled;
         }
     }
 }

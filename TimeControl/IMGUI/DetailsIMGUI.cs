@@ -40,12 +40,8 @@ namespace TimeControl
 {
     internal class DetailsIMGUI
     {
-        private bool currentlyAssigningKey = false;
-        double priorRT;
-
         public DetailsIMGUI()
         {
-            priorRT = Time.realtimeSinceStartup;
         }
         
         public void DetailsGUI()

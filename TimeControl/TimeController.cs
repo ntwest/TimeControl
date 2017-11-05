@@ -183,22 +183,6 @@ namespace TimeControl
             {
                 GlobalSettings.Instance.Save();
             }
-
-            if (TimeControlIMGUI.Instance != null && TimeControlIMGUI.IsReady)
-            {
-
-            }
-
-            if (RailsWarpController.Instance != null && RailsWarpController.IsReady)
-            {
-                RailsWarpController.Instance.SaveCustomWarpRates();
-                RailsWarpController.Instance.SaveCustomAltitudeLimits();
-            }
-
-            //if (SlowMoController.Instance != null && SlowMoController.IsReady)
-            //{
-            //    SlowMoController.Instance.SaveSlowMoRates();
-            //}
         }
 
         /// <summary>

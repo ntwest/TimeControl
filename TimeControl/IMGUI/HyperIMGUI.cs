@@ -43,11 +43,7 @@ namespace TimeControl
         private string hyperWarpHours = "0";
         private string hyperWarpMinutes = "0";
         private string hyperWarpSeconds = "0";
-
-        // Control the throttle with this GUI
-        private bool throttleToggle;
-        private float throttleSet;
-
+        
         SharedIMGUI sharedGUI;
 
         public HyperIMGUI()

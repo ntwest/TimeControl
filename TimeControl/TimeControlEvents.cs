@@ -29,8 +29,9 @@ namespace TimeControl
         public static EventData<float> OnTimeControlSlowMoStopped;
 
         public static EventData<bool> OnTimeControlCustomWarpRatesChanged;
-        public static EventData<bool> OnTimeControlCustomAltitudeLimitsChanged;
-        public static EventData<CelestialBody> OnTimeControlCustomAltitudeLimitsChangedCB;
+
+        public static EventData<bool> OnTimeControlGlobalSettingsSaved;
+        public static EventData<bool> OnTimeControlGlobalSettingsLoaded;
 
         private void Awake()
         {
@@ -67,6 +68,10 @@ namespace TimeControl
 
                 // Rails Limits Changed
                 OnTimeControlCustomWarpRatesChanged = new EventData<bool>( nameof( OnTimeControlCustomWarpRatesChanged ) );
+
+                // Global Settings
+                OnTimeControlGlobalSettingsSaved = new EventData<bool>( nameof( OnTimeControlGlobalSettingsSaved ) );
+                OnTimeControlGlobalSettingsLoaded = new EventData<bool>( nameof( OnTimeControlGlobalSettingsLoaded ) );
             } 
         }       
     }

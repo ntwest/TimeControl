@@ -98,7 +98,7 @@ namespace TimeControl
 
         private bool CurrentScreenMessageOn
         {
-            get => currentScreenMessage != null && (ScreenMessages.Instance?.ActiveMessages?.Contains( currentScreenMessage ) ?? false);
+            get => currentScreenMessage != null;
         }
 
         private float DefaultFixedDeltaTime
@@ -285,6 +285,7 @@ namespace TimeControl
                 GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
                 GameEvents.onPartDestroyed.Add( this.onPartDestroyed );
                 GameEvents.onVesselDestroy.Add( this.onVesselDestroy );
+                GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
                 GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
 
@@ -336,15 +337,21 @@ namespace TimeControl
             }
         }
 
-        private void onGameSceneLoadRequested(GameScenes gs)
+        private void onLevelWasLoaded(GameScenes gs)
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameSceneLoadRequested );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (this.isHyperWarping)
-                {
-                    DeactivateHyper();
-                }
+                DeactivateHyper();
+            }
+        }
+
+        private void onGameSceneLoadRequested(GameScenes gs)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameSceneLoadRequested );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {                
+                DeactivateHyper();
             }
         }
 
@@ -455,10 +462,15 @@ namespace TimeControl
             {
                 ResetWarpToUT();
 
-                if (!isHyperWarping)
+                if (!this.isHyperWarping)
                 {
                     Log.Info( "Hyper warp not currently running.", logBlockName );
                     return;
+                }
+
+                if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
+                {
+                    ScreenMessages.RemoveMessage( this.currentScreenMessage );
                 }
 
                 ResetTimeScale();
@@ -641,7 +653,7 @@ namespace TimeControl
 
         private IEnumerator ExecuteWarpToUT(double UT)
         {
-            const string logBlockName = "HyperWarpController.ExecuteWarpToUT(double)";
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( ExecuteWarpToUT );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 double CurrentUT = Planetarium.GetUniversalTime();
@@ -676,7 +688,7 @@ namespace TimeControl
 
         private void ResetWarpToUT()
         {
-            const string logBlockName = "HyperWarpController.UpdateHyperWarpScreenMessage()";
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( ResetWarpToUT );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 if (this.isHyperWarpingToUT)
@@ -689,7 +701,7 @@ namespace TimeControl
 
         private IEnumerator UpdateHyperWarpScreenMessage()
         {
-            const string logBlockName = "HyperWarpController.UpdateHyperWarpScreenMessage()";
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateHyperWarpScreenMessage );
             const float screenMessageUpdateFrequency = 1f;
 
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
@@ -698,27 +710,44 @@ namespace TimeControl
                 {
                     if ((!this.isHyperWarping))
                     {
-                        if ((!this.ShowOnscreenMessages) || CurrentScreenMessageOn)
+                        if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
                         {
                             ScreenMessages.RemoveMessage( this.currentScreenMessage );
                         }
                         yield break;
                     }
-                    
-                    int idx = (int)(Math.Round( this.PhysicsTimeRatio, 1 ) * 10);
-                    if (CurrentScreenMessageOn && this.HyperWarpMessagesCache[idx] != this.currentScreenMessage)
+
+                    if (this.ShowOnscreenMessages)
                     {
-                        ScreenMessages.RemoveMessage( this.currentScreenMessage );
+                        ScreenMessage s;
                         if (PerformanceCountersOn)
                         {
-                            this.currentScreenMessage = this.HyperWarpMessagesCache[idx];
+                            int idx = (int)(Math.Round( this.PhysicsTimeRatio, 1 ) * 10);
+                            s = this.HyperWarpMessagesCache[idx];
                         }
                         else
                         {
-                            this.currentScreenMessage = this.defaultScreenMessage;
+                            s = this.defaultScreenMessage;
                         }
-                        this.currentScreenMessage = ScreenMessages.PostScreenMessage( this.currentScreenMessage );
+                        
+                        if (s != this.currentScreenMessage)
+                        {
+                            if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
+                            {
+                                ScreenMessages.RemoveMessage( this.currentScreenMessage );
+                            }
+                            this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
+                        }
                     }
+                    else
+                    {
+                        if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
+                        {
+                            ScreenMessages.RemoveMessage( this.currentScreenMessage );
+                        }
+                        this.currentScreenMessage = null;
+                    }
+
                     yield return new WaitForSeconds( screenMessageUpdateFrequency );
                 }
             }

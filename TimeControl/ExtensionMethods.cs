@@ -50,56 +50,5 @@ namespace TimeControl
 
             return nodes.First();
         }
-
-        /// <summary>
-        /// Get the Descending Node Vector
-        /// </summary>
-        /// <param name="o"></param>
-        /// <returns></returns>
-        internal static Vector3d GetDNVector(this Orbit o)
-        {
-            double angle = (o.LAN + 180) % 360;
-            angle = angle < 0 ? angle + 360 : angle;
-            Vector3d result = QuaternionD.AngleAxis( angle, Planetarium.Zup.Z ) * Planetarium.Zup.X;
-            return result;
-        }
-
-        /// <summary>
-        /// Compute UT of Equitorial Ascending Node
-        /// </summary>
-        /// <returns>UT</returns>
-        internal static double GetAscendingNodeUT(this Orbit o)
-        {
-            return o.GetUTforTrueAnomaly( o.GetTrueAnomalyOfZupVector( o.GetANVector() ), 2 );
-        }
-
-        /// <summary>
-        /// Compute UT of Ascending Node based on a target orbit
-        /// </summary>
-        /// <param name="to">Target Orbit</param>
-        /// <returns>UT</returns>
-        internal static double GetAscendingNodeUT(this Orbit o, Orbit to)
-        {
-            return o.GetUTforTrueAnomaly( o.GetTrueAnomalyOfZupVector( Vector3d.Cross( to.h, o.GetOrbitNormal() ).normalized ), 2 );
-        }
-
-        /// <summary>
-        /// Compute UT of Equitorial Descending Node
-        /// </summary>
-        /// <returns>UT</returns>
-        internal static double GetDescendingNodeUT(this Orbit o)
-        {
-            return o.GetUTforTrueAnomaly( o.GetTrueAnomalyOfZupVector( o.GetDNVector() ), 2 );
-        }
-
-        /// <summary>
-        /// Compute UT of Descending Node based on a target orbit
-        /// </summary>
-        /// <param name="to">Target Orbit</param>
-        /// <returns>UT</returns>
-        internal static double GetDescendingNodeUT(this Orbit o, Orbit to)
-        {
-            return o.GetUTforTrueAnomaly( o.GetTrueAnomalyOfZupVector( Vector3d.Cross( o.GetOrbitNormal(), to.h ).normalized ), 2 );
-        }
     }
 }

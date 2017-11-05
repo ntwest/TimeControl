@@ -1,5 +1,6 @@
 ﻿/*
-All code in this file Copyright(c) 2014 Xaiier
+All code in this file Copyright(c) 2016 Nate West
+Rewritten from scratch, but based on code Copyright(c) 2014 Xaiier
 
 The MIT License (MIT)
 
@@ -46,9 +47,9 @@ namespace TimeControl
         private float lastInterval = 0f;
         private double ptrLast = 0d;
         private Queue<double> ptrRollingQ;
-        private double gsLastRT = 0d;
-        private double gsLastUT = 0d;
-        private Queue<double> gsRollingQ;
+        //private double gsLastRT = 0d;
+        //private double gsLastUT = 0d;
+        //private Queue<double> gsRollingQ;
         private float updateInterval = 0.5f; //half a second
         private bool performanceCountersOn = true;
 
@@ -64,7 +65,7 @@ namespace TimeControl
                 if (!performanceCountersOn)
                 {
                     this.ptrRollingQ.Clear();
-                    this.gsRollingQ.Clear();
+                    //this.gsRollingQ.Clear();
                     frames = 0;
                 }
             }
@@ -105,7 +106,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 ptrRollingQ = new Queue<double>();
-                gsRollingQ = new Queue<double>();
+                //gsRollingQ = new Queue<double>();
                 FramesPerSecond = 0f;
                 PhysicsUpdatesPerSecond = 0f;
                 PhysicsTimeRatio = 0d;
@@ -127,7 +128,7 @@ namespace TimeControl
             UpdateFPS( rtss );
             UpdatePPS( Time.timeScale, Time.fixedDeltaTime );
             UpdatePTR( rtss, Time.deltaTime );
-            // UpdateTW( rtss, Planetarium.GetUniversalTime() );
+            // UpdateGTRR( rtss, Planetarium.GetUniversalTime() );
         }
 
         private void UpdateFPS(float rtss)
@@ -142,7 +143,7 @@ namespace TimeControl
             }
         }
 
-        //private void UpdateTW(float rtss, double UT)
+        //private void UpdateGTRR(float rtss, double UT)
         //{
         //    //Time Warp calculation            
         //    gsRollingQ.Enqueue( (UT - gsLastUT) / (rtss - gsLastRT) );

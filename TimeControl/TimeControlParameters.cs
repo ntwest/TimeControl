@@ -32,9 +32,7 @@ namespace TimeControl
         public bool ShowFPS = true;
         [GameParameters.CustomParameterUI("Debug Logging Level", toolTip = "")]
         public LogSeverity LoggingLevel = LogSeverity.Trace;
-
         
-
         [GameParameters.CustomStringParameterUI("UIExperimentalFeaturesString", autoPersistance = true, lines = 2, title = "Experimental Features", toolTip = "")]
         public string UIExperimentalFeaturesString = "";
 
@@ -96,9 +94,8 @@ namespace TimeControl
         {
             const string logBlockName = nameof( TimeControlParameterNode ) + "." + nameof( OnSave );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {                
-                RailsWarpController.SettingsCN = node;
-                SlowMoController.SettingsCN = node;
+            {
+                
             }
         }
         
@@ -108,17 +105,16 @@ namespace TimeControl
             const string logBlockName = nameof( TimeControlParameterNode ) + "." + nameof( OnLoad );           
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                RailsWarpController.SettingsCN = node;
-                SlowMoController.SettingsCN = node;
+
             }
         }
-
-
+        
         public override void SetDifficultyPreset(GameParameters.Preset preset)
         {
-            const string logBlockName = "TimeControlParameters.SetDifficultyPreset()";
+            const string logBlockName = nameof( TimeControlParameterNode ) + "." + nameof( SetDifficultyPreset );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+
             }
         }
     }

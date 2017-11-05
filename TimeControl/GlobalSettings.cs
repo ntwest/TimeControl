@@ -43,13 +43,33 @@ namespace TimeControl
         #region Singleton
         public static bool IsReady { get; private set; } = false;
         public static GlobalSettings Instance { get; private set; }
-        #endregion       
+        #endregion
 
-        private const string loggingLevelNodeName = "LoggingLevel";      
+        private const string loggingLevelNodeName = "LoggingLevel";
 
         private const string topNodeName = "GlobalSettings";
         private readonly string globalSettingsFilePath = string.Format( "{0}/GlobalSettings.cfg", PluginAssemblyUtilities.PathPluginData );
         private ConfigNode config;
+
+        private float spaceCenterWindow_x = 100;
+        private float spaceCenterWindow_y = 100;
+        private float trackingStationWindow_x = 100;
+        private float trackingStationWindow_y = 100;
+        private float flightModeWindow_x = 100;
+        private float flightModeWindow_y = 100;
+        private bool spaceCenterWindowIsDisplayed = false;
+        private bool trackingStationWindowIsDisplayed = false;
+        private bool flightModeWindowIsDisplayed = false;
+
+        public float SpaceCenterWindow_x { get => spaceCenterWindow_x; set => spaceCenterWindow_x = value; }
+        public float SpaceCenterWindow_y { get => spaceCenterWindow_y; set => spaceCenterWindow_y = value; }
+        public float TrackingStationWindow_x { get => trackingStationWindow_x; set => trackingStationWindow_x = value; }
+        public float TrackingStationWindow_y { get => trackingStationWindow_y; set => trackingStationWindow_y = value; }
+        public float FlightModeWindow_x { get => flightModeWindow_x; set => flightModeWindow_x = value; }
+        public float FlightModeWindow_y { get => flightModeWindow_y; set => flightModeWindow_y = value; }
+        public bool SpaceCenterWindowIsDisplayed { get => spaceCenterWindowIsDisplayed; set => spaceCenterWindowIsDisplayed = value; }
+        public bool TrackingStationWindowIsDisplayed { get => trackingStationWindowIsDisplayed; set => trackingStationWindowIsDisplayed = value; }
+        public bool FlightModeWindowIsDisplayed { get => flightModeWindowIsDisplayed; set => flightModeWindowIsDisplayed = value; }
 
         #region MonoBehavior
         private void Awake()
@@ -58,6 +78,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 DontDestroyOnLoad( this );
+                Instance = this;
             }
         }
         private void Start()
@@ -69,11 +90,21 @@ namespace TimeControl
                 global::GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
                 global::GameEvents.onGameStateSaved.Add( this.onGameStateSaved );
                 global::GameEvents.onGameStatePostLoad.Add( this.onGameStatePostLoad );
+                global::GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
                 IsReady = true;
             }
         }
         #endregion
+        
+        private void onLevelWasLoaded(GameScenes gs)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( OnGameSettingsApplied );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Load();
+            }
+        }
 
         private void OnGameSettingsApplied()
         {
@@ -119,7 +150,10 @@ namespace TimeControl
 
                 Log.Info( "Loading Global Settings File", logBlockName, true );
 
-                System.IO.File.Delete( globalSettingsFilePath );
+                if (System.IO.File.Exists( globalSettingsFilePath ))
+                {
+                    System.IO.File.Delete( globalSettingsFilePath );
+                }
                 Save();
             }
         }
@@ -151,16 +185,60 @@ namespace TimeControl
                         config.AddNode( topNodeName );
                     configSettings = config.GetNode( topNodeName );
                     configSettings.SetValue( loggingLevelNodeName, Log.LoggingLevel.ToString(), true );
+
+                    configSettings.SetValue( nameof( this.spaceCenterWindow_x ), this.spaceCenterWindow_x, true );
+                    configSettings.SetValue( nameof( this.spaceCenterWindow_y ), this.spaceCenterWindow_y, true );
+                    configSettings.SetValue( nameof( this.trackingStationWindow_x ), this.trackingStationWindow_x, true );
+                    configSettings.SetValue( nameof( this.trackingStationWindow_y ), this.trackingStationWindow_y, true );
+                    configSettings.SetValue( nameof( this.flightModeWindow_x ), this.flightModeWindow_x, true );
+                    configSettings.SetValue( nameof( this.flightModeWindow_y ), this.flightModeWindow_y, true );
+                    configSettings.SetValue( nameof( this.spaceCenterWindowIsDisplayed ), this.spaceCenterWindowIsDisplayed, true );
+                    configSettings.SetValue( nameof( this.trackingStationWindowIsDisplayed ), this.trackingStationWindowIsDisplayed, true );
+                    configSettings.SetValue( nameof( this.flightModeWindowIsDisplayed ), this.flightModeWindowIsDisplayed, true );
+
                     config.Save( globalSettingsFilePath );
 
                     Log.Info( "Global Settings Saved to file " + globalSettingsFilePath, logBlockName );
 
+                    TimeControlEvents.OnTimeControlGlobalSettingsSaved.Fire( true );
                 }
             }
             catch (Exception e)
             {
                 Log.Error( e.Message );
                 Log.Error( e.StackTrace );
+            }
+        }
+
+        private void assignFromConfigFloat(ConfigNode cn, string property, ref float v)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( assignFromConfigFloat );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn.HasValue( property ) && float.TryParse( cn.GetValue( property ), out float cv ))
+                {
+                    v = cv;
+                }
+                else
+                {
+                    Log.Warning( property + " has error in configuration file. Using default.", logBlockName );
+                }
+            }
+        }
+
+        private void assignFromConfigBool(ConfigNode cn, string property, ref bool v)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( assignFromConfigBool );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn.HasValue( property ) && bool.TryParse( cn.GetValue( property ), out bool cv ))
+                {
+                    v = cv;
+                }
+                else
+                {
+                    Log.Warning( property + " has error in configuration file. Using default.", logBlockName );
+                }
             }
         }
 
@@ -183,7 +261,7 @@ namespace TimeControl
                 ConfigNode config = ConfigNode.Load( globalSettingsFilePath );
                 if (config == null)//file does not exist
                 {
-                    Save();
+                    Rebuild();
                     config = ConfigNode.Load( globalSettingsFilePath );
                     if (config == null)//file does not exist
                     {
@@ -198,41 +276,49 @@ namespace TimeControl
                 ConfigNode configSettings;
                 if (!config.HasNode( topNodeName ))
                 {
-                    string message = "No Settings node found in config. This error is not fatal to the load process. Default settings will be used instead.";
+                    string message = "No top level node found in config. This error is not fatal to the load process. Default settings will be used instead.";
                     Log.Error( message, logBlockName );
-                    Save();
+                    Rebuild();
+                    return;
                 }
-                else
-                {
-                    configSettings = config.GetNode( topNodeName );
+                configSettings = config.GetNode( topNodeName );
 
-                    if (configSettings.HasValue( loggingLevelNodeName ))
+                assignFromConfigFloat( configSettings, nameof( this.spaceCenterWindow_x ), ref this.spaceCenterWindow_x );
+                assignFromConfigFloat( configSettings, nameof( this.spaceCenterWindow_y ), ref this.spaceCenterWindow_y );
+                assignFromConfigFloat( configSettings, nameof( this.trackingStationWindow_x ), ref this.trackingStationWindow_x );
+                assignFromConfigFloat( configSettings, nameof( this.trackingStationWindow_y ), ref this.trackingStationWindow_y );
+                assignFromConfigFloat( configSettings, nameof( this.flightModeWindow_x ), ref this.flightModeWindow_x );
+                assignFromConfigFloat( configSettings, nameof( this.flightModeWindow_y ), ref this.flightModeWindow_y );
+                assignFromConfigBool( configSettings, nameof( this.spaceCenterWindowIsDisplayed ), ref this.spaceCenterWindowIsDisplayed );
+                assignFromConfigBool( configSettings, nameof( this.trackingStationWindowIsDisplayed ), ref this.trackingStationWindowIsDisplayed );
+                assignFromConfigBool( configSettings, nameof( this.flightModeWindowIsDisplayed ), ref this.flightModeWindowIsDisplayed );
+
+                if (configSettings.HasValue( loggingLevelNodeName ))
+                {
+                    string ll = configSettings.GetValue( loggingLevelNodeName );
+                    if (Enum.IsDefined( typeof( LogSeverity ), ll ))
                     {
-                        string ll = configSettings.GetValue( loggingLevelNodeName );
-                        if (Enum.IsDefined( typeof( LogSeverity ), ll ))
+                        Log.LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
+                        if (HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.LoggingLevel != null)
                         {
-                            Log.LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
-                            if (HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.LoggingLevel != null)
-                            {
-                                HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;
-                            }
-                        }
-                        else
-                        {
-                            Log.Error( "Logging Level of " + ll + " is not defined. Using default and rebuilding file.", logBlockName, true );
-                            System.IO.File.Delete( globalSettingsFilePath );
-                            Save();
+                            HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;
                         }
                     }
                     else
                     {
-                        Log.Error( loggingLevelNodeName + " has error in settings configuration. Using default and rebuilding file.", logBlockName, true );
-                        System.IO.File.Delete( globalSettingsFilePath );
-                        Save();
+                        Log.Warning( loggingLevelNodeName + " has error in configuration file. Using default.", logBlockName );
                     }
                 }
+                else
+                {
+                    Log.Warning( loggingLevelNodeName + " not found in configuration file. Using default.", logBlockName );
+                }
+                
+                TimeControlEvents.OnTimeControlGlobalSettingsLoaded.Fire( true );
 
                 Log.Info( "Time Control Logging Level Set to " + Log.LoggingLevel.ToString(), logBlockName, true );
+
+                Save();
             }
         }
 

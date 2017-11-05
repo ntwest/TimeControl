@@ -43,21 +43,17 @@ namespace TimeControl
         private static List<Orbit.PatchTransitionType> SOITransitions = new List<Orbit.PatchTransitionType> { Orbit.PatchTransitionType.ENCOUNTER, Orbit.PatchTransitionType.ESCAPE };
         private static List<Orbit.PatchTransitionType> UnstableOrbitTransitions = new List<Orbit.PatchTransitionType> { Orbit.PatchTransitionType.ENCOUNTER, Orbit.PatchTransitionType.ESCAPE, Orbit.PatchTransitionType.IMPACT };
 
-        private string warpYears = "0";
-        private string warpDays = "0";
-        private string warpHours = "0";
-        private string warpMinutes = "0";
-        private string warpSeconds = "0";
-
         private double targetUT = 0;
         private string targetUTtextfield = "0";
 
         private double TargetUT
         {
-            get {
+            get
+            {
                 return targetUT;
             }
-            set {                
+            set
+            {
                 targetUT = value;
                 if (targetUT < CurrentUT)
                 {
@@ -70,12 +66,12 @@ namespace TimeControl
         private Vessel currentV;
         private ITargetable currentTarget;
         private CelestialBody currentCB;
-        
+
         private double CurrentUT
         {
             get => Planetarium.GetUniversalTime();
         }
-        
+
         private IDateTimeFormatter CurrentDTF
         {
             get => KSPUtil.dateTimeFormatter;
@@ -132,7 +128,7 @@ namespace TimeControl
         {
             UpdateVessel();
         }
-        
+
         internal void UpdateVessel()
         {
             if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null)
@@ -142,8 +138,8 @@ namespace TimeControl
                 currentTarget = currentV.targetObject;
             }
             else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
-            {                
-                PlanetariumCamera pc = PlanetariumCamera.fetch;                
+            {
+                PlanetariumCamera pc = PlanetariumCamera.fetch;
                 if (pc.target != null && pc.target.type == MapObject.ObjectType.Vessel)
                 {
                     currentV = pc.target.vessel;
@@ -170,7 +166,7 @@ namespace TimeControl
                 currentTarget = null;
             }
         }
-        
+
         private void GUIBreak()
         {
             GUILayout.Label( "", GUILayout.Height( 5 ) );
@@ -191,12 +187,12 @@ namespace TimeControl
                 GUIHeader();
 
                 GUI.enabled = !RailsWarpController.Instance.IsRailsWarping;
-               
+
                 GUIQuickWarpToTime();
 
                 GUIQuickWarpVesselButtons();
-                
-                GUINextKAC();                
+
+                GUIQuickWarpToNextKAC();
             }
             GUILayout.EndVertical();
 
@@ -214,11 +210,11 @@ namespace TimeControl
             }
             else
             {
-                GUILayout.Label( "Current UT: " + Math.Floor(this.CurrentUT) );
+                GUILayout.Label( "Current UT: " + this.CurrentUT );
             }
 
             GUIBreak();
-            
+
             GUILayout.BeginHorizontal();
             {
                 RailsWarpController.Instance.RailsPauseOnUTReached = GUILayout.Toggle( RailsWarpController.Instance.RailsPauseOnUTReached, "Pause on Time Reached" );
@@ -244,7 +240,7 @@ namespace TimeControl
                 foreach (int x in new List<int>() { 1, 5, 10, 15, 30, 45 })
                 {
                     if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
-                    {                        
+                    {
                         TargetUT = CurrentUT + (Event.current.button == rightMouseButton ? -x : x);
                         RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                     }
@@ -370,128 +366,143 @@ namespace TimeControl
             const int buttonWidth = 40;
             const int rightMouseButton = 1;
 
+            bool priorEnabled = GUI.enabled;
+
             Vessel v = this.currentV;
+            bool vesselHasOrbit = !(v?.orbit == null || v.Landed);
 
-            if (v?.orbit == null || v.Landed)
+            GUI.enabled = priorEnabled && vesselHasOrbit && !UnstableOrbitTransitions.Contains( v.orbit.patchEndTransition );
+            GUILayout.BeginHorizontal();
             {
-                return;
-            }
+                GUILayout.Label( "Orbits", GUILayout.Width( labelWidth ) );
 
-            if (!UnstableOrbitTransitions.Contains( v.orbit.patchEndTransition ))
-            {
-                GUILayout.BeginHorizontal();
+                foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
                 {
-                    GUILayout.Label( "Orbits", GUILayout.Width( labelWidth ) );
-
-                    foreach (int x in new List<int>() { 1, 2, 3, 5, 10, 50 })
+                    if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
                     {
-                        if (GUILayout.Button( x.MemoizedToString(), GUILayout.Width( buttonWidth ) ))
-                        {
-                            double p = v.orbit.period * x;
-                            TargetUT = CurrentUT + (Event.current.button == rightMouseButton ? -p : p);
-                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                        }
+                        double p = v.orbit.period * x;
+                        TargetUT = CurrentUT + (Event.current.button == rightMouseButton ? -p : p);
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                     }
                 }
-                GUILayout.EndHorizontal();
             }
+            GUILayout.EndHorizontal();
+            GUI.enabled = priorEnabled;
 
             GUIBreak();
 
             GUILayout.BeginHorizontal();
-            {
+            {                
+                GUI.enabled = priorEnabled && v != null;
                 GUILayout.Label( "Vessel", GUILayout.Width( labelWidth ) );
+                GUI.enabled = priorEnabled;
 
-                if (v.orbit.ApA >= 0)
+                GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.ApA >= 0);
+                if (GUILayout.Button( "Ap", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Ap", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = CurrentUT + v.orbit.timeToAp;
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                    }
+                    TargetUT = CurrentUT + v.orbit.timeToAp;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
+                GUI.enabled = priorEnabled;
 
-                if (v.orbit.PeA >= 0)
+                GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.PeA >= 0);
+                if (GUILayout.Button( "Pe", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Pe", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = CurrentUT + v.orbit.timeToPe;
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                    }
+                    TargetUT = CurrentUT + v.orbit.timeToPe;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
+                GUI.enabled = priorEnabled;
+
 
                 if (HighLogic.LoadedScene == GameScenes.FLIGHT)
                 {
-                    if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
-                    {
-                        if (v.targetObject == null)
-                        {
-                            TargetUT = v.orbit.GetAscendingNodeUT();
-                        }
-                        else if (v.targetObject.GetOrbit() != null)
-                        {
-                            TargetUT = v.orbit.GetAscendingNodeUT( v.targetObject.GetOrbit() );
-                        }
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                    }
+                    var tgtOrbit = v.targetObject?.GetOrbit();
 
-                    if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
+                    if (tgtOrbit == null)
                     {
-                        if (v.targetObject == null)
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeEquatorialExists());
+                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
                         {
-                            TargetUT = v.orbit.GetDescendingNodeUT();
+                            TargetUT = v.orbit.TimeOfAscendingNodeEquatorial( CurrentUT );
+                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                         }
-                        else if (v.targetObject.GetOrbit() != null)
+                        GUI.enabled = priorEnabled;
+
+
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeEquatorialExists());
+                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
                         {
-                            TargetUT = v.orbit.GetDescendingNodeUT( v.targetObject.GetOrbit() );
+                            TargetUT = v.orbit.TimeOfDescendingNodeEquatorial( CurrentUT );
+                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                         }
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                        GUI.enabled = priorEnabled;
+                    }
+                    else
+                    {
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeExists( tgtOrbit ));
+                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
+                        {
+                            TargetUT = v.orbit.TimeOfAscendingNode( tgtOrbit, CurrentUT );
+                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                        }
+                        GUI.enabled = priorEnabled;
+
+
+                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeExists( tgtOrbit ));
+                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
+                        {
+                            TargetUT = v.orbit.TimeOfDescendingNode( tgtOrbit, CurrentUT );
+                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                        }
+                        GUI.enabled = priorEnabled;
                     }
                 }
 
-                if (SOITransitions.Contains( v.orbit.patchEndTransition ))
+                GUI.enabled = priorEnabled && vesselHasOrbit && (SOITransitions.Contains( v.orbit.patchEndTransition ));
+                if (GUILayout.Button( "SOI", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "SOI", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = v.orbit.EndUT;
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                    }
+                    TargetUT = v.orbit.EndUT;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
+                GUI.enabled = priorEnabled;
 
-                var mn = v.FirstUpcomingManuverNode( this.CurrentUT );
-                if (mn != null)
+                var mn = v?.FirstUpcomingManuverNode( this.CurrentUT );
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "Mnv", GUILayout.Width( buttonWidth ) ))
                 {
-                    if (GUILayout.Button( "Mnv", GUILayout.Width( buttonWidth ) ))
-                    {
-                        TargetUT = mn.UT;
-                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                    }
+                    TargetUT = mn.UT;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
+                GUI.enabled = priorEnabled;
             }
             GUILayout.EndHorizontal();
 
             GUIBreak();
         }
-        
+
         /// <summary>
         /// Warp to next KAC Alarm
         /// </summary>
-        private void GUINextKAC()
+        private void GUIQuickWarpToNextKAC()
         {
-            if (TimeControlIMGUI.Instance.ClosestKACAlarm == null)
+            if (!TimeControlIMGUI.Instance.KACAPIIntegrated)
             {
                 return;
             }
-            
+
+            bool priorEnabled = GUI.enabled;
+
+            GUI.enabled = priorEnabled && !(TimeControlIMGUI.Instance.ClosestKACAlarm == null);
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Closest KAC Alarm" ))
-                {                    
+                if (GUILayout.Button( "Upcoming KAC Alarm" ))
+                {
                     TargetUT = TimeControlIMGUI.Instance.ClosestKACAlarm.AlarmTime;
                     RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
             }
             GUILayout.EndHorizontal();
+            GUI.enabled = priorEnabled;
         }
     }
 }

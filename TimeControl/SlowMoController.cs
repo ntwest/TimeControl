@@ -140,7 +140,7 @@ namespace TimeControl
         private float defaultDeltaTime;        
         private float slowMoRate = 1f;
         private bool deltaLocked = false;
-        private bool canSlowMo = false;
+        //private bool canSlowMo = false;
         private bool isSlowMo = false;
         private bool isGamePaused = false;
 
@@ -371,8 +371,6 @@ namespace TimeControl
                 SlowMoCanRailsWarp = false;
                 isSlowMo = true;
 
-                currentScreenMessage = ScreenMessages.PostScreenMessage( defaultScreenMessage );
-
                 StartCoroutine( UpdateSlowMo() );
                 StartCoroutine( UpdateSlowMoScreenMessage() );                
             }
@@ -524,7 +522,7 @@ namespace TimeControl
             {
                 if (this.ShowOnscreenMessages)
                 {
-                    this.currentScreenMessage = ScreenMessages.PostScreenMessage( this.currentScreenMessage );
+                    this.currentScreenMessage = ScreenMessages.PostScreenMessage( defaultScreenMessage );
                 }
 
                 while (true)

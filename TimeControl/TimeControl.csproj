@@ -32,6 +32,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
+    <Compile Include="TimeControlScenario.cs" />
     <Compile Include="Enums\LogSeverity.cs" />
     <Compile Include="Enums\TimeControllerUserAction.cs" />
     <Compile Include="FPSKeeperController.cs" />
@@ -44,6 +45,7 @@
     <Compile Include="IMGUI\HyperIMGUI.cs" />
     <Compile Include="IMGUI\RailsEditorIMGUI.cs" />
     <Compile Include="ModIntegration\KerbalAlarmClock\KACWrapper.cs" />
+    <Compile Include="MuMech_OrbitExtensions.cs" />
     <Compile Include="SlowMoController.cs" />
     <Compile Include="TimeControlEvents.cs" />
     <Compile Include="ExtensionMethods.cs" />
@@ -119,10 +121,12 @@
   <PropertyGroup>
     <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.3-TEST
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
-IF NOT EXIST %25GameDataTarget%25 (
-   MKDIR "%25GameDataTarget%25"
+IF EXIST %25GameDataTarget%25 (
+   RMDIR /S /Q "%25GameDataTarget%25"
 )
-copy "$(TargetPath)" "%25GameDataTarget%25"
+
+robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
+copy  "$(TargetPath)" "%25GameDataTarget%25"
 exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

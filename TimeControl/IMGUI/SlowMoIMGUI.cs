@@ -45,7 +45,7 @@ namespace TimeControl
         //private bool fpsKeeperActive;
 
         SharedIMGUI sharedGUI;
-        float ts = 0f;
+        //float ts = 0f;
         bool deltaLocked = false;
 
         public SlowMoIMGUI()

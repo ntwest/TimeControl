@@ -96,23 +96,26 @@ namespace TimeControl
         #region Fields
         // Temp Hide/Show GUI Windows
         private List<string> tempGUIHidden = new List<string>();
-        
+
         //private bool windowsVisible = false;
         //private int windowSelectedFlightMode = 0;
-        
+
         //private bool useCustomDateTimeFormatter = false;
-        
+
         // Date Time Formatter
         //private TCDateTimeFormatter customDTFormatter = new TCDateTimeFormatter();
         //private IDateTimeFormatter defaultDTFormatter;
-        
+
         //GUI Layout        
+        private bool priorWindowVisible = false;
+
         private static Rect mode0Button = new Rect(10, -1, 25, 20);
         private static Rect mode1Button = new Rect(25, -1, 25, 20);
         private static Rect mode2Button = new Rect(40, -1, 25, 20);
         private static Rect mode3Button = new Rect( 55, -1, 25, 20 );
         private static Rect mode4Button = new Rect( 70, -1, 25, 20 );
         private static Rect mode5Button = new Rect( 85, -1, 25, 20 );
+        private static Rect mode6Button = new Rect( 100, -1, 25, 20 );
 
         private Rect windowRect = new Rect(100, 100, 375, 0);
 
@@ -124,7 +127,21 @@ namespace TimeControl
         private SlowMoIMGUI slomoGUI;
         private RailsWarpToIMGUI railsWarpToGUI;
         private KeyBindingsEditorIMGUI keyBindingsGUI;
-        
+        private QuickWarpToIMGUI quickWarpToGUI;
+
+        private float flightModeWindow_x = 100;
+        private float flightModeWindow_y = 100;
+        private float spaceCenterWindow_x = 100;
+        private float spaceCenterWindow_y = 100;
+        private float trackingStationWindow_x = 100;
+        private float trackingStationWindow_y = 100;
+        private bool spaceCenterWindowIsDisplayed = false;
+        private bool trackingStationWindowIsDisplayed = false;
+        private bool flightModeWindowIsDisplayed = false;
+
+        private bool windowLocationSettingsNeedUpdate = false;
+
+        private EventData<bool> OnTimeControlGlobalSettingsLoadedEvent;
         #endregion
 
         //private GUIMode priorWindowSelectedMode = GUIMode.RailsWarpTo;
@@ -213,6 +230,55 @@ namespace TimeControl
                 StartCoroutine( StartAfterSettingsAndControllerAreReady() );
             }
         }
+        private void OnDestroy()
+        {
+            OnTimeControlGlobalSettingsLoadedEvent?.Remove( OnTimeControlGlobalSettingsLoaded );
+        }
+
+        private void OnTimeControlGlobalSettingsLoaded(bool b)
+        {
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( OnTimeControlGlobalSettingsLoaded );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                LoadSettings();
+            }
+        }
+
+        private void LoadSettings()
+        {
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( LoadSettings );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                spaceCenterWindow_x = GlobalSettings.Instance.SpaceCenterWindow_x;
+                spaceCenterWindow_y = GlobalSettings.Instance.SpaceCenterWindow_y;
+                trackingStationWindow_x = GlobalSettings.Instance.TrackingStationWindow_x;
+                trackingStationWindow_y = GlobalSettings.Instance.TrackingStationWindow_y;
+                flightModeWindow_x = GlobalSettings.Instance.FlightModeWindow_x;
+                flightModeWindow_y = GlobalSettings.Instance.FlightModeWindow_y;
+                spaceCenterWindowIsDisplayed = GlobalSettings.Instance.SpaceCenterWindowIsDisplayed;
+                trackingStationWindowIsDisplayed = GlobalSettings.Instance.TrackingStationWindowIsDisplayed;
+                flightModeWindowIsDisplayed = GlobalSettings.Instance.FlightModeWindowIsDisplayed;                
+            }
+        }
+
+        private void SaveSettings()
+        {
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( SaveSettings );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {   
+                GlobalSettings.Instance.SpaceCenterWindow_x = spaceCenterWindow_x;
+                GlobalSettings.Instance.SpaceCenterWindow_y = spaceCenterWindow_y;
+                GlobalSettings.Instance.TrackingStationWindow_x = trackingStationWindow_x;
+                GlobalSettings.Instance.TrackingStationWindow_y = trackingStationWindow_y;
+                GlobalSettings.Instance.FlightModeWindow_x = flightModeWindow_x;
+                GlobalSettings.Instance.FlightModeWindow_y = flightModeWindow_y;
+                GlobalSettings.Instance.SpaceCenterWindowIsDisplayed = spaceCenterWindowIsDisplayed;
+                GlobalSettings.Instance.TrackingStationWindowIsDisplayed = trackingStationWindowIsDisplayed;
+                GlobalSettings.Instance.FlightModeWindowIsDisplayed = flightModeWindowIsDisplayed;
+
+                GlobalSettings.Instance.Save();
+            }
+        }
 
         /// <summary>
         /// Configures the GUI once the Settings are loaded and the TimeController is ready to operate
@@ -222,22 +288,14 @@ namespace TimeControl
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( StartAfterSettingsAndControllerAreReady );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                /*
-                Log.Info( "Setting Up GUI Window Postions", logBlockName );
-                SetFlightWindowPosition( Settings.Instance.FlightWindowX, Settings.Instance.FlightWindowY );
-                SetSpaceCenterWindowPosition( Settings.Instance.SpaceCenterWindowX, Settings.Instance.SpaceCenterWindowY );
-                SetSettingsWindowPosition( Settings.Instance.SettingsWindowX, Settings.Instance.SettingsWindowY );            
-                */
-
-
-                OnGUIUpdateConfigWithWindowLocations();
-                
                 // Wait for TimeController object to be ready
-                while (TimeController.Instance == null || !TimeController.IsReady || !RailsWarpController.IsReady || !SlowMoController.IsReady || !HyperWarpController.IsReady)
+                while (!TimeController.IsReady || !RailsWarpController.IsReady || !SlowMoController.IsReady || !HyperWarpController.IsReady || !GlobalSettings.IsReady)
                 {
                     yield return null;
                 }
-                    
+                
+                OnTimeControlGlobalSettingsLoadedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlGlobalSettingsLoaded ) );
+                OnTimeControlGlobalSettingsLoadedEvent?.Add( OnTimeControlGlobalSettingsLoaded );
 
                 railsWarpToGUI = new RailsWarpToIMGUI();
                 railsEditorGUI = new RailsEditorIMGUI();
@@ -245,9 +303,7 @@ namespace TimeControl
                 hyperGUI = new HyperIMGUI();
                 detailsGUI = new DetailsIMGUI();
                 keyBindingsGUI = new KeyBindingsEditorIMGUI();
-
-
-                GameEvents.onGameStatePostLoad.Add( onGameStatePostLoad );
+                quickWarpToGUI = new QuickWarpToIMGUI();
 
                 Log.Info( "TCGUI.Instance is Ready!", logBlockName );
                 IsReady = true;
@@ -271,7 +327,26 @@ namespace TimeControl
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onLevelWasLoaded );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
+            {                
+                if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+                {
+                    windowRect.x = spaceCenterWindow_x;
+                    windowRect.y = spaceCenterWindow_y;
+                    WindowVisible = spaceCenterWindowIsDisplayed;
+                }
+                if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+                {
+                    windowRect.x = trackingStationWindow_x;
+                    windowRect.y = trackingStationWindow_y;
+                    WindowVisible = trackingStationWindowIsDisplayed;
+                }
+                if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+                {
+                    windowRect.x = flightModeWindow_x;
+                    windowRect.y = flightModeWindow_y;
+                    WindowVisible = flightModeWindowIsDisplayed;
+                }
+                windowRect.ClampToScreen();
                 onShowUI();
             }
         }
@@ -294,14 +369,6 @@ namespace TimeControl
                 Log.Info( "Unhiding GUI for Settings Lock", logBlockName );
                 TempUnHideGUI( "GameEventsUI" );
             }
-        }
-
-        private void onGameStatePostLoad(ConfigNode cn)
-        {
-            //if (RailsWarpController.IsReady)
-            //{
-            //    railsEditorGUI = new RailsEditorIMGUI();
-            //}
         }
         #endregion
 
@@ -367,7 +434,7 @@ namespace TimeControl
             }
         }
         #endregion
-
+        
         #region GUI Methods
         private void OnGUI()
         {
@@ -400,23 +467,84 @@ namespace TimeControl
                 }
             }
             UnityEngine.GUI.skin = HighLogic.Skin;
-            OnGUIUpdateConfigWithWindowLocations(); // Only trigger a config save if the values change
+
+            if (WindowVisible != priorWindowVisible)
+            {
+                priorWindowVisible = WindowVisible;
+
+                if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+                {
+                    spaceCenterWindowIsDisplayed = WindowVisible;
+                }
+                if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)                    
+                {
+                    trackingStationWindowIsDisplayed = WindowVisible;
+                }
+                if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+                {
+                    flightModeWindowIsDisplayed = WindowVisible;
+                }
+                SaveSettings();
+            }
+
+            OnGUIMouseEvents();
         }
 
         private void OnGUIWindow()
         {
             windowRect = GUILayout.Window(tcsWindowHashCode, windowRect, MainGUI, "Time Control");
+            windowRect.ClampToScreen();
+            
+            if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
+            {
+                if (windowRect.x != spaceCenterWindow_x)
+                {
+                    spaceCenterWindow_x = windowRect.x;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+                if (windowRect.y != spaceCenterWindow_y)
+                {
+                    spaceCenterWindow_y = windowRect.y;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+            }
+            if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+            {
+                if (windowRect.x != trackingStationWindow_x)
+                {
+                    trackingStationWindow_x = windowRect.x;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+                if (windowRect.y != trackingStationWindow_y)
+                {
+                    trackingStationWindow_y = windowRect.y;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+            }
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+            {
+                if (windowRect.x != flightModeWindow_x)
+                {
+                    flightModeWindow_x = windowRect.x;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+                if (windowRect.y != flightModeWindow_y)
+                {
+                    flightModeWindow_y = windowRect.y;
+                    windowLocationSettingsNeedUpdate = true;
+                }
+            }
         }
 
-        private void OnGUIUpdateConfigWithWindowLocations()
-        {            
-            //if (!Settings.IsReady)
-            //    return;
-
-            //Settings.Instance.FlightWindowX = (int)flightWindowRect.x;
-            //Settings.Instance.FlightWindowY = (int)flightWindowRect.y;
-            //Settings.Instance.SpaceCenterWindowX = (int)spaceCenterWindowRect.x;
-            //Settings.Instance.SpaceCenterWindowY = (int)spaceCenterWindowRect.y;
+        private void OnGUIMouseEvents()
+        {
+            if (Event.current.type == EventType.mouseUp && Event.current.button == 0)
+            {
+                if (windowLocationSettingsNeedUpdate)
+                {
+                    SaveSettings();
+                }
+            }
         }
 
         #region Main GUI
@@ -432,32 +560,6 @@ namespace TimeControl
             {
                 WindowSelectedMode = GUIMode.RailsWarpTo;
             }
-
-            //if (priorWindowSelectedMode != windowSelectedMode)
-            //{
-            //    switch (WindowSelectedMode)
-            //    {
-            //        case GUIMode.SlowMotion:
-            //            slomoGUI = new SlowMoIMGUI();
-            //            break;
-            //        case GUIMode.HyperWarp:
-            //            hyperGUI = new HyperIMGUI();
-            //            break;
-            //        case GUIMode.RailsEditor:
-            //            railsGUI = new RailsEditorIMGUI();
-            //            break;
-            //        case GUIMode.RailsWarpTo:
-            //            railsWarpToGUI = new RailsWarpToIMGUI();
-            //            break;
-            //        case GUIMode.Details:
-            //            detailsGUI = new DetailsIMGUI();
-            //            break;
-            //        case GUIMode.KeyBindingsEditor:
-            //            keyBindingsGUI = new KeyBindingsEditorIMGUI();
-            //            break;
-            //    }
-            //}        
-            //priorWindowSelectedMode = WindowSelectedMode;
 
             switch (WindowSelectedMode)
             {
@@ -478,6 +580,9 @@ namespace TimeControl
                     break;
                 case GUIMode.KeyBindingsEditor:
                     keyBindingsGUI.KeyBindingsEditorGUI();
+                    break;
+                case GUIMode.QuickWarp:
+                    quickWarpToGUI.WarpToGUI();
                     break;
             }
             
@@ -550,6 +655,20 @@ namespace TimeControl
                 if (UnityEngine.GUI.Button( mode0Button, "?" ))
                 {
                     WindowSelectedMode = GUIMode.Details;
+                    windowRect.height = 0;
+                }
+                UnityEngine.GUI.contentColor = cc;
+            }
+            //Rails QuickWarp mode
+            {
+                if (WindowSelectedMode != GUIMode.QuickWarp)
+                {
+                    UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
+                }
+                if (UnityEngine.GUI.Button( mode1Button, "Q" ))
+                {
+                    WindowSelectedMode = GUIMode.QuickWarp;
+                    windowRect.height = 0;
                 }
                 UnityEngine.GUI.contentColor = cc;
             }
@@ -559,21 +678,21 @@ namespace TimeControl
                 {
                     UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                 }
-                if (UnityEngine.GUI.Button( mode1Button, "W" ))
+                if (UnityEngine.GUI.Button( mode2Button, "W" ))
                 {
                     WindowSelectedMode = GUIMode.RailsWarpTo;
                     windowRect.height = 0;
                 }
                 UnityEngine.GUI.contentColor = cc;
             }
-
+            
             //Rails Editor mode
             {
                 if (WindowSelectedMode != GUIMode.RailsEditor)
                 {
                     UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                 }
-                if (UnityEngine.GUI.Button( mode2Button, "R" ))
+                if (UnityEngine.GUI.Button( mode3Button, "R" ))
                 {
                     WindowSelectedMode = GUIMode.RailsEditor;
                     windowRect.height = 0;
@@ -587,7 +706,7 @@ namespace TimeControl
                 {
                     UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                 }
-                if (UnityEngine.GUI.Button( mode3Button, "K" ))
+                if (UnityEngine.GUI.Button( mode4Button, "K" ))
                 {
                     WindowSelectedMode = GUIMode.KeyBindingsEditor;
                     windowRect.height = 0;
@@ -604,7 +723,7 @@ namespace TimeControl
                     {
                         UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                     }
-                    if (UnityEngine.GUI.Button( mode4Button, "S" ))
+                    if (UnityEngine.GUI.Button( mode5Button, "S" ))
                     {
                         WindowSelectedMode = GUIMode.SlowMotion;
                         windowRect.height = 0;
@@ -618,7 +737,7 @@ namespace TimeControl
                     {
                         UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                     }
-                    if (UnityEngine.GUI.Button( mode5Button, "H" ))
+                    if (UnityEngine.GUI.Button( mode6Button, "H" ))
                     {
                         WindowSelectedMode = GUIMode.HyperWarp;
                         windowRect.height = 0;
