@@ -176,12 +176,16 @@ namespace TimeControl
 
         private void OnGameSettingsApplied()
         {
-            GameSettings.KERBIN_TIME = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime;
-            Log.LoggingLevel = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel;
-
-            if (GlobalSettings.Instance != null && GlobalSettings.IsReady)
+            const string logBlockName = nameof( TimeController ) + "." + nameof( OnGameSettingsApplied );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                GlobalSettings.Instance.Save();
+                GameSettings.KERBIN_TIME = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime;
+                Log.LoggingLevel = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel;
+
+                if (GlobalSettings.Instance != null && GlobalSettings.IsReady)
+                {
+                    GlobalSettings.Instance.Save();
+                }
             }
         }
 

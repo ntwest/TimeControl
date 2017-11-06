@@ -31,7 +31,7 @@ namespace TimeControl
         [GameParameters.CustomParameterUI( "Camera Zoom Fix", toolTip = "" )]
         public bool CameraZoomFix = true;
         [GameParameters.CustomParameterUI("Debug Logging Level", toolTip = "")]
-        public LogSeverity LoggingLevel = LogSeverity.Trace;
+        public LogSeverity LoggingLevel = LogSeverity.Warning;
         
 
 
