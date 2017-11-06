@@ -124,8 +124,9 @@ IF EXIST %25GameDataTarget%25 (
    RMDIR /S /Q "%25GameDataTarget%25"
 )
 
+copy  "$(TargetPath)" "$(SolutionDir)\GameData\TimeControl"
 robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
-copy  "$(TargetPath)" "%25GameDataTarget%25"
+
 exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>
