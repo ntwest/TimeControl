@@ -64,7 +64,7 @@ namespace TimeControl
                 return;
             }
 
-            message = string.Format( "[{1}] {0} - <{2}{3}> ({4}) - {5}", DateTime.Now, logPrefix, sev, (always ? "-A" : ""), caller, message );
+            message = string.Format( "[{1}] <{2}>{3} {0} - ({4}) - {5}", DateTime.Now, logPrefix, sev, (always ? "-A" : ""), caller, message );
             switch (sev)
             {
                 case LogSeverity.Error:
