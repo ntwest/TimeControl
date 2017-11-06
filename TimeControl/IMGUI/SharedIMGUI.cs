@@ -34,12 +34,13 @@ using KSP.IO;
 using KSP.UI.Screens;
 using KSP.UI.Dialogs;
 using KSPPluginFramework;
-using TimeControl.Framework;
 
 namespace TimeControl
 {
     internal class SharedIMGUI
     {
+
+        private List<float> throttleRateButtons = new List<float>() { 0, 50, 100 };
 
         public SharedIMGUI()
         {
@@ -67,8 +68,7 @@ namespace TimeControl
                 return (Mathf.Floor( f ));
             };
 
-            IMGUIExtensions.floatTextBoxSliderPlusMinus( null, (throttleSet * 100f), 0.0f, 100.0f, 1f, updateThrottle, modifyFieldThrottle );
-            //IMGUIExtensions.floatTextBoxAndSliderCombo( null, (throttleSet * 100f), 0.0f, 100.0f, updateThrottle, modifyFieldThrottle );
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( null, (throttleSet * 100f), 0.0f, 100.0f, 1f, updateThrottle, throttleRateButtons, modifyFieldThrottle );
         }
     }
 }

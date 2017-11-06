@@ -51,13 +51,12 @@
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="RailsWarpController.cs" />
     <Compile Include="KSPPluginFramework\ExtensionMethods.cs" />
-    <Compile Include="KSPPluginFramework\IMGUIExtensions.cs" />
+    <Compile Include="IMGUI\IMGUIExtensions.cs" />
     <Compile Include="EntryExitLogger.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="POCO\KeyBinding.cs" />
     <Compile Include="GlobalSettings.cs" />
-    <Compile Include="TCDateTimeFormatter.cs" />
     <Compile Include="HyperWarpController.cs" />
     <Compile Include="TimeControlParameters.cs" />
     <Compile Include="TimeController.cs" />

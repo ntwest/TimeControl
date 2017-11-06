@@ -34,7 +34,7 @@ using KSP.IO;
 using KSP.UI.Screens;
 using KSP.UI.Dialogs;
 using KSPPluginFramework;
-using TimeControl.Framework;
+
 
 namespace TimeControl
 {
