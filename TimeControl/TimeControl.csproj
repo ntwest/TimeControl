@@ -52,7 +52,7 @@
     <Compile Include="RailsWarpController.cs" />
     <Compile Include="KSPPluginFramework\ExtensionMethods.cs" />
     <Compile Include="IMGUI\IMGUIExtensions.cs" />
-    <Compile Include="EntryExitLogger.cs" />
+    <Compile Include="Logging\EntryExitLogger.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="POCO\KeyBinding.cs" />
@@ -124,8 +124,9 @@ IF EXIST %25GameDataTarget%25 (
    RMDIR /S /Q "%25GameDataTarget%25"
 )
 
+copy  "$(TargetPath)" "$(SolutionDir)\GameData\TimeControl"
 robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
-copy  "$(TargetPath)" "%25GameDataTarget%25"
+
 exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

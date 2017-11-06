@@ -9,18 +9,29 @@ namespace TimeControl
     {
         internal readonly static string VERSION = Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Major + "." + Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Minor + "." + Assembly.GetAssembly( typeof( Log ) ).GetName().Version.Build;
         internal readonly static string MOD = Assembly.GetAssembly( typeof( Log ) ).GetName().Name;
-        public static readonly string logPrefix = MOD + "(" + VERSION + ") ";
+        public static readonly string logPrefix = MOD + "(" + VERSION + ")";
         internal readonly static string title = logPrefix + " - Serious Error";
+
+        static internal LogSeverity loggingLevel;
 
         /// <summary>
         /// Show all messages of this level and below (e.g. Error only shows errors, while Info shows Errors, Warnings, and Info)
         /// </summary>
-        static internal LogSeverity LoggingLevel { get; set; }
+        static internal LogSeverity LoggingLevel
+        {
+            get => loggingLevel;
+            set
+            {
+                loggingLevel = value;
+                //System.Diagnostics.StackTrace t = new System.Diagnostics.StackTrace();
+                //Log.Trace( "Logging Level Set to " + value.ToString() + "\n" +  t.ToString(), "Log", true );
+                Log.Trace( "Logging Level Set to " + value.ToString(), "Log", true );
+            }
+        }
 
         static Log()
         {
-            // TODO Change to Warning
-            LoggingLevel = LogSeverity.Trace;
+            LoggingLevel = LogSeverity.Warning;
         }
 
         static internal void Trace(string message, string caller = "", bool always = false)
@@ -48,10 +59,12 @@ namespace TimeControl
         static internal void Write(string message, string caller = "", LogSeverity sev = LogSeverity.Warning, bool always = false)
         {
             // Return if we don't need to write messages for this severity
-            if (!always && LoggingLevel > sev)
+            if (!always && Log.LoggingLevel > sev)
+            {
                 return;
+            }
 
-            message = string.Format( "[{1}] {0} - <{2}{3}> ({4}) - {5}", DateTime.Now, logPrefix, sev, (always ? "-A" : ""), caller, message );
+            message = string.Format( "[{1}] <{2}>{3} {0} - ({4}) - {5}", DateTime.Now, logPrefix, sev, (always ? "-A" : ""), caller, message );
             switch (sev)
             {
                 case LogSeverity.Error:

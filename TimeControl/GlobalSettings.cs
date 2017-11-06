@@ -90,7 +90,6 @@ namespace TimeControl
             {
                 config = new ConfigNode( "TimeControl" );
                 global::GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
-                global::GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
                 global::GameEvents.onGameStateSaved.Add( this.onGameStateSaved );
                 global::GameEvents.onGameStatePostLoad.Add( this.onGameStatePostLoad );
                 global::GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
@@ -99,15 +98,6 @@ namespace TimeControl
             }
         }
         #endregion
-
-        private void onGameSceneLoadRequested(GameScenes gs)
-        {
-            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( onGameSceneLoadRequested );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                Save();
-            }
-        }
 
         private void onLevelWasLoaded(GameScenes gs)
         {
@@ -327,15 +317,23 @@ namespace TimeControl
                     }
                 }
 
-                HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().CameraZoomFix = this.cameraZoomFix;
-                
+                try
+                {
+                    HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().CameraZoomFix = this.cameraZoomFix;
+                }
+                catch (NullReferenceException) { }
+
                 if (configSettings.HasValue( loggingLevelNodeName ))
                 {
                     string ll = configSettings.GetValue( loggingLevelNodeName );
                     if (Enum.IsDefined( typeof( LogSeverity ), ll ))
                     {
                         Log.LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
-                        HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;                        
+                        try
+                        {
+                            HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;
+                        }
+                        catch (NullReferenceException) { }
                     }
                     else
                     {

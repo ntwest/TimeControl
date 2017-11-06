@@ -57,14 +57,18 @@ namespace TimeControl
             {
                 // Check if ExecutionTime logging is requested, and if so log if Verbose logging (or greater) is chosen
                 bool shouldCreate = ((options & EntryExitLoggerOptions.ExecutionTime) == EntryExitLoggerOptions.ExecutionTime);
-                
+
                 // If not logging ExecutionTime log only if Entry or Exit tracing is requested
                 if (!shouldCreate)
+                {
                     shouldCreate = (((options & EntryExitLoggerOptions.Entry) == EntryExitLoggerOptions.Entry) || ((options & EntryExitLoggerOptions.Exit) == EntryExitLoggerOptions.Exit));
+                }
 
                 // Check if we actually need to log anything
                 if (shouldCreate)
+                {
                     logger = new EntryExitLogger( blockName, options );
+                }
             }
 
             // Will return null if no method logger was needed - which will effectively be ignored in a using statement.

@@ -28,12 +28,10 @@ namespace TimeControl
         public bool ShowHyperOnscreenMessages = true;
         [GameParameters.CustomParameterUI( "Show Slow-Motion Onscreen Messages", toolTip = "" )]
         public bool ShowSlowMoOnscreenMessages = true;
-        [GameParameters.CustomParameterUI("Show FPS", toolTip = "")]
-        public bool ShowFPS = true;
         [GameParameters.CustomParameterUI( "Camera Zoom Fix", toolTip = "" )]
         public bool CameraZoomFix = true;
         [GameParameters.CustomParameterUI("Debug Logging Level", toolTip = "")]
-        public LogSeverity LoggingLevel = LogSeverity.Trace;
+        public LogSeverity LoggingLevel = LogSeverity.Warning;
         
 
 

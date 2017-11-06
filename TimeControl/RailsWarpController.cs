@@ -383,6 +383,7 @@ namespace TimeControl
                 {
                     customAltitudeLimits.Add( kp.Key, kp.Value.ToList() );
                 }
+
                 newCustomWarpRates = customWarpRates.ToList();
                 newCustomAltitudeLimits = new Dictionary<CelestialBody, List<float>>();
                 foreach (var kp in customAltitudeLimits)
@@ -1134,7 +1135,7 @@ namespace TimeControl
                     int i = 0;
                     float limit = 0f;
                     bool invalidValueFound = false;
-                    for (; ((i < lc) && (tempLimits.Count != customWarpRates.Count)); i++)
+                    for (; ((i < lc) && (tempLimits.Count != newCustomWarpRates.Count)); i++)
                     {
 
                         if (float.TryParse( limits[i], out limit ))
@@ -1154,7 +1155,7 @@ namespace TimeControl
                         continue;
                     }
                     // If there are fewer altiude limits defined in the settings file than the warp limit specifies, create additional ones using the last limit
-                    while (tempLimits.Count < customWarpRates.Count)
+                    while (tempLimits.Count < newCustomWarpRates.Count)
                     {
                         tempLimits.Add( limit );
                     }
