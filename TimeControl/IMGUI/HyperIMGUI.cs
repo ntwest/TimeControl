@@ -34,7 +34,7 @@ using KSP.IO;
 using KSP.UI.Screens;
 using KSP.UI.Dialogs;
 using KSPPluginFramework;
-using TimeControl.Framework;
+
 
 namespace TimeControl
 {
@@ -43,7 +43,10 @@ namespace TimeControl
         private string hyperWarpHours = "0";
         private string hyperWarpMinutes = "0";
         private string hyperWarpSeconds = "0";
-        
+
+        private List<float> maxRateButtons = new List<float>() { 5, 10, 20, 50 };
+        private List<float> phyAccuracyButtons = new List<float>() { 1, 3, 6 };
+
         SharedIMGUI sharedGUI;
 
         public HyperIMGUI()
@@ -83,10 +86,9 @@ namespace TimeControl
             // Force slider to select integer values between min and max
             Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor( f ); };
 
-            IMGUIExtensions.floatTextBoxSliderPlusMinus( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, 1f, updateHyperMaxRate, modifyFieldHyperMaxRate );
-            
-            //IMGUIExtensions.floatTextBoxAndSliderCombo( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, updateHyperMaxRate, modifyFieldHyperMaxRate );
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, 1f, updateHyperMaxRate, maxRateButtons, modifyFieldHyperMaxRate );
         }
+
 
         private void GUIMinPhys()
         {
@@ -100,8 +102,7 @@ namespace TimeControl
             
             Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Floor( f * (1f/physIncrement)) / (1f/physIncrement); };
 
-            IMGUIExtensions.floatTextBoxSliderPlusMinus( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.Instance.PhysicsAccuracyMin, HyperWarpController.Instance.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, modifyFieldMinPhys );
-            //IMGUIExtensions.floatTextBoxAndSliderCombo( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.Instance.PhysicsAccuracyMin, HyperWarpController.Instance.PhysicsAccuracyMax, updatehyperMinPhys, modifyFieldMinPhys );
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.Instance.PhysicsAccuracyMin, HyperWarpController.Instance.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, phyAccuracyButtons, modifyFieldMinPhys );
         }
 
         private void GUIButtons()
