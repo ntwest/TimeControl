@@ -84,6 +84,7 @@ namespace TimeControl
             Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor( f ); };
 
             IMGUIExtensions.floatTextBoxSliderPlusMinus( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, 1f, updateHyperMaxRate, modifyFieldHyperMaxRate );
+            
             //IMGUIExtensions.floatTextBoxAndSliderCombo( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, updateHyperMaxRate, modifyFieldHyperMaxRate );
         }
 

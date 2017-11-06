@@ -60,6 +60,7 @@ namespace TimeControl
         private bool spaceCenterWindowIsDisplayed = false;
         private bool trackingStationWindowIsDisplayed = false;
         private bool flightModeWindowIsDisplayed = false;
+        private bool cameraZoomFix = false;
 
         public float SpaceCenterWindow_x { get => spaceCenterWindow_x; set => spaceCenterWindow_x = value; }
         public float SpaceCenterWindow_y { get => spaceCenterWindow_y; set => spaceCenterWindow_y = value; }
@@ -70,7 +71,8 @@ namespace TimeControl
         public bool SpaceCenterWindowIsDisplayed { get => spaceCenterWindowIsDisplayed; set => spaceCenterWindowIsDisplayed = value; }
         public bool TrackingStationWindowIsDisplayed { get => trackingStationWindowIsDisplayed; set => trackingStationWindowIsDisplayed = value; }
         public bool FlightModeWindowIsDisplayed { get => flightModeWindowIsDisplayed; set => flightModeWindowIsDisplayed = value; }
-
+        public bool CameraZoomFix { get => cameraZoomFix; set => cameraZoomFix = value; }
+        
         #region MonoBehavior
         private void Awake()
         {
@@ -88,6 +90,7 @@ namespace TimeControl
             {
                 config = new ConfigNode( "TimeControl" );
                 global::GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
+                global::GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
                 global::GameEvents.onGameStateSaved.Add( this.onGameStateSaved );
                 global::GameEvents.onGameStatePostLoad.Add( this.onGameStatePostLoad );
                 global::GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
@@ -96,7 +99,16 @@ namespace TimeControl
             }
         }
         #endregion
-        
+
+        private void onGameSceneLoadRequested(GameScenes gs)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( onGameSceneLoadRequested );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Save();
+            }
+        }
+
         private void onLevelWasLoaded(GameScenes gs)
         {
             const string logBlockName = nameof( GlobalSettings ) + "." + nameof( OnGameSettingsApplied );
@@ -180,6 +192,20 @@ namespace TimeControl
                         return;
                     }
 
+                    try
+                    {
+                        var czf = HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.CameraZoomFix;
+                        if (czf != null)
+                        {
+                            this.cameraZoomFix = czf.Value;
+                        }
+                        var lll = HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.LoggingLevel;
+                        if (lll != null)
+                        {
+                            Log.LoggingLevel = lll.Value;
+                        }
+                    } catch (NullReferenceException) { }
+
                     ConfigNode configSettings;
                     if (!config.HasNode( topNodeName ))
                         config.AddNode( topNodeName );
@@ -195,6 +221,21 @@ namespace TimeControl
                     configSettings.SetValue( nameof( this.spaceCenterWindowIsDisplayed ), this.spaceCenterWindowIsDisplayed, true );
                     configSettings.SetValue( nameof( this.trackingStationWindowIsDisplayed ), this.trackingStationWindowIsDisplayed, true );
                     configSettings.SetValue( nameof( this.flightModeWindowIsDisplayed ), this.flightModeWindowIsDisplayed, true );
+                    configSettings.SetValue( nameof( this.cameraZoomFix ), this.cameraZoomFix, true );
+                    if (HyperWarpController.IsReady)
+                    {
+                        configSettings.SetValue( nameof( HyperWarpController.Instance.MaxAttemptedRate ), HyperWarpController.Instance.MaxAttemptedRate, true );
+                        configSettings.SetValue( nameof( HyperWarpController.Instance.PhysicsAccuracy ), HyperWarpController.Instance.PhysicsAccuracy, true );
+                    }
+                    if (SlowMoController.IsReady)
+                    {
+                        configSettings.SetValue( nameof( SlowMoController.Instance.SlowMoRate ), SlowMoController.Instance.SlowMoRate, true );
+                    }
+
+                    if (KeyboardInputManager.IsReady)
+                    {
+                        KeyboardInputManager.Instance.ConfigCreateOrUpdateKeyBinds( configSettings );
+                    }
 
                     config.Save( globalSettingsFilePath );
 
@@ -207,38 +248,6 @@ namespace TimeControl
             {
                 Log.Error( e.Message );
                 Log.Error( e.StackTrace );
-            }
-        }
-
-        private void assignFromConfigFloat(ConfigNode cn, string property, ref float v)
-        {
-            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( assignFromConfigFloat );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                if (cn.HasValue( property ) && float.TryParse( cn.GetValue( property ), out float cv ))
-                {
-                    v = cv;
-                }
-                else
-                {
-                    Log.Warning( property + " has error in configuration file. Using default.", logBlockName );
-                }
-            }
-        }
-
-        private void assignFromConfigBool(ConfigNode cn, string property, ref bool v)
-        {
-            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( assignFromConfigBool );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                if (cn.HasValue( property ) && bool.TryParse( cn.GetValue( property ), out bool cv ))
-                {
-                    v = cv;
-                }
-                else
-                {
-                    Log.Warning( property + " has error in configuration file. Using default.", logBlockName );
-                }
             }
         }
 
@@ -283,26 +292,50 @@ namespace TimeControl
                 }
                 configSettings = config.GetNode( topNodeName );
 
-                assignFromConfigFloat( configSettings, nameof( this.spaceCenterWindow_x ), ref this.spaceCenterWindow_x );
-                assignFromConfigFloat( configSettings, nameof( this.spaceCenterWindow_y ), ref this.spaceCenterWindow_y );
-                assignFromConfigFloat( configSettings, nameof( this.trackingStationWindow_x ), ref this.trackingStationWindow_x );
-                assignFromConfigFloat( configSettings, nameof( this.trackingStationWindow_y ), ref this.trackingStationWindow_y );
-                assignFromConfigFloat( configSettings, nameof( this.flightModeWindow_x ), ref this.flightModeWindow_x );
-                assignFromConfigFloat( configSettings, nameof( this.flightModeWindow_y ), ref this.flightModeWindow_y );
-                assignFromConfigBool( configSettings, nameof( this.spaceCenterWindowIsDisplayed ), ref this.spaceCenterWindowIsDisplayed );
-                assignFromConfigBool( configSettings, nameof( this.trackingStationWindowIsDisplayed ), ref this.trackingStationWindowIsDisplayed );
-                assignFromConfigBool( configSettings, nameof( this.flightModeWindowIsDisplayed ), ref this.flightModeWindowIsDisplayed );
+                configSettings.TryAssignFromConfigFloat( nameof( this.spaceCenterWindow_x ), ref this.spaceCenterWindow_x );
+                configSettings.TryAssignFromConfigFloat( nameof( this.spaceCenterWindow_y ), ref this.spaceCenterWindow_y );
+                configSettings.TryAssignFromConfigFloat( nameof( this.trackingStationWindow_x ), ref this.trackingStationWindow_x );
+                configSettings.TryAssignFromConfigFloat( nameof( this.trackingStationWindow_y ), ref this.trackingStationWindow_y );
+                configSettings.TryAssignFromConfigFloat( nameof( this.flightModeWindow_x ), ref this.flightModeWindow_x );
+                configSettings.TryAssignFromConfigFloat( nameof( this.flightModeWindow_y ), ref this.flightModeWindow_y );
+                configSettings.TryAssignFromConfigBool( nameof( this.spaceCenterWindowIsDisplayed ), ref this.spaceCenterWindowIsDisplayed );
+                configSettings.TryAssignFromConfigBool( nameof( this.trackingStationWindowIsDisplayed ), ref this.trackingStationWindowIsDisplayed );
+                configSettings.TryAssignFromConfigBool( nameof( this.flightModeWindowIsDisplayed ), ref this.flightModeWindowIsDisplayed );
+                configSettings.TryAssignFromConfigBool( nameof( this.cameraZoomFix ), ref this.cameraZoomFix );
 
+                if (HyperWarpController.IsReady)
+                {
+                    float maxAttemptedRate = 0f;
+                    if (configSettings.TryAssignFromConfigFloat( nameof( HyperWarpController.Instance.MaxAttemptedRate ), ref maxAttemptedRate ))
+                    {
+                        HyperWarpController.Instance.MaxAttemptedRate = maxAttemptedRate;
+                    }
+
+                    float physicsAccuracy = 0f;
+                    if (configSettings.TryAssignFromConfigFloat( nameof( HyperWarpController.Instance.PhysicsAccuracy ), ref physicsAccuracy ))
+                    {
+                        HyperWarpController.Instance.PhysicsAccuracy = physicsAccuracy;
+                    }
+                }
+
+                if (SlowMoController.IsReady)
+                {
+                    float slowMoRate = 0f;
+                    if (configSettings.TryAssignFromConfigFloat( nameof( SlowMoController.Instance.SlowMoRate ), ref slowMoRate ))
+                    {
+                        SlowMoController.Instance.SlowMoRate = slowMoRate;
+                    }
+                }
+
+                HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().CameraZoomFix = this.cameraZoomFix;
+                
                 if (configSettings.HasValue( loggingLevelNodeName ))
                 {
                     string ll = configSettings.GetValue( loggingLevelNodeName );
                     if (Enum.IsDefined( typeof( LogSeverity ), ll ))
                     {
                         Log.LoggingLevel = (LogSeverity)Enum.Parse( typeof( LogSeverity ), ll );
-                        if (HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.LoggingLevel != null)
-                        {
-                            HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;
-                        }
+                        HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = Log.LoggingLevel;                        
                     }
                     else
                     {
@@ -313,7 +346,12 @@ namespace TimeControl
                 {
                     Log.Warning( loggingLevelNodeName + " not found in configuration file. Using default.", logBlockName );
                 }
-                
+
+                if (KeyboardInputManager.IsReady)
+                {
+                    KeyboardInputManager.Instance.ConfigLoadKeyBinds( configSettings );
+                }
+
                 TimeControlEvents.OnTimeControlGlobalSettingsLoaded.Fire( true );
 
                 Log.Info( "Time Control Logging Level Set to " + Log.LoggingLevel.ToString(), logBlockName, true );

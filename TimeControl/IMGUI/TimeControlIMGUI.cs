@@ -316,7 +316,7 @@ namespace TimeControl
         #region Event Handlers
         private void onGameSceneLoadRequested(GameScenes gs)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameSceneLoadRequested );
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onGameSceneLoadRequested );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 onHideUI();
@@ -325,7 +325,7 @@ namespace TimeControl
 
         private void onLevelWasLoaded(GameScenes gs)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onLevelWasLoaded );
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onLevelWasLoaded );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {                
                 if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
@@ -353,7 +353,7 @@ namespace TimeControl
 
         private void onHideUI()
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onHideUI );
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onHideUI );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Hiding GUI for Settings Lock", logBlockName );
@@ -363,7 +363,7 @@ namespace TimeControl
 
         private void onShowUI()
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onShowUI );
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onShowUI );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Unhiding GUI for Settings Lock", logBlockName );

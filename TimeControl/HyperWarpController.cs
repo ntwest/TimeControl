@@ -80,10 +80,12 @@ namespace TimeControl
         
         private List<ScreenMessage> HyperWarpMessagesCache = new List<ScreenMessage>();
 
+        private FlightCamera cam;
+
         #endregion
 
         #region Properties
-        
+
         // PRIVATE
 
         private bool ShowOnscreenMessages
@@ -173,7 +175,7 @@ namespace TimeControl
 
         public bool CanHyperWarp
         {
-            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && Time.timeScale >= 1f);
+            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && Time.timeScale >= 1f && HighLogic.LoadedSceneIsFlight);
         }
 
         public bool IsHyperWarping
@@ -289,6 +291,9 @@ namespace TimeControl
 
                 GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
 
+                FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
+                cam = cams[0];
+
                 HyperWarpController.IsReady = true;
             }
         }
@@ -302,10 +307,18 @@ namespace TimeControl
 
         private void Update()
         {
-            if (isHyperWarping && !CanHyperWarp)
+            if (isHyperWarping)
             {
-                DeactivateHyper();
-                return;
+                if (GlobalSettings.IsReady && GlobalSettings.Instance.CameraZoomFix)
+                {
+                    cam.SetDistanceImmediate( cam.Distance );
+                }
+
+                if (!CanHyperWarp)
+                {
+                    DeactivateHyper();
+                    return;
+                }
             }
         }
         #endregion
@@ -342,6 +355,9 @@ namespace TimeControl
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameSceneLoadRequested );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
+                cam = cams[0];
+
                 DeactivateHyper();
             }
         }

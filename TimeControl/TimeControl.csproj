@@ -32,9 +32,9 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
+    <Compile Include="Enums\TimeControllerUserAction.cs" />
     <Compile Include="TimeControlScenario.cs" />
     <Compile Include="Enums\LogSeverity.cs" />
-    <Compile Include="Enums\TimeControllerUserAction.cs" />
     <Compile Include="FPSKeeperController.cs" />
     <Compile Include="IMGUI\QuickWarpToIMGUI.cs" />
     <Compile Include="IMGUI\SharedIMGUI.cs" />

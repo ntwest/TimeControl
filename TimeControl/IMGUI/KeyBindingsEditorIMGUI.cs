@@ -41,8 +41,8 @@ namespace TimeControl
     internal class KeyBindingsEditorIMGUI
     {
         private bool currentlyAssigningKey = false;
-        private bool refreshKBCache = false;
-        private List<KeyBinding> keyBindings = new List<KeyBinding>();
+        private bool refreshKBCache = true;
+        private List<TimeControlKeyBinding> keyBindings = new List<TimeControlKeyBinding>();
         
         public KeyBindingsEditorIMGUI()
         {
@@ -54,6 +54,7 @@ namespace TimeControl
             {
                 keyBindings.Clear();
                 keyBindings.AddRange(KeyboardInputManager.Instance.GetKeyBinds());
+                refreshKBCache = false;
             }
         }
 
@@ -63,6 +64,16 @@ namespace TimeControl
             {
                 return;
             }
+
+            bool guiPriorEnabled = GUI.enabled;
+
+            GUI.enabled = guiPriorEnabled
+                && HyperWarpController.IsReady
+                && !HyperWarpController.Instance.IsHyperWarping
+                && RailsWarpController.IsReady
+                && !RailsWarpController.Instance.IsRailsWarping
+                && SlowMoController.IsReady
+                && !SlowMoController.Instance.IsSlowMo;
             
             GUILayout.Label( "Key Bindings:" );
 
@@ -71,7 +82,8 @@ namespace TimeControl
                 //Keys
                 Color c = GUI.contentColor;
                 CacheKeyBinds();
-                foreach (KeyBinding kb in keyBindings)
+
+                foreach (TimeControlKeyBinding kb in keyBindings)
                 {
                     if (kb.IsKeyAssigned)
                     {
@@ -114,9 +126,11 @@ namespace TimeControl
                 GUI.contentColor = c;
             }
             GUILayout.EndVertical();
+
+            GUI.enabled = guiPriorEnabled;
         }
 
-        private void GUIAssignKey(string buttonDesc, KeyBinding kb)
+        private void GUIAssignKey(string buttonDesc, TimeControlKeyBinding kb)
         {
             const string logBlockName = nameof ( KeyBindingsEditorIMGUI ) + "." + nameof( KeyBindingsEditorIMGUI.GUIAssignKey );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
@@ -136,6 +150,10 @@ namespace TimeControl
                             KeyboardInputManager.Instance.AssignKeyBinding( kb );
                             refreshKBCache = true;
                             Log.Info( "Key Combination " + kb.KeyCombinationString + " assigned to button " + buttonDesc, logBlockName2 );
+                            if (GlobalSettings.IsReady)
+                            {
+                                GlobalSettings.Instance.Save();
+                            }
                         }
                     } );
                 }

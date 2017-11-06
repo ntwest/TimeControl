@@ -56,6 +56,8 @@ namespace TimeControl
         }
         #endregion
 
+        private FlightCamera cam;
+
         #region MonoBehavior
         private void Awake()
         {
@@ -73,6 +75,23 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 StartCoroutine( CRInit() );
+            }
+        }
+
+        private void Update()
+        {
+            if (IsSlowMo)
+            {
+                if (GlobalSettings.IsReady && GlobalSettings.Instance.CameraZoomFix)
+                {
+                    cam.SetDistanceImmediate( cam.Distance );
+                }
+
+                if (!CanSlowMo)
+                {
+                    DeactivateSlowMo();
+                    return;
+                }
             }
         }
 
@@ -123,6 +142,7 @@ namespace TimeControl
                 GameEvents.onGamePause.Add( this.onGamePause );
                 GameEvents.onGameUnpause.Add( this.onGameUnpause );
                 GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
+                GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
                 OnTimeControlSlowMoRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof ( TimeControlEvents.OnTimeControlSlowMoRateChanged ) );
                 OnTimeControlSlowMoRateChangedEvent?.Add( SlowMoRateChanged );
@@ -138,7 +158,7 @@ namespace TimeControl
         private EventData<float> OnTimeControlSlowMoRateChangedEvent;
         
         private float defaultDeltaTime;        
-        private float slowMoRate = 1f;
+        private float slowMoRate = 0.5f;
         private bool deltaLocked = false;
         //private bool canSlowMo = false;
         private bool isSlowMo = false;
@@ -202,7 +222,7 @@ namespace TimeControl
 
         public bool CanSlowMo
         {
-            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && (Mathf.Approximately(Time.timeScale, 1f) || isSlowMo)) ;
+            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && (Mathf.Approximately(Time.timeScale, 1f) || isSlowMo) && HighLogic.LoadedSceneIsFlight) ;
         }
         
         public bool IsSlowMo
@@ -219,12 +239,19 @@ namespace TimeControl
             get => this.slowMoRate;
             set
             {
-                float valueClamp = Mathf.Clamp01( value );
-                if (this.slowMoRate != valueClamp)
+                if (value > 1f)
                 {
-                    this.slowMoRate = valueClamp;
-                    TimeControlEvents.OnTimeControlSlowMoRateChanged?.Fire( this.slowMoRate );
+                    this.SlowMoRate = 1f;
                 }
+                else if (value < 0f)
+                {
+                    this.SlowMoRate = 0f;
+                }
+                else
+                { 
+                    this.slowMoRate = value;
+                }
+                TimeControlEvents.OnTimeControlSlowMoRateChanged?.Fire( this.slowMoRate );
             }
         }
 
@@ -296,6 +323,8 @@ namespace TimeControl
             const string logBlockName = nameof( SlowMoController ) + "." + nameof( onUnpause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                isGamePaused = false;
+
                 if (this.isSlowMo)
                 {
                     if (!this.CanSlowMo)
@@ -303,7 +332,8 @@ namespace TimeControl
                         DeactivateSlowMo();
                         return;
                     }
-                    isGamePaused = false;
+                    SetSlowMoTimeScale();
+                    SetSlowMoFixedDeltaTime();
                 }
             }
         }
@@ -337,7 +367,19 @@ namespace TimeControl
                 }
             }
         }
-        
+
+        private void onLevelWasLoaded(GameScenes gs)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameSceneLoadRequested );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
+                cam = cams[0];
+
+                DeactivateSlowMo();
+            }
+        }
+
         private void SlowMoRateChanged(float data)
         {
             const string logBlockName = nameof( SlowMoController ) + "." + nameof( SlowMoRateChanged );
@@ -345,13 +387,46 @@ namespace TimeControl
             {
                 if (this.isSlowMo && !this.isGamePaused)
                 {
-                    // TODO Implement SlowMoRateChanged
-                    throw new NotImplementedException( nameof( SlowMoController ) + "." + nameof( SlowMoRateChanged ) );
+                    SetSlowMoTimeScale();
+                    SetSlowMoFixedDeltaTime();                    
                 }
             }
         }
+
+        /// <summary>
+        /// Modify the Unity time scale
+        /// </summary>
+        private void SetSlowMoTimeScale()
+        {            
+            TimeController.Instance.TimeScale = this.SlowMoRate;
+        }
+
+        /// <summary>
+        /// Modify the Unity fixed delta time
+        /// </summary>
+        private void SetSlowMoFixedDeltaTime()
+        {
+            float defaultDeltaTime = TimeController.Instance.DefaultFixedDeltaTime;
+            TimeController.Instance.FixedDeltaTime = DeltaLocked ? defaultDeltaTime : defaultDeltaTime * this.SlowMoRate;
+        }
+
+        /// <summary>
+        ///  Reset the time scale
+        /// </summary>
+        private void ResetTimeScale()
+        {
+            TimeController.Instance.ResetTimeScale();
+        }
+
+        /// <summary>
+        /// Reset the fixedDeltaTime to the defaults
+        /// </summary>
+        private void ResetFixedDeltaTime()
+        {
+            TimeController.Instance.ResetFixedDeltaTime();
+        }
         #endregion
-        
+
         public void ActivateSlowMo()
         {
             const string logBlockName = nameof( SlowMoController ) + "." + nameof( ActivateSlowMo );
@@ -371,7 +446,9 @@ namespace TimeControl
                 SlowMoCanRailsWarp = false;
                 isSlowMo = true;
 
-                StartCoroutine( UpdateSlowMo() );
+                SetSlowMoTimeScale();
+                SetSlowMoFixedDeltaTime();
+
                 StartCoroutine( UpdateSlowMoScreenMessage() );                
             }
         }
@@ -458,62 +535,10 @@ namespace TimeControl
             const string logBlockName = nameof( SlowMoController ) + "." + nameof( ResetTime );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (TimeController.Instance != null)
-                {
-                    TimeController.Instance.ResetTimeScale();
-                    TimeController.Instance.ResetFixedDeltaTime();
-                }
-                else
-                {
-                    Log.Error( "TimeController.Instance is null! This should not happen. Please log a bug with the developer.", logBlockName );
-                }
+                ResetTimeScale();
+                ResetFixedDeltaTime();
             }
         }
-
-        /// <summary>
-        /// Execute once per frame, updating the time scale over time if it has changed (for smooth speed-up and slow down)
-        /// </summary>
-        /// <returns>Yield coroutine. Breaks when slow motion is turned off</returns>
-        private IEnumerator UpdateSlowMo()
-        {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( UpdateSlowMo );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {                
-                float smoothSliderTimeScale = this.SlowMoRate;
-                bool isPausedViaSlowMoRate = false;
-                while (this.isSlowMo && TimeController.Instance != null)
-                {
-                    if (isGamePaused)
-                    {
-                        yield return null;
-                        continue;
-                    }
-                    
-                    if (this.SlowMoRate == 0f)
-                    {
-                        TimeController.Instance.TimeScale = 0f;
-                        isPausedViaSlowMoRate = true;
-                        yield return null;
-                        continue;
-                    }
-                    
-                    if (smoothSliderTimeScale != this.SlowMoRate || isPausedViaSlowMoRate)
-                    {
-                        isPausedViaSlowMoRate = false;
-                        smoothSliderTimeScale = Mathf.Lerp( smoothSliderTimeScale, this.SlowMoRate, .01f );                        
-                        float defaultDeltaTime = TimeController.Instance.DefaultFixedDeltaTime;
-
-                        TimeController.Instance.TimeScale = smoothSliderTimeScale;
-                        TimeController.Instance.FixedDeltaTime = DeltaLocked ? defaultDeltaTime : defaultDeltaTime * smoothSliderTimeScale;
-                    }
-
-                    yield return null;
-                }
-                DeactivateSlowMo();
-                yield break;
-            }
-        }
-
 
         private IEnumerator UpdateSlowMoScreenMessage()
         {

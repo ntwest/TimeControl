@@ -204,17 +204,6 @@ namespace TimeControl
         /// </summary>
         private void GUIHeader()
         {
-            if (RailsWarpController.Instance.IsRailsWarpingToUT)
-            {
-                GUILayout.Label( "Warping To UT: " + RailsWarpController.Instance.RailsWarpingToUT );
-            }
-            else
-            {
-                GUILayout.Label( "Current UT: " + this.CurrentUT );
-            }
-
-            GUIBreak();
-
             GUILayout.BeginHorizontal();
             {
                 RailsWarpController.Instance.RailsPauseOnUTReached = GUILayout.Toggle( RailsWarpController.Instance.RailsPauseOnUTReached, "Pause on Time Reached" );
@@ -413,52 +402,49 @@ namespace TimeControl
                 }
                 GUI.enabled = priorEnabled;
 
+                
+                var tgtOrbit = v?.targetObject?.GetOrbit();
 
-                if (HighLogic.LoadedScene == GameScenes.FLIGHT)
+                if (tgtOrbit == null)
                 {
-                    var tgtOrbit = v.targetObject?.GetOrbit();
-
-                    if (tgtOrbit == null)
+                    GUI.enabled = priorEnabled && HighLogic.LoadedScene == GameScenes.FLIGHT && vesselHasOrbit && (v.orbit.AscendingNodeEquatorialExists());
+                    if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
                     {
-                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeEquatorialExists());
-                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
-                        {
-                            TargetUT = v.orbit.TimeOfAscendingNodeEquatorial( CurrentUT );
-                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                        }
-                        GUI.enabled = priorEnabled;
-
-
-                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeEquatorialExists());
-                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
-                        {
-                            TargetUT = v.orbit.TimeOfDescendingNodeEquatorial( CurrentUT );
-                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                        }
-                        GUI.enabled = priorEnabled;
+                        TargetUT = v.orbit.TimeOfAscendingNodeEquatorial( CurrentUT );
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                     }
-                    else
+                    GUI.enabled = priorEnabled;
+
+
+                    GUI.enabled = priorEnabled && HighLogic.LoadedScene == GameScenes.FLIGHT && vesselHasOrbit && (v.orbit.DescendingNodeEquatorialExists());
+                    if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
                     {
-                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.AscendingNodeExists( tgtOrbit ));
-                        if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
-                        {
-                            TargetUT = v.orbit.TimeOfAscendingNode( tgtOrbit, CurrentUT );
-                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                        }
-                        GUI.enabled = priorEnabled;
-
-
-                        GUI.enabled = priorEnabled && vesselHasOrbit && (v.orbit.DescendingNodeExists( tgtOrbit ));
-                        if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
-                        {
-                            TargetUT = v.orbit.TimeOfDescendingNode( tgtOrbit, CurrentUT );
-                            RailsWarpController.Instance.RailsWarpToUT( TargetUT );
-                        }
-                        GUI.enabled = priorEnabled;
+                        TargetUT = v.orbit.TimeOfDescendingNodeEquatorial( CurrentUT );
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                     }
+                    GUI.enabled = priorEnabled;
+                }
+                else
+                {
+                    GUI.enabled = priorEnabled && HighLogic.LoadedScene == GameScenes.FLIGHT && vesselHasOrbit && (v.orbit.AscendingNodeExists( tgtOrbit ));
+                    if (GUILayout.Button( "AN", GUILayout.Width( buttonWidth ) ))
+                    {
+                        TargetUT = v.orbit.TimeOfAscendingNode( tgtOrbit, CurrentUT );
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                    }
+                    GUI.enabled = priorEnabled;
+
+
+                    GUI.enabled = priorEnabled && HighLogic.LoadedScene == GameScenes.FLIGHT && vesselHasOrbit && (v.orbit.DescendingNodeExists( tgtOrbit ));
+                    if (GUILayout.Button( "DN", GUILayout.Width( buttonWidth ) ))
+                    {
+                        TargetUT = v.orbit.TimeOfDescendingNode( tgtOrbit, CurrentUT );
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                    }
+                    GUI.enabled = priorEnabled;
                 }
 
-                GUI.enabled = priorEnabled && vesselHasOrbit && (SOITransitions.Contains( v.orbit.patchEndTransition ));
+                    GUI.enabled = priorEnabled && vesselHasOrbit && (SOITransitions.Contains( v.orbit.patchEndTransition ));
                 if (GUILayout.Button( "SOI", GUILayout.Width( buttonWidth ) ))
                 {
                     TargetUT = v.orbit.EndUT;

@@ -51,15 +51,12 @@ namespace TimeControl.Framework
             GUILayout.EndHorizontal();
         }
 
-        public static void floatTextBoxSliderPlusMinus(string comboLabel, float fbacking, float sliderMin, float sliderMax, float increment, Action<float> updateBackingField, Func<float, float> modifyField = null)
+        public static void floatTextBoxSliderPlusMinus(string comboLabel, float fbacking, float sliderMin, float sliderMax, float increment, Action<float> updateBackingField, Func<float, float> modifyField = null, bool reverse = false)
         {
             string backingStr = fbacking.ToString();
             float fvalue = fbacking;
             string fStr;
-
-            float min = Math.Min( sliderMin, sliderMax );
-            float max = Math.Max( sliderMin, sliderMax );
-
+            
             if (comboLabel != null && comboLabel != "")
             {
                 GUILayout.Label( comboLabel );
@@ -71,7 +68,7 @@ namespace TimeControl.Framework
                 fStr = GUILayout.TextField( backingStr, GUILayout.Width( 35 ) );
                 if (fStr != backingStr && float.TryParse( fStr, out fvalue ))
                 {
-                    fvalue = Mathf.Clamp( fvalue, min, max );
+                    fvalue = Mathf.Clamp( fvalue, sliderMin, sliderMax );
                     backingStr = fStr;
                     if (modifyField != null)
                     {
@@ -84,7 +81,7 @@ namespace TimeControl.Framework
                 if (GUILayout.Button( "+", GUILayout.Width( 20 ) ))
                 {
                     fvalue += increment;
-                    fvalue = Mathf.Clamp( fvalue, min, max );
+                    fvalue = Mathf.Clamp( fvalue, sliderMin, sliderMax );
                     if (modifyField != null)
                     {
                         fvalue = modifyField( fvalue );
@@ -98,7 +95,7 @@ namespace TimeControl.Framework
                 if (GUILayout.Button( "-", GUILayout.Width( 20 ) ))
                 {
                     fvalue -= increment;
-                    fvalue = Mathf.Clamp( fvalue, min, max );
+                    fvalue = Mathf.Clamp( fvalue, sliderMin, sliderMax );
                     if (modifyField != null)
                     {
                         fvalue = modifyField( fvalue );
@@ -110,8 +107,15 @@ namespace TimeControl.Framework
                 }
 
                 // Slider to enter values
-                fvalue = GUILayout.HorizontalSlider( fbacking, sliderMin, sliderMax );
-                fvalue = Mathf.Clamp( fvalue, min, max );
+                if (!reverse)
+                {
+                    fvalue = GUILayout.HorizontalSlider( fbacking, sliderMin, sliderMax );
+                }
+                else
+                {
+                    fvalue = GUILayout.HorizontalSlider( fbacking, sliderMax, sliderMin );
+                }
+                fvalue = Mathf.Clamp( fvalue, sliderMin, sliderMax );
                 if (modifyField != null)
                 {
                     fvalue = modifyField( fvalue );

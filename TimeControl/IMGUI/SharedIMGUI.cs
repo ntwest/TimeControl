@@ -55,9 +55,12 @@ namespace TimeControl
 
             Action<float> updateThrottle = delegate (float f) {
                 throttleSet = f / 100.0f;
-                if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSet)
-                    FlightInputHandler.state.mainThrottle = throttleSet;
             };
+
+            if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSet)
+            {
+                FlightInputHandler.state.mainThrottle = throttleSet;
+            }
 
             // Force slider to select 1 decimal place values between min and max
             Func<float, float> modifyFieldThrottle = delegate (float f) {

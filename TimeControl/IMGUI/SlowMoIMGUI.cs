@@ -46,7 +46,7 @@ namespace TimeControl
 
         SharedIMGUI sharedGUI;
         //float ts = 0f;
-        bool deltaLocked = false;
+        bool deltaLocked = true;
 
         public SlowMoIMGUI()
         {
@@ -84,16 +84,15 @@ namespace TimeControl
             {
                 SlowMoController.Instance.DeltaLocked = GUILayout.Toggle( SlowMoController.Instance.DeltaLocked, "Lock physics delta to default" );
                 
-                const float slowMoIncrement = 0.01f;
-
-                string slowMoSliderLabel = "Slow Motion Rate: ".MemoizedConcat( SlowMoController.Instance.SlowMoRate.MemoizedToString().MemoizedConcat("x") );
+                float ratePct = (float)Math.Round( SlowMoController.Instance.SlowMoRate * 100f, 0 );
+                string slowMoSliderLabel = "Slow Motion Rate: ".MemoizedConcat( ratePct.MemoizedToString().MemoizedConcat("%") );
 
                 Action<float> updateSlowMo = delegate (float f) {
-                    SlowMoController.Instance.SlowMoRate = f;
+                    SlowMoController.Instance.SlowMoRate = (float)Math.Round(f / 100f, 2);
                 };
                 
-                Func<float, float> modifySlowMo = delegate (float f) { return Mathf.Floor( f * (1f / slowMoIncrement) ) / (1f / slowMoIncrement); };
-                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, SlowMoController.Instance.SlowMoRate, 1.0f, 0.0f, slowMoIncrement, updateSlowMo, modifySlowMo );
+                Func<float, float> modifySlowMo = delegate (float f) { return Mathf.Floor(f); };                
+                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, ratePct, 1f, 99f, 1f, updateSlowMo, modifySlowMo, true );
                 
                 GUILayout.Label( "", GUILayout.Height( 5 ) );
 

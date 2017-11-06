@@ -448,6 +448,7 @@ namespace TimeControl
                 
                 // Force a game settings save
                 GameSettings.SaveSettings();
+                
 
                 RatesNeedUpdatedAndSaved = false;
 
@@ -838,7 +839,30 @@ namespace TimeControl
             }
         }
 
-        public void SetAltitudeLimitsToAtmo(float vacuumHeight = 1000)
+        public void SetAltitudeLimitsToAtmoForBody(CelestialBody cb, float vacuumHeight)
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SetAltitudeLimitsToAtmo );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                List<float> curAl = this.GetCustomAltitudeLimitsForBody( cb );
+                List<float> newAl = new List<float>();
+                newAl.Add( curAl[0] );
+                if (cb.atmosphere)
+                {
+                    double ceil = Math.Ceiling( (Math.Ceiling( cb.atmosphereDepth / 1000.0d ) * 1000.0d) );
+
+                    newAl.AddRange( curAl.Skip( 1 ).Select( f => Convert.ToSingle( ceil ) ) );
+                }
+                else
+                {
+                    newAl.AddRange( curAl.Skip( 1 ).Select( f => vacuumHeight ) );
+                }
+
+                this.SetCustomAltitudeLimitsForBody( cb, newAl );
+            }
+        }
+
+        public void SetAltitudeLimitsToAtmo(float vacuumHeight)
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SetAltitudeLimitsToAtmo );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
@@ -1150,11 +1174,13 @@ namespace TimeControl
             {                
                 RailsWarpingToUT = Mathf.Epsilon;
                 IsRailsWarpingToUT = false;
-                
+
                 Log.Info( "Cancelling built-in auto warp if it is running.", logBlockName );
                 TimeWarp.fetch.CancelAutoWarp();
 
-                if (IsRailsWarping)
+                Log.Trace( "Current Rate Index: " + TimeWarp.CurrentRateIndex.ToString(), logBlockName );
+
+                if (this.IsRailsWarping)
                 {
                     Log.Info( "Setting warp rate to 0.", logBlockName );
                     TimeWarp.SetRate( 0, true, false );

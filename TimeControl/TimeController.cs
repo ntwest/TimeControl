@@ -471,6 +471,8 @@ namespace TimeControl
             const string logBlockName = "TimeController.GoRealTime()";
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                TimePaused = false;
+                PauseOnNextFixedUpdate = false;
                 RailsWarpController.Instance?.DeactivateRails();
                 HyperWarpController.Instance?.DeactivateHyper();
                 SlowMoController.Instance?.DeactivateSlowMo();

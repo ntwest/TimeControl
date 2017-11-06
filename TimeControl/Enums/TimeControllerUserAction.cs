@@ -6,7 +6,7 @@
         SpeedUp = 1,
         SlowDown = 2,
         Realtime = 3,
-        SlowMo64 = 4,
+        SlowMo = 4,
         CustomKeySlider = 5,
         Pause = 6,
         Step = 7,

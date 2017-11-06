@@ -53,11 +53,9 @@ namespace TimeControl
         private List<KeyCode> keysPressedDown;
         private List<KeyCode> keysReleased;
 
-        private List<KeyBinding> keyBinds;
-
+        private List<TimeControlKeyBinding> keyBinds;
         
-
-        public List<KeyBinding> GetKeyBinds()
+        public List<TimeControlKeyBinding> GetKeyBinds()
         {
             const string logBlockName = nameof( KeyboardInputManager ) + "." + nameof( GetKeyBinds );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
@@ -84,8 +82,8 @@ namespace TimeControl
                 DontDestroyOnLoad( this ); //Don't go away on scene changes
                 KeyboardInputManager.Instance = this;
 
-                keyBinds = new List<KeyBinding>();
-
+                keyBinds = new List<TimeControlKeyBinding>();
+                
                 List<KeyCode> ignoreKeys = new List<KeyCode>() { KeyCode.Mouse0, KeyCode.Mouse1, KeyCode.Mouse2, KeyCode.Mouse3, KeyCode.Mouse4, KeyCode.Mouse5, KeyCode.Mouse6,
                     KeyCode.Escape, KeyCode.CapsLock, KeyCode.ScrollLock, KeyCode.Numlock, KeyCode.Break,
                     KeyCode.LeftWindows, KeyCode.RightWindows, KeyCode.LeftApple, KeyCode.RightApple };
@@ -133,8 +131,7 @@ namespace TimeControl
                 keysPressed = new List<KeyCode>();
                 keysPressedDown = new List<KeyCode>();
                 keysReleased = new List<KeyCode>();
-
-                UpdateKSPKeyBindings();
+                
                 ResetKeyBindingsToDefault();
 
                 IsReady = true;
@@ -147,11 +144,14 @@ namespace TimeControl
             if (!TimeController.IsReady || !TimeControlIMGUI.IsReady || !HyperWarpController.IsReady || !RailsWarpController.IsReady || !SlowMoController.IsReady)
                 return;
             // Only check for keypresses when we can actually do something
-            if (   (!HyperWarpController.Instance?.CanHyperWarp ?? false)
-                || (!RailsWarpController.Instance?.CanRailsWarp ?? false)
-                || (!SlowMoController.Instance?.CanSlowMo ?? false)
-                )
-                return;
+            //if (   (!HyperWarpController.Instance?.CanHyperWarp ?? false)
+            //    || (!HyperWarpController.Instance?.IsHyperWarping ?? false)
+            //    || (!RailsWarpController.Instance?.CanRailsWarp ?? false)
+            //    || (!RailsWarpController.Instance?.IsRailsWarping ?? false)
+            //    || (!SlowMoController.Instance?.CanSlowMo ?? false)
+            //    || (!SlowMoController.Instance?.IsSlowMo ?? false)
+            //    )
+            //    return;
 
             // Only run during this frame if a key is actually pressed down
             if (Input.anyKey)
@@ -179,18 +179,17 @@ namespace TimeControl
             const string logBlockName = nameof( KeyboardInputManager ) + "." + nameof( ResetKeyBindingsToDefault );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                keyBinds = keyBinds ?? new List<KeyBinding>();
+                keyBinds = keyBinds ?? new List<TimeControlKeyBinding>();
                 keyBinds.Clear();
 
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.SpeedUp, Description = "Speed Up", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.SlowDown, Description = "Slow Down", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.Realtime, Description = "Realtime", KeyCombination = new List<KeyCode>() } );
-                //keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.SlowMo64, Description = "1/64x", KeyCombination = new List<KeyCode>() } );
-                //keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.CustomKeySlider, Description = "Custom-#x", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.Pause, Description = "Pause", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.Step, Description = "Step", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.HyperWarp, Description = "Hyper Warp", KeyCombination = new List<KeyCode>() } );
-                keyBinds.Add( new KeyBinding { TCUserAction = TimeControlUserAction.ToggleGUI, Description = "Toggle GUI", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.ToggleGUI, Description = "Toggle GUI", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.Realtime, Description = "Realtime", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.Pause, Description = "Pause", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.Step, Description = "Step", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.SpeedUp, Description = "Speed Up", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.SlowDown, Description = "Slow Down", KeyCombination = new List<KeyCode>() } );                
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.SlowMo, Description = "Toggle Slow-Motion", KeyCombination = new List<KeyCode>() } );
+                keyBinds.Add( new TimeControlKeyBinding { TCUserAction = TimeControlUserAction.HyperWarp, Description = "Toggle Hyper-Warp", KeyCombination = new List<KeyCode>() } );                
             }
         }
 
@@ -204,7 +203,7 @@ namespace TimeControl
                 if (cn.HasNode( kb ))
                     cn.RemoveNode( kb );
                 ConfigNode keyBindsNode = cn.AddNode( kb );
-                foreach (KeyBinding k in keyBinds)
+                foreach (TimeControlKeyBinding k in keyBinds)
                 {
                     keyBindsNode.SetValue( k.TCUserAction.ToString(), k.IsKeyAssigned ? k.KeyCombinationString : "[" + KeyCode.None.ToString() + "]", true );
                 }
@@ -230,7 +229,7 @@ namespace TimeControl
 
                 for (int i = 0; i < keyBinds.Count; i++)
                 {
-                    KeyBinding k = keyBinds[i];
+                    TimeControlKeyBinding k = keyBinds[i];
                     string userAction = k.TCUserAction.ToString();
                     if (vl.Contains( userAction ))
                     {
@@ -256,91 +255,8 @@ namespace TimeControl
             }
         }
         #endregion Configuration
-
-        private void UpdateKSPKeyBindings()
-        {
-            // TODO UpdateKSPKeyBindings. Maybe make a full fledged input manager
-
-            /*
-
-            GameSettings.AbortActionGroup;
-            GameSettings.BRAKES;
-            GameSettings.CAMERA_MODE;
-            GameSettings.CAMERA_MOUSE_TOGGLE;
-            GameSettings.CAMERA_NEXT;
-            GameSettings.CAMERA_ORBIT_DOWN;
-            GameSettings.CAMERA_ORBIT_LEFT;
-            GameSettings.CAMERA_ORBIT_RIGHT;
-            GameSettings.CAMERA_ORBIT_UP;
-            GameSettings.CAMERA_RESET;
-            GameSettings.CustomActionGroup1; // to 10
-            GameSettings.Docking_toggleRotLin;
-            GameSettings.EVA_back;
-            GameSettings.EVA_Board;
-            GameSettings.EVA_forward;
-            GameSettings.EVA_Jump;
-            GameSettings.EVA_left;
-            GameSettings.EVA_Lights;
-            GameSettings.EVA_Orient;
-            GameSettings.EVA_Pack_back;
-            GameSettings.EVA_Pack_down;
-            GameSettings.EVA_Pack_forward;
-            GameSettings.EVA_Pack_left;
-            GameSettings.EVA_Pack_right;
-            GameSettings.EVA_Pack_up;
-            GameSettings.EVA_right;
-            GameSettings.EVA_Run;
-            GameSettings.EVA_ToggleMovementMode;
-            GameSettings.EVA_TogglePack;
-            GameSettings.EVA_Use;
-            GameSettings.EVA_yaw_left;
-            GameSettings.EVA_yaw_right;
-            GameSettings.FOCUS_NEXT_VESSEL;
-            GameSettings.FOCUS_PREV_VESSEL;
-            GameSettings.HEADLIGHT_TOGGLE;
-            GameSettings.LANDING_GEAR;
-            GameSettings.LAUNCH_STAGES;
-            GameSettings.MAP_VIEW_TOGGLE;
-            GameSettings.MODIFIER_KEY;
-            GameSettings.NAVBALL_TOGGLE;
-            GameSettings.PAUSE;
-            GameSettings.PITCH_DOWN;
-            GameSettings.PITCH_UP;
-            GameSettings.PRECISION_CTRL;
-            GameSettings.QUICKLOAD;
-            GameSettings.QUICKSAVE;
-            GameSettings.RCS_TOGGLE;
-            GameSettings.ROLL_LEFT;
-            GameSettings.ROLL_RIGHT;
-            GameSettings.SAS_HOLD;
-            GameSettings.SAS_TOGGLE;
-            GameSettings.SCROLL_ICONS_DOWN;
-            GameSettings.SCROLL_ICONS_UP;
-            GameSettings.SCROLL_VIEW_DOWN;
-            GameSettings.SCROLL_VIEW_UP;
-            GameSettings.TAKE_SCREENSHOT;
-            GameSettings.THROTTLE_CUTOFF;
-            GameSettings.THROTTLE_DOWN;
-            GameSettings.THROTTLE_FULL;
-            GameSettings.THROTTLE_UP;
-            GameSettings.TIME_WARP_DECREASE;
-            GameSettings.TIME_WARP_INCREASE;
-            GameSettings.TIME_WARP_STOP;
-            GameSettings.TOGGLE_FLIGHT_FORCES;
-
-
-
-            */
-
-
-
-            //        if (HighLogic.LoadedScene == GameScenes.FLIGHT && GameSettings.SAS_TOGGLE.primary == KeyCode.T)
-            //       {
-            //              FlightGlobals.ActiveVessel.ActionGroups.ToggleGroup( KSPActionGroup.SAS );
-            //            }
-        }
-
-        public void AssignKeyBinding(KeyBinding kb)
+        
+        public void AssignKeyBinding(TimeControlKeyBinding kb)
         {
             int index = keyBinds.FindIndex( k => k.TCUserAction == kb.TCUserAction );
             if (index >= 0)
@@ -361,19 +277,25 @@ namespace TimeControl
                 KeyCode setKC = kvp.Value;
 
                 if (Input.GetKey( kc ) && !keysPressed.Contains( kvp.Value ))
+                {
                     keysPressed.Add( setKC );
+                }
 
                 if (Input.GetKeyDown( kc ) && !keysPressedDown.Contains( setKC ))
+                {
                     keysPressedDown.Add( setKC );
+                }
 
                 if (Input.GetKeyUp( kc ) && !keysReleased.Contains( setKC ))
+                {
                     keysReleased.Add( setKC );
+                }
             }
         }
 
         private void CheckKeyBindings()
         {
-            foreach (KeyBinding k in this.keyBinds)
+            foreach (TimeControlKeyBinding k in this.keyBinds)
             {
                 // Only if the keys we care about (and no others) are pressed. Otherwise continue the loop
                 if (!
@@ -394,8 +316,8 @@ namespace TimeControl
                     case TimeControlUserAction.Realtime:
                         RealtimeKeyPress( k );
                         break;
-                    case TimeControlUserAction.SlowMo64:
-                        SlowMo64KeyPress( k );
+                    case TimeControlUserAction.SlowMo:
+                        SlowMoKeyPress( k );
                         break;
                     case TimeControlUserAction.CustomKeySlider:
                         CustomKeySliderKeyPress( k );
@@ -416,7 +338,7 @@ namespace TimeControl
             }
         }
 
-        private void LogKeyPress(KeyBinding k, string caller)
+        private void LogKeyPress(TimeControlKeyBinding k, string caller)
         {
             if (Log.LoggingLevel == LogSeverity.Trace)
             {
@@ -424,12 +346,16 @@ namespace TimeControl
             }
         }
 
-        private void SpeedUpKeyPress(KeyBinding k)
+        private void SpeedUpKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
+            {
                 LogKeyPress( k, "SpeedUpKeyPress Started" );
+            }
             if (keysReleased.Contains( k.KeyCombination.Last() ))
+            {
                 LogKeyPress( k, "SpeedUpKeyPress Ended" );
+            }
 
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -444,12 +370,16 @@ namespace TimeControl
             }
         }
 
-        private void SlowDownKeyPress(KeyBinding k)
+        private void SlowDownKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
+            {
                 LogKeyPress( k, "SlowDownKeyPress Started" );
+            }
             if (keysReleased.Contains( k.KeyCombination.Last() ))
+            {
                 LogKeyPress( k, "SlowDownKeyPress Ended" );
+            }
 
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -464,7 +394,7 @@ namespace TimeControl
             }
         }
 
-        private void RealtimeKeyPress(KeyBinding k)
+        private void RealtimeKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -473,16 +403,19 @@ namespace TimeControl
             }
         }
 
-        private void SlowMo64KeyPress(KeyBinding k)
+        private void SlowMoKeyPress(TimeControlKeyBinding k)
         {
-            //if (keysPressedDown.Contains( k.KeyCombination.Last() ))
-            //{
-            //    LogKeyPress( k, "SetSlowMo64" );
-            //    TimeController.Instance.UpdateTimeSlider( 1 );
-            //}
+            if (keysPressedDown.Contains( k.KeyCombination.Last() ))
+            {
+                LogKeyPress( k, "SlowMo" );
+                if (SlowMoController.IsReady && SlowMoController.Instance.CanSlowMo)
+                {
+                    SlowMoController.Instance.ToggleSlowMo();
+                }
+            }
         }
 
-        private void CustomKeySliderKeyPress(KeyBinding k)
+        private void CustomKeySliderKeyPress(TimeControlKeyBinding k)
         {
             //if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             //{
@@ -491,7 +424,7 @@ namespace TimeControl
             //}
         }
 
-        private void PauseKeyPress(KeyBinding k)
+        private void PauseKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -500,7 +433,7 @@ namespace TimeControl
             }
         }
 
-        private void StepKeyPress(KeyBinding k)
+        private void StepKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -510,7 +443,7 @@ namespace TimeControl
             }
         }
 
-        private void HyperWarpKeyPress(KeyBinding k)
+        private void HyperWarpKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {
@@ -523,7 +456,7 @@ namespace TimeControl
             }
         }
 
-        private void ToggleGUIKeyPress(KeyBinding k)
+        private void ToggleGUIKeyPress(TimeControlKeyBinding k)
         {
             if (keysPressedDown.Contains( k.KeyCombination.Last() ))
             {

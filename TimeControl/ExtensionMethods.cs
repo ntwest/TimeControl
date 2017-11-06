@@ -50,5 +50,31 @@ namespace TimeControl
 
             return nodes.First();
         }
+
+        internal static bool TryAssignFromConfigFloat(this ConfigNode cn, string property, ref float v)
+        {
+            if (cn.HasValue( property ) && float.TryParse( cn.GetValue( property ), out float cv ))
+            {
+                v = cv;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
+
+        internal static bool TryAssignFromConfigBool(this ConfigNode cn, string property, ref bool v)
+        {
+            if (cn.HasValue( property ) && bool.TryParse( cn.GetValue( property ), out bool cv ))
+            {
+                v = cv;
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+        }
     }
 }

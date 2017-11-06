@@ -19,7 +19,7 @@ namespace TimeControl
 
         static Log()
         {
-            // Start out writing trace. Can be changed in config file.
+            // TODO Change to Warning
             LoggingLevel = LogSeverity.Trace;
         }
 
