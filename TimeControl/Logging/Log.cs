@@ -19,8 +19,7 @@ namespace TimeControl
 
         static Log()
         {
-            // TODO Change to Warning
-            LoggingLevel = LogSeverity.Trace;
+            LoggingLevel = LogSeverity.Warning;
         }
 
         static internal void Trace(string message, string caller = "", bool always = false)
