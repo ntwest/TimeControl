@@ -5,7 +5,7 @@
   "CHANGE_LOG_URL": "https://github.com/ntwest/TimeControl/blob/master/CHANGELOG.md",
   "VERSION": {
     "MAJOR": 2,
-    "MINOR": 7,
+    "MINOR": 8,
     "PATCH": 0,
     "BUILD": 0
   },
