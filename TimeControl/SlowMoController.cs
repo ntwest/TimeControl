@@ -159,7 +159,7 @@ namespace TimeControl
         
         private float defaultDeltaTime;        
         private float slowMoRate = 0.5f;
-        private bool deltaLocked = false;
+        private bool deltaLocked = true;
         //private bool canSlowMo = false;
         private bool isSlowMo = false;
         private bool isGamePaused = false;
