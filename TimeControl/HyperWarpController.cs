@@ -56,6 +56,23 @@ namespace TimeControl
         //}
         #endregion
 
+        static public float PhysicsAccuracyMin
+        {
+            get => 1f;
+        }
+        static public float PhysicsAccuracyMax
+        {
+            get => 10f;
+        }
+        static public float AttemptedRateMin
+        {
+            get => 1f;
+        }
+        static public float AttemptedRateMax
+        {
+            get => 100f;
+        }
+
         #region Private Fields
 
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent;
@@ -115,22 +132,7 @@ namespace TimeControl
 
         // PUBLIC
 
-        public float PhysicsAccuracyMin
-        {
-            get => 1f;
-        }
-        public float PhysicsAccuracyMax
-        {
-            get => 6f;
-        }
-        public float AttemptedRateMin
-        {
-            get => 2f;
-        }
-        public float AttemptedRateMax
-        {
-            get => 100f;
-        }
+
         
         /// <summary>
         /// 
@@ -175,7 +177,7 @@ namespace TimeControl
 
         public bool CanHyperWarp
         {
-            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && Time.timeScale >= 1f && HighLogic.LoadedSceneIsFlight);
+            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex == 0 && (Mathf.Approximately( Time.timeScale, 1f ) || IsHyperWarping) && HighLogic.LoadedSceneIsFlight);
         }
 
         public bool IsHyperWarping
@@ -521,9 +523,9 @@ namespace TimeControl
             }
         }
 
-        public void SlowDownHyper(int step = 1)
+        public void SlowDown(float step = 1f)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SlowDownHyper );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SlowDown );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to decrease Hyper Warp Rate", logBlockName );
@@ -532,9 +534,9 @@ namespace TimeControl
             }
         }
 
-        public void SpeedUpHyper(int step = 1)
+        public void SpeedUp(float step = 1f)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SpeedUpHyper );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SpeedUp );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to increase Hyper Warp Rate", logBlockName );
@@ -548,7 +550,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to decrease Hyper Warp Physics Accuracy", logBlockName );
-                PhysicsAccuracy -= step;
+                PhysicsAccuracy += step;
                 return;
             }
         }
@@ -559,7 +561,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to increase Physics Accuracy", logBlockName );
-                PhysicsAccuracy += step;
+                PhysicsAccuracy -= step;
             }
         }
 

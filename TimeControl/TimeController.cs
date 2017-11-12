@@ -67,7 +67,7 @@ namespace TimeControl
         private float smoothSlider = 0f;
 
         private bool deltaLocked = false;
-
+        
         #endregion
 
         #region Properties       
@@ -157,7 +157,7 @@ namespace TimeControl
                 GameEvents.onGamePause.Add( this.onGamePause );
                 GameEvents.onGameUnpause.Add( this.onGameUnpause );
                 GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
-
+                
                 /*
                 GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
                 GameEvents.onTimeWarpRateChanged.Add( this.onTimeWarpRateChanged );
@@ -168,7 +168,7 @@ namespace TimeControl
 
                 //FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
                 //cam = cams[0];
-                
+
                 Log.Info( "TimeController.Instance is Ready!", logBlockName );
                 IsReady = true;
             }
@@ -279,7 +279,6 @@ namespace TimeControl
             {
             }
         }
-
         #endregion
 
         #region Properties

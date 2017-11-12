@@ -86,7 +86,7 @@ namespace TimeControl
             // Force slider to select integer values between min and max
             Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor( f ); };
 
-            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.Instance.AttemptedRateMin, HyperWarpController.Instance.AttemptedRateMax, 1f, updateHyperMaxRate, maxRateButtons, modifyFieldHyperMaxRate );
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.AttemptedRateMin, HyperWarpController.AttemptedRateMax, 1f, updateHyperMaxRate, maxRateButtons, modifyFieldHyperMaxRate );
         }
 
 
@@ -95,14 +95,19 @@ namespace TimeControl
             const float physIncrement = 0.1f;
 
             string hyperMinPhysLabel = "Physics Accuracy: ".MemoizedConcat( HyperWarpController.Instance.PhysicsAccuracy.MemoizedToString() );
-            
+
+            if (HyperWarpController.Instance.PhysicsAccuracy > 4f)
+            {
+                hyperMinPhysLabel = hyperMinPhysLabel.MemoizedConcat( " !!! DANGER !!!" );
+            }
+
             Action<float> updatehyperMinPhys = delegate (float f) {
                 HyperWarpController.Instance.PhysicsAccuracy = f;
             };
             
             Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Floor( f * (1f/physIncrement)) / (1f/physIncrement); };
 
-            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.Instance.PhysicsAccuracyMin, HyperWarpController.Instance.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, phyAccuracyButtons, modifyFieldMinPhys );
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.PhysicsAccuracyMin, HyperWarpController.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, phyAccuracyButtons, modifyFieldMinPhys );
         }
 
         private void GUIButtons()

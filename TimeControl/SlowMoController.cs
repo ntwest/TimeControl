@@ -222,7 +222,7 @@ namespace TimeControl
 
         public bool CanSlowMo
         {
-            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex <= 1 && (Mathf.Approximately(Time.timeScale, 1f) || isSlowMo) && HighLogic.LoadedSceneIsFlight) ;
+            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex == 0 && (Mathf.Approximately(Time.timeScale, 1f) || isSlowMo) && HighLogic.LoadedSceneIsFlight) ;
         }
         
         public bool IsSlowMo

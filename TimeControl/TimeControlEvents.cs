@@ -4,6 +4,8 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+using TimeControl.KeyBindings;
+
 namespace TimeControl
 {
     [KSPAddon( KSPAddon.Startup.MainMenu, true )]
@@ -32,6 +34,8 @@ namespace TimeControl
 
         public static EventData<bool> OnTimeControlGlobalSettingsSaved;
         public static EventData<bool> OnTimeControlGlobalSettingsLoaded;
+
+        public static EventData<TimeControlKeyBinding> OnTimeControlKeyBindingsChanged;
 
         private void Awake()
         {
@@ -72,6 +76,9 @@ namespace TimeControl
                 // Global Settings
                 OnTimeControlGlobalSettingsSaved = new EventData<bool>( nameof( OnTimeControlGlobalSettingsSaved ) );
                 OnTimeControlGlobalSettingsLoaded = new EventData<bool>( nameof( OnTimeControlGlobalSettingsLoaded ) );
+
+                // Key Bindings
+                OnTimeControlKeyBindingsChanged = new EventData<TimeControlKeyBinding>( nameof( OnTimeControlKeyBindingsChanged ) );
             } 
         }       
     }

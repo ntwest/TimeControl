@@ -35,6 +35,8 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Linq;
 
+using TimeControl.KeyBindings;
+
 namespace TimeControl
 {
     [KSPAddon( KSPAddon.Startup.MainMenu, true )]
@@ -72,7 +74,9 @@ namespace TimeControl
         public bool TrackingStationWindowIsDisplayed { get => trackingStationWindowIsDisplayed; set => trackingStationWindowIsDisplayed = value; }
         public bool FlightModeWindowIsDisplayed { get => flightModeWindowIsDisplayed; set => flightModeWindowIsDisplayed = value; }
         public bool CameraZoomFix { get => cameraZoomFix; set => cameraZoomFix = value; }
-        
+
+        private EventData<TimeControlKeyBinding> OnTimeControlKeyBindingsChangedEvent;
+
         #region MonoBehavior
         private void Awake()
         {
@@ -94,8 +98,21 @@ namespace TimeControl
                 global::GameEvents.onGameStatePostLoad.Add( this.onGameStatePostLoad );
                 global::GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
+                OnTimeControlKeyBindingsChangedEvent = GameEvents.FindEvent<EventData<TimeControlKeyBinding>>( nameof( TimeControlEvents.OnTimeControlKeyBindingsChanged ) );
+                OnTimeControlKeyBindingsChangedEvent?.Add( OnTimeControlKeyBindingsChanged );
+
                 IsReady = true;
             }
+        }
+
+        private void OnDestroy()
+        {
+            global::GameEvents.OnGameSettingsApplied.Remove( this.OnGameSettingsApplied );
+            global::GameEvents.onGameStateSaved.Remove( this.onGameStateSaved );
+            global::GameEvents.onGameStatePostLoad.Remove( this.onGameStatePostLoad );
+            global::GameEvents.onLevelWasLoaded.Remove( this.onLevelWasLoaded );
+
+            OnTimeControlKeyBindingsChangedEvent?.Remove( OnTimeControlKeyBindingsChanged );
         }
         #endregion
 
@@ -132,6 +149,15 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Load();
+            }
+        }
+
+        private void OnTimeControlKeyBindingsChanged(TimeControlKeyBinding tckb)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( onGameStatePostLoad );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Save();
             }
         }
 

@@ -35,6 +35,7 @@ using KSP.UI.Screens;
 using KSP.UI.Dialogs;
 using KSPPluginFramework;
 
+using TimeControl.KeyBindings;
 
 namespace TimeControl
 {
@@ -43,17 +44,41 @@ namespace TimeControl
         private bool currentlyAssigningKey = false;
         private bool refreshKBCache = true;
         private List<TimeControlKeyBinding> keyBindings = new List<TimeControlKeyBinding>();
-        
+
+        private Vector2 userDefinedScroll = new Vector2();
+        private bool addingNewKeyBinding = false;
+
+        private List<KeyBindingsAddIMGUI> userDefinedKBAdd;
+
         public KeyBindingsEditorIMGUI()
         {
+            ResetUserDefinedKBAdd();
         }
-        
+
+        private void ResetUserDefinedKBAdd()
+        {
+            userDefinedKBAdd = userDefinedKBAdd ?? new List<KeyBindingsAddIMGUI>();
+            userDefinedKBAdd.Clear();
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSetRate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSlowDown() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSpeedUp() { IsUserDefined = true } ) );
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracySet() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyUp() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyDown() { IsUserDefined = true } ) );
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSetRate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSpeedUp() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSlowDown() { IsUserDefined = true } ) );
+        }
+
         private void CacheKeyBinds()
         {
             if (keyBindings == null || refreshKBCache)
             {
                 keyBindings.Clear();
-                keyBindings.AddRange(KeyboardInputManager.Instance.GetKeyBinds());
+                keyBindings.AddRange(KeyboardInputManager.Instance.GetActiveKeyBinds());
                 refreshKBCache = false;
             }
         }
@@ -66,6 +91,7 @@ namespace TimeControl
             }
 
             bool guiPriorEnabled = GUI.enabled;
+            Color guiPriorColor = GUI.contentColor;
 
             GUI.enabled = guiPriorEnabled
                 && HyperWarpController.IsReady
@@ -74,59 +100,95 @@ namespace TimeControl
                 && !RailsWarpController.Instance.IsRailsWarping
                 && SlowMoController.IsReady
                 && !SlowMoController.Instance.IsSlowMo;
+
+            CacheKeyBinds();
             
-            GUILayout.Label( "Key Bindings:" );
+            GUI.enabled = guiPriorEnabled && !currentlyAssigningKey;
 
-            GUILayout.BeginVertical();
+            if (!addingNewKeyBinding)
             {
-                //Keys
-                Color c = GUI.contentColor;
-                CacheKeyBinds();
-
-                foreach (TimeControlKeyBinding kb in keyBindings)
+                if (GUILayout.Button( "Reset Key Bindings" ))
                 {
-                    if (kb.IsKeyAssigned)
-                    {
-                        GUI.contentColor = Color.yellow;
-                    }
-                    else
-                    {
-                        GUI.contentColor = c;
-                    }
-
-                    string buttonDesc = "";
-                    //if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
-                    //{
-                    //    string pos = (Settings.Instance.CustomKeySlider.ConvertToExp64() != 1) ? ("1/" + Settings.Instance.CustomKeySlider.ConvertToExp64().ToString()) : "1";
-                    //    buttonDesc = "Custom-" + pos + 'x';
-                    //}
-                    //else
-                    //{
-                    buttonDesc = kb.Description;
-                    //}
-
-                    buttonDesc = buttonDesc + ": " + (kb.IsKeyAssigned ? kb.KeyCombinationString : "None");
-
-                    //if (kb.TCUserAction == TimeControlUserAction.CustomKeySlider)
-                    //    Settings.Instance.CustomKeySlider = GUILayout.HorizontalSlider( Settings.Instance.CustomKeySlider, 0f, 1f );
-
-                    if (currentlyAssigningKey)
-                    {
-                        GUI.enabled = false;
-                    }
-
-                    bool assignKey = GUILayout.Button( buttonDesc );
-                    if (assignKey)
-                    {
-                        GUIAssignKey( buttonDesc, kb );
-                    }
-
-                    GUI.enabled = true;
+                    KeyboardInputManager.Instance.ResetKeyBindingsToDefault();
+                    refreshKBCache = true;
                 }
-                GUI.contentColor = c;
-            }
-            GUILayout.EndVertical();
 
+                if (GUILayout.Button( "Add New User-Defined Action"))
+                {
+                    addingNewKeyBinding = true;
+                    ResetUserDefinedKBAdd();
+                }
+            }
+            
+            GUILayout.Label( "", GUILayout.Height( 5 ) );
+
+            if (addingNewKeyBinding)
+            {
+                GUILayout.Label( "Add New User-Defined Key Binding Action" );
+                if (GUILayout.Button( "Cancel" ))
+                {
+                    addingNewKeyBinding = false;
+                }
+
+                foreach (KeyBindingsAddIMGUI kbadd in userDefinedKBAdd)
+                {
+                    if (kbadd.KeyBindingsAddGUI())
+                    {
+                        addingNewKeyBinding = false;
+                        refreshKBCache = true;
+                    }
+                }
+            }
+            else
+            {
+                GUILayout.Label( "Key Bindings: Left-Click Set, Right-Click Clear" );
+                GUILayout.Label( "Built-In Actions:" );
+
+                GUILayout.BeginVertical();
+                {
+                    foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == false ))
+                    {
+                        GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
+                        string buttonDesc = kb.Description.MemoizedConcat( ": " ).MemoizedConcat( kb.IsKeyAssigned ? kb.KeyCombinationDescription : "None" );
+                        if (GUILayout.Button( buttonDesc ))
+                        {
+                            GUIAssignKey( buttonDesc, kb );
+                        }
+                    }
+                }
+                GUILayout.EndVertical();
+
+                GUILayout.Label( "", GUILayout.Height( 5 ) );
+                GUILayout.Label( "User-Defined Actions:" );
+
+                userDefinedScroll = GUILayout.BeginScrollView( userDefinedScroll, GUILayout.Height( 210 ) );
+                {
+                    GUILayout.BeginVertical();
+                    {
+                        foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == true ))
+                        {
+                            GUILayout.BeginHorizontal();
+                            {
+                                if (GUILayout.Button( "-", GUILayout.Width( 25 ) ))
+                                {
+                                    KeyboardInputManager.Instance.DeleteKeyBinding( kb );
+                                    refreshKBCache = true;
+                                }
+                                GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
+                                string buttonDesc = kb.Description.MemoizedConcat( ": " ).MemoizedConcat( kb.IsKeyAssigned ? kb.KeyCombinationDescription : "None" );
+                                if (GUILayout.Button( buttonDesc ))
+                                {
+                                    GUIAssignKey( buttonDesc, kb );
+                                }
+                            }
+                            GUILayout.EndHorizontal();
+                        }
+                    }
+                    GUILayout.EndVertical();
+                }
+                GUILayout.EndScrollView();
+            }
+            GUI.contentColor = guiPriorColor;
             GUI.enabled = guiPriorEnabled;
         }
 
@@ -146,22 +208,18 @@ namespace TimeControl
                         {
                             currentlyAssigningKey = false;
                             kb.KeyCombination = new List<KeyCode>( lkc );
-                            kb.KeyCombinationString = KeyboardInputManager.GetKeyCombinationString( lkc );
-                            KeyboardInputManager.Instance.AssignKeyBinding( kb );
                             refreshKBCache = true;
-                            Log.Info( "Key Combination " + kb.KeyCombinationString + " assigned to button " + buttonDesc, logBlockName2 );
-                            if (GlobalSettings.IsReady)
-                            {
-                                GlobalSettings.Instance.Save();
-                            }
+                            Log.Info( "Key Combination " + kb.KeyCombinationDescription + " assigned to button " + buttonDesc, logBlockName2 );
+
+                            TimeControlEvents.OnTimeControlKeyBindingsChanged?.Fire( kb );
                         }
                     } );
                 }
                 // Right Mouse Button, Clear Assigned Key
                 else if (Event.current.button == 1 && !currentlyAssigningKey)
                 {
-                    kb.KeyCombination.Clear();
-                    kb.KeyCombinationString = "";
+                    kb.KeyCombination = new List<KeyCode>();
+                    TimeControlEvents.OnTimeControlKeyBindingsChanged?.Fire( kb );
                 }
             }
         }
