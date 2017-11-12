@@ -471,19 +471,19 @@ namespace TimeControl
         /// </summary>
         private void GUIQuickWarpToNextKAC()
         {
-            if (!TimeControlIMGUI.Instance.KACAPIIntegrated)
+            if (!KACWrapper.InstanceExists)
             {
                 return;
             }
 
             bool priorEnabled = GUI.enabled;
 
-            GUI.enabled = priorEnabled && !(TimeControlIMGUI.Instance.ClosestKACAlarm == null);
+            GUI.enabled = priorEnabled && !(TimeController.Instance.ClosestKACAlarm == null);
             GUILayout.BeginHorizontal();
             {
                 if (GUILayout.Button( "Upcoming KAC Alarm" ))
                 {
-                    TargetUT = TimeControlIMGUI.Instance.ClosestKACAlarm.AlarmTime;
+                    TargetUT = TimeController.Instance.ClosestKACAlarm.AlarmTime;
                     RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
             }

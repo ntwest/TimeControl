@@ -190,13 +190,15 @@ namespace TimeControl
                 activeKeyBinds.Add( new TimeStep() );
                 activeKeyBinds.Add( new HyperToggle() );
                 activeKeyBinds.Add( new SlowMoToggle() );
+                activeKeyBinds.Add( new WarpToNextKACAlarm() );
+                activeKeyBinds.Add( new WarpForNSeconds() { V = 60f } );
                 activeKeyBinds.Add( new HyperRateSpeedUp() { V = 1f } );
                 activeKeyBinds.Add( new HyperRateSlowDown() { V = 1f } );
-                activeKeyBinds.Add( new SlowMoSpeedUp() { V = 0.05f } );
-                activeKeyBinds.Add( new SlowMoSlowDown() { V = 0.05f } );
                 activeKeyBinds.Add( new HyperPhysicsAccuracyUp() { V = 0.5f } );
                 activeKeyBinds.Add( new HyperPhysicsAccuracyDown() { V = 0.5f } );
-
+                activeKeyBinds.Add( new SlowMoSpeedUp() { V = 0.05f } );
+                activeKeyBinds.Add( new SlowMoSlowDown() { V = 0.05f } );
+                
                 if (GlobalSettings.IsReady)
                 {
                     GlobalSettings.Instance.Save();
@@ -226,6 +228,11 @@ namespace TimeControl
                     if (k is TimeControlKeyBindingValue k2)
                     {
                         newNode.AddValue( "V", k2.V );
+                    }
+
+                    if (k is WarpToVesselOrbitLocation k3)
+                    {
+                        newNode.AddValue( "VesselOrbitLocation", k3.VesselLocation );
                     }
                 }
             }
@@ -296,9 +303,37 @@ namespace TimeControl
                         {
                             if (!(ccn.TryAssignFromConfigFloat("V", ref v)))
                             {
-                                Log.Warning( "Key does not have a value assigned in config. " + tcka.ToString(), logBlockName );
+                                Log.Warning( "Key has a bad value assigned in config. " + tcka.ToString(), logBlockName );
                                 continue;
                             }
+                        }
+                        else
+                        {
+                            Log.Warning( "Key does not have a value assigned in config. " + tcka.ToString(), logBlockName );
+                            continue;
+                        }
+                    }
+
+                    WarpToVesselOrbitLocation.VesselOrbitLocation vol = WarpToVesselOrbitLocation.VesselOrbitLocation.Ap;
+                    if (tcka == TimeControlKeyAction.WarpToVesselOrbitLocation)
+                    {
+                        if (ccn.HasValue( "VesselOrbitLocation" ))
+                        {
+                            string ll = ccn.GetValue( "VesselOrbitLocation" );
+                            if (Enum.IsDefined( typeof( WarpToVesselOrbitLocation.VesselOrbitLocation ), ll ))
+                            {
+                                vol = (WarpToVesselOrbitLocation.VesselOrbitLocation)Enum.Parse( typeof( WarpToVesselOrbitLocation.VesselOrbitLocation ), ll );
+                            }
+                            else
+                            {
+                                Log.Warning( "VesselOrbitLocation has error in configuration file.", logBlockName );
+                                continue;
+                            }
+                        }
+                        else
+                        {
+                            Log.Warning( "VesselOrbitLocation not found in configuration file.", logBlockName );
+                            continue;
                         }
                     }
 
@@ -349,6 +384,18 @@ namespace TimeControl
                             break;
                         case TimeControlKeyAction.SlowMoSpeedUp:
                             tckb = new SlowMoSpeedUp() { KeyCombination = iekc, V = v };
+                            break;
+                        case TimeControlKeyAction.WarpToVesselOrbitLocation:
+                            tckb = new WarpToVesselOrbitLocation( vol ) { KeyCombination = iekc, V = v };
+                            break;
+                        case TimeControlKeyAction.WarpToNextKACAlarm:
+                            tckb = new WarpToNextKACAlarm() { KeyCombination = iekc };
+                            break;
+                        case TimeControlKeyAction.WarpForNOrbits:
+                            tckb = new WarpForNOrbits() { KeyCombination = iekc, V = v };
+                            break;
+                        case TimeControlKeyAction.WarpForNSeconds:
+                            tckb = new WarpForNSeconds() { KeyCombination = iekc, V = v };
                             break;
                     }
 

@@ -71,6 +71,16 @@ namespace TimeControl
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSetRate() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSpeedUp() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSlowDown() { IsUserDefined = true } ) );
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Ap ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Pe ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.AN ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.DN ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.SOI ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.ManuverNode ) { IsUserDefined = true } ) );
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNOrbits() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNSeconds() { IsUserDefined = true } ) );
         }
 
         private void CacheKeyBinds()
@@ -148,12 +158,19 @@ namespace TimeControl
                 {
                     foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == false ))
                     {
+                        if (kb is WarpToNextKACAlarm)
+                        {
+                            GUI.enabled = guiPriorEnabled && KACWrapper.InstanceExists;
+                        }
+
                         GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
                         string buttonDesc = kb.Description.MemoizedConcat( ": " ).MemoizedConcat( kb.IsKeyAssigned ? kb.KeyCombinationDescription : "None" );
                         if (GUILayout.Button( buttonDesc ))
                         {
                             GUIAssignKey( buttonDesc, kb );
                         }
+
+                        GUI.enabled = guiPriorEnabled;
                     }
                 }
                 GUILayout.EndVertical();

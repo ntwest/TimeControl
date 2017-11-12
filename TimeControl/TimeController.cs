@@ -133,7 +133,23 @@ namespace TimeControl
         {
             get => HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.SupressFlightResultsDialog ?? false;
         }
-        
+
+        public IDateTimeFormatter CurrentDTF
+        {
+            get => KSPUtil.dateTimeFormatter;
+        }
+
+        public KACWrapper.KACAPI.KACAlarm ClosestKACAlarm
+        {
+            get;
+            private set;
+        }
+
+        public float DefaultFixedDeltaTime
+        {
+            get => defaultFixedDeltaTime;
+        }
+
         #endregion
 
 
@@ -154,81 +170,12 @@ namespace TimeControl
             {
                 defaultFixedDeltaTime = Time.fixedDeltaTime; // 0.02f
 
-                GameEvents.onGamePause.Add( this.onGamePause );
-                GameEvents.onGameUnpause.Add( this.onGameUnpause );
                 GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
-                
-                /*
-                GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
-                GameEvents.onTimeWarpRateChanged.Add( this.onTimeWarpRateChanged );
-                GameEvents.onFlightReady.Add( this.onFlightReady );
-                GameEvents.onVesselGoOffRails.Add( this.onVesselGoOffRails );
                 GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
-                */
-
-                //FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
-                //cam = cams[0];
 
                 Log.Info( "TimeController.Instance is Ready!", logBlockName );
                 IsReady = true;
             }
-        }
-
-        private void OnGameSettingsApplied()
-        {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( OnGameSettingsApplied );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                GameSettings.KERBIN_TIME = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime;
-                Log.LoggingLevel = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel;
-
-                if (GlobalSettings.Instance != null && GlobalSettings.IsReady)
-                {
-                    GlobalSettings.Instance.Save();
-                }
-            }
-        }
-
-        /// <summary>
-        /// Go back to realtime
-        /// </summary>
-        internal void ResetTime()
-        {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetFixedDeltaTime );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                this.ResetTimeScale();
-                this.ResetFixedDeltaTime();
-            }
-        }
-
-        /// <summary>
-        /// Reset the fixedDeltaTime to default
-        /// </summary>
-        internal void ResetFixedDeltaTime()
-        {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetFixedDeltaTime );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                this.FixedDeltaTime = DefaultFixedDeltaTime;
-            }
-        }
-
-        /// <summary>
-        ///  Reset the time scale to default
-        /// </summary>
-        internal void ResetTimeScale()
-        {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetTimeScale );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                this.TimeScale = 1f;
-            }
-        }
-
-        public float DefaultFixedDeltaTime
-        {
-            get => defaultFixedDeltaTime;
         }
 
         #region Update Functions
@@ -258,7 +205,6 @@ namespace TimeControl
                 FlightResultsDialog.Close();
             }
         }
-
         #endregion
 
         #endregion
@@ -266,17 +212,48 @@ namespace TimeControl
         #region GameEvents
         private void onGamePause()
         {
-            const string logBlockName = "TimeController.onGamePause";
+            const string logBlockName = nameof( TimeController ) + "." + nameof( onGamePause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
             }
         }
 
-        private void onGameUnpause()
+        private void OnGameSettingsApplied()
         {
-            const string logBlockName = "TimeController.onGameUnpause";
+            const string logBlockName = nameof( TimeController ) + "." + nameof( OnGameSettingsApplied );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                GameSettings.KERBIN_TIME = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime;
+                Log.LoggingLevel = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel;
+
+                if (GlobalSettings.Instance != null && GlobalSettings.IsReady)
+                {
+                    GlobalSettings.Instance.Save();
+                }
+            }
+        }
+
+        private void onGameUnpause()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( onGameUnpause );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+            }
+        }
+        
+        private void onLevelWasLoaded(GameScenes gs)
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( onLevelWasLoaded );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {                
+                // Retry KAC load on scene change
+                if (gs == GameScenes.FLIGHT || gs == GameScenes.SPACECENTER || gs == GameScenes.TRACKSTATION)
+                {
+                    if (!KACWrapper.InstanceExists)
+                    {
+                        SetupKACAlarms();
+                    }
+                }
             }
         }
         #endregion
@@ -448,10 +425,90 @@ namespace TimeControl
         #endregion
 
         #region Private Methods 
+        private void SetupKACAlarms()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( SetupKACAlarms );
+
+            KACWrapper.InitKACWrapper();
+            if (KACWrapper.InstanceExists)
+            {
+                StartCoroutine( CheckKACAlarms() );
+                Log.Info( "KAC Integrated With TimeControl", logBlockName );
+            }
+            else
+            {
+                Log.Info( "KAC Not Integrated With TimeControl", logBlockName );
+            }
+        }
+
+        private IEnumerator CheckKACAlarms()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( CheckKACAlarms );
+
+            while (true)
+            {
+                var list = KACWrapper.KAC.Alarms.Where( f => f.AlarmTime > Planetarium.GetUniversalTime() && f.AlarmType != KACWrapper.KACAPI.AlarmTypeEnum.EarthTime ).OrderBy( f => f.AlarmTime );
+                if (list != null && list.Count() != 0)
+                {
+                    var upNextAlarm = list.First();
+                    if (ClosestKACAlarm == null || ClosestKACAlarm.ID != upNextAlarm.ID)
+                    {
+                        Log.Info( "Updating Next KAC Alarm", logBlockName );
+                        ClosestKACAlarm = upNextAlarm;
+                    }
+                }
+                else if (ClosestKACAlarm != null)
+                {
+                    Log.Info( "Clearing Next KAC Alarm", logBlockName );
+                    ClosestKACAlarm = null;
+                }
+
+                yield return new WaitForSeconds( 1f );
+            }
+        }
+
         #endregion
 
-        #region Public Methods        
-        #region Pause
+        #region Internal Methods
+        /// <summary>
+        /// Go back to realtime
+        /// </summary>
+        internal void ResetTime()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetFixedDeltaTime );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                this.ResetTimeScale();
+                this.ResetFixedDeltaTime();
+            }
+        }
+
+        /// <summary>
+        /// Reset the fixedDeltaTime to default
+        /// </summary>
+        internal void ResetFixedDeltaTime()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetFixedDeltaTime );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                this.FixedDeltaTime = DefaultFixedDeltaTime;
+            }
+        }
+
+        /// <summary>
+        ///  Reset the time scale to default
+        /// </summary>
+        internal void ResetTimeScale()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetTimeScale );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                this.TimeScale = 1f;
+            }
+        }
+        #endregion Internal Methods
+
+        #region Public Methods
         public void TogglePause()
         {
             const string logBlockName = "TimeController.TogglePause()";
@@ -483,7 +540,45 @@ namespace TimeControl
         }
 
 
-        #endregion        
+        // TODO - QuickWarp / WarpTo based on ksp date time formatter settings
+
+        // Seconds / Minute
+
+        //public void ComputeIncrements()
+        //{
+        //    List<int> secondsInMinute = new List<int>() {
+        //        1,
+        //        (int)Math.Floor( ((CurrentDTF.Minute * 0.25) * 1.0) / 3.0 ),
+        //        (int)Math.Floor( ((CurrentDTF.Minute * 0.25) * 2.0) / 3.0 ),
+        //        (int)Math.Floor( CurrentDTF.Minute * 0.25 ),
+        //        (int)Math.Floor( CurrentDTF.Minute * 0.5 ),
+        //        (int)Math.Floor( CurrentDTF.Minute * 0.75 )
+        //    };
+
+        //    double minutesPerHour = (CurrentDTF.Hour / CurrentDTF.Minute);
+        //    List<int> minutesInHour = new List<int>() {
+        //        1,
+        //        (int)Math.Floor( ((minutesPerHour * 0.25) * 1.0) / 3.0 ),
+        //        (int)Math.Floor( ((minutesPerHour * 0.25) * 2.0) / 3.0 ),
+        //        (int)Math.Floor( minutesPerHour * 0.25 ),
+        //        (int)Math.Floor( minutesPerHour * 0.5 ),
+        //        (int)Math.Floor( minutesPerHour * 0.75 )
+        //    };
+
+        //    double hoursPerDay = 
+        //}
+
+
+        // Minutes / Hour
+
+        // Hour / Day
+
+        // Day / Year
+
+
+
+
+        
         #endregion
     }
 }

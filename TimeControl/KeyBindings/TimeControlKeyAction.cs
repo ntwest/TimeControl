@@ -16,6 +16,10 @@
         HyperPhysicsAccuracyDown = 12,
         SlowMoSetRate = 13,
         SlowMoSpeedUp = 14,
-        SlowMoSlowDown = 15
+        SlowMoSlowDown = 15,
+        WarpToVesselOrbitLocation = 16,
+        WarpToNextKACAlarm = 17,
+        WarpForNOrbits = 18,
+        WarpForNSeconds = 19
     }
 }

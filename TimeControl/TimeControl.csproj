@@ -33,7 +33,11 @@
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
     <Compile Include="IMGUI\KeyBindingsAddIMGUI.cs" />
-    <Compile Include="KeyBindings\TimeControlAction.cs" />
+    <Compile Include="KeyBindings\WarpForNSeconds.cs" />
+    <Compile Include="KeyBindings\WarpToNextKACAlarm.cs" />
+    <Compile Include="KeyBindings\WarpForNOrbits.cs" />
+    <Compile Include="KeyBindings\WarpToVesselOrbitLocation.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyAction.cs" />
     <Compile Include="KeyBindings\HyperPhysicsAccuracyDown.cs" />
     <Compile Include="KeyBindings\HyperPhysicsAccuracySet.cs" />
     <Compile Include="KeyBindings\HyperPhysicsAccuracyUp.cs" />
@@ -52,7 +56,7 @@
     <Compile Include="KeyBindings\TimeControlKeyBindingValue.cs" />
     <Compile Include="ResourceConverterBugFix.cs" />
     <Compile Include="TimeControlScenario.cs" />
-    <Compile Include="Enums\LogSeverity.cs" />
+    <Compile Include="Logging\LogSeverity.cs" />
     <Compile Include="FPSKeeperController.cs" />
     <Compile Include="IMGUI\QuickWarpToIMGUI.cs" />
     <Compile Include="IMGUI\SharedIMGUI.cs" />

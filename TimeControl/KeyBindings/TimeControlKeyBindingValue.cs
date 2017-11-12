@@ -6,8 +6,6 @@ namespace TimeControl.KeyBindings
 {
     public abstract class TimeControlKeyBindingValue : TimeControlKeyBinding
     {
-        public string SetDescription;
-
         abstract public float VMax
         {
             get;

@@ -197,9 +197,6 @@ namespace TimeControl
             get => (PerformanceManager.IsReady ? PerformanceManager.Instance?.FramesPerSecond ?? 0.0 : 0.0);
         }
 
-        public bool KACAPIIntegrated { get; set; } = false;
-        public bool TriedToLoadKAC { get; set; } = false;
-
         #endregion
         #region MonoBehavior and related private methods
         #region One-Time
@@ -368,69 +365,6 @@ namespace TimeControl
             {
                 Log.Info( "Unhiding GUI for Settings Lock", logBlockName );
                 TempUnHideGUI( "GameEventsUI" );
-            }
-        }
-        #endregion
-
-        #region Update Methods
-        private void Update()
-        {
-            if (!IsReady || GUITempHidden || !TimeController.IsReady || !WindowVisible)
-            {
-                return;
-            }
-
-            if (!TriedToLoadKAC)
-            {
-                SetupKACAlarms();
-            }
-        }
-
-        internal KACWrapper.KACAPI.KACAlarm ClosestKACAlarm { get; private set; }
-
-        private void SetupKACAlarms()
-        {
-            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( SetupKACAlarms );
-
-            TriedToLoadKAC = true;
-            KACAPIIntegrated = KACWrapper.InitKACWrapper();
-            if (KACAPIIntegrated)
-            {
-                StartCoroutine( CheckKACAlarms() );
-                Log.Info( "KAC Integrated With TimeControl", logBlockName );
-            }
-            else
-            {
-                Log.Info( "KAC Not Integrated With TimeControl", logBlockName );
-            }
-        }
-
-        private IEnumerator CheckKACAlarms()
-        {
-            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( CheckKACAlarms );
-
-            while (true)
-            {
-                if (KACAPIIntegrated && (WindowSelectedMode == GUIMode.RailsWarpTo || WindowSelectedMode == GUIMode.QuickWarp))
-                {
-                    var list = KACWrapper.KAC.Alarms.Where( f => f.AlarmTime > Planetarium.GetUniversalTime() && f.AlarmType != KACWrapper.KACAPI.AlarmTypeEnum.EarthTime ).OrderBy( f => f.AlarmTime );
-                    if (list != null && list.Count() != 0)
-                    {
-                        var upNextAlarm = list.First();
-                        if (ClosestKACAlarm == null || ClosestKACAlarm.ID != upNextAlarm.ID)
-                        {
-                            Log.Info( "Updating Next KAC Alarm", logBlockName );
-                            ClosestKACAlarm = upNextAlarm;
-                        }
-                    }
-                    else if (ClosestKACAlarm != null)
-                    {
-                        Log.Info( "Clearing Next KAC Alarm", logBlockName );
-                        ClosestKACAlarm = null;
-                    }
-                }
-
-                yield return new WaitForSeconds( 1f );
             }
         }
         #endregion

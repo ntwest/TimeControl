@@ -8,6 +8,7 @@ namespace TimeControl.KeyBindings
     public abstract class TimeControlKeyBinding
     {
         public string Description { get; set; }
+        public string SetDescription { get; set; } = "";
 
         private List<KeyCode> keyCombination = new List<KeyCode>();
 
