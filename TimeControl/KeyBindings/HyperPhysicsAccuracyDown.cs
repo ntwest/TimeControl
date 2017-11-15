@@ -19,6 +19,7 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.HyperPhysicsAccuracyDown;
             SetDescription = "Hyper-Warp Decrease Accuracy By: ";
+            FireWhileHoldingKeyDown = true;
             UpdateDescription();
         }
 

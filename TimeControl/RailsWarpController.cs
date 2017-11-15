@@ -213,6 +213,11 @@ namespace TimeControl
             get => customWarpRates?.Count ?? 8;
         }
 
+        private IDateTimeFormatter CurrentDTF
+        {
+            get => KSPUtil.dateTimeFormatter;
+        }
+
         /// <summary>
         /// Returns a copy of the default warp rates list
         /// </summary>
@@ -1348,40 +1353,21 @@ namespace TimeControl
             }
         }
 
-        public bool RailsWarpForDuration(int warpYears, int warpDays, int warpHours, int warpMinutes, int warpSeconds, bool useKerbinDaysYears = true)
+        public bool RailsWarpForDuration(double warpYears, double warpDays, double warpHours, double warpMinutes, double warpSeconds, bool useKerbinDaysYears = true)
         {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForDuration ) + " - Overload YDHMS";
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForDuration );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {                
                 double totalSeconds = 0f;
                 if (useKerbinDaysYears)
                 {
-                    Log.Info( String.Format( "Trying to Rails Warp for {0} Kerbin-Years, {1} Kerbin-Days  {2} : {3} : {4} ", warpYears, warpDays, warpHours, warpMinutes, warpSeconds ), logBlockName );
-                    totalSeconds = (warpYears * KSPUtil.dateTimeFormatter.Year) + (warpDays * KSPUtil.dateTimeFormatter.Day) + (warpHours * KSPUtil.dateTimeFormatter.Hour) + (warpMinutes * KSPUtil.dateTimeFormatter.Minute) + warpSeconds;
+                    Log.Info( String.Format( "Trying to Rails Warp for {0} Kerbin-Years, {1} Kerbin-Years  {2} : {3} : {4} ", warpYears, warpDays, warpHours, warpMinutes, warpSeconds ), logBlockName );
+                    totalSeconds = (warpYears * CurrentDTF.Year) + (warpDays * CurrentDTF.Day) + (warpHours * CurrentDTF.Hour) + (warpMinutes * CurrentDTF.Minute) + warpSeconds;
                 }
                 else
                 {
                     Log.Info( String.Format( "Trying to Rails Warp for {0} Earth-Years, {1} Earth-Days  {2} : {3} : {4} ", warpYears, warpDays, warpHours, warpMinutes, warpSeconds ), logBlockName );
                     totalSeconds = (warpYears * 365 * 24 * 60 * 60) + (warpDays * 24 * 60 * 60) + (warpHours * 60 * 60) + (warpMinutes * 60) + warpSeconds;
-                }
-                return RailsWarpForSeconds( totalSeconds );
-            }
-        }
-
-        public bool RailsWarpForDuration(int warpHours, int warpMinutes, int warpSeconds, bool useKerbinDaysYears = true)
-        {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForDuration ) + " - Overload HMS";
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                Log.Info( String.Format( "Trying to Rails Warp for {0} : {1} : {2} ", warpHours, warpMinutes, warpSeconds ), logBlockName );
-                double totalSeconds;
-                if (useKerbinDaysYears)
-                {
-                    totalSeconds = (warpHours * KSPUtil.dateTimeFormatter.Hour) + (warpMinutes * KSPUtil.dateTimeFormatter.Minute) + warpSeconds;
-                }
-                else
-                {
-                    totalSeconds = (warpHours * 60 * 60) + (warpMinutes * 60) + warpSeconds;
                 }
                 return RailsWarpForSeconds( totalSeconds );
             }

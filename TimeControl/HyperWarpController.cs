@@ -276,23 +276,6 @@ namespace TimeControl
             OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( PhysicsAccuracyChanged );
         }
 
-        private void Update()
-        {
-            if (GlobalSettings.IsReady && isHyperWarping)
-            {
-                if (GlobalSettings.Instance.CameraZoomFix)
-                {
-                    cam.SetDistanceImmediate( cam.Distance );
-                }
-
-                if (!CanHyperWarp)
-                {
-                    DeactivateHyper();
-                    return;
-                }
-            }
-        }
-
         private IEnumerator Configure()
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Configure );
@@ -336,6 +319,68 @@ namespace TimeControl
 
                 IsReady = true;
                 yield break;
+            }
+        }
+
+        private void Update()
+        {
+            if (GlobalSettings.IsReady && isHyperWarping)
+            {
+                if (GlobalSettings.Instance.CameraZoomFix)
+                {
+                    cam.SetDistanceImmediate( cam.Distance );
+                }
+
+                if (!CanHyperWarp)
+                {
+                    DeactivateHyper();
+                    return;
+                }
+            }
+
+            UpdateHyperWarpScreenMessage();
+        }
+
+        private void UpdateHyperWarpScreenMessage()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateHyperWarpScreenMessage );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if ((!this.isHyperWarping))
+                {
+                    RemoveCurrentScreenMessage();
+                    return;
+                }
+                if (this.ShowOnscreenMessages)
+                {
+                    ScreenMessage s;
+                    if (PerformanceCountersOn)
+                    {
+                        string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
+                        if (msg != (this.currentScreenMessage?.message ?? ""))
+                        {
+                            s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
+                        }
+                        else
+                        {
+                            s = this.currentScreenMessage;
+                        }
+                    }
+                    else
+                    {
+                        s = this.defaultScreenMessage;
+                    }
+
+                    if (s.message != (this.currentScreenMessage?.message ?? ""))
+                    {
+                        RemoveCurrentScreenMessage();
+                        this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
+                    }
+                }
+                else
+                {
+                    RemoveCurrentScreenMessage();
+                }
             }
         }
         #endregion
@@ -476,7 +521,7 @@ namespace TimeControl
                 }
                 if (isHyperWarping)
                 {
-                    Log.Warning( "Already hyper warping.", logBlockName );
+                    Log.Info( "Already hyper warping.", logBlockName );
                     return;
                 }
                 SetCanRailsWarp( false );
@@ -484,8 +529,6 @@ namespace TimeControl
 
                 SetHyperTimeScale();
                 SetHyperFixedDeltaTime();
-
-                StartCoroutine( UpdateHyperWarpScreenMessage() );
             }
         }
 
@@ -500,11 +543,6 @@ namespace TimeControl
                 {
                     Log.Info( "Hyper warp not currently running.", logBlockName );
                     return;
-                }
-
-                if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
-                {
-                    ScreenMessages.RemoveMessage( this.currentScreenMessage );
                 }
 
                 ResetTimeScale();
@@ -742,56 +780,7 @@ namespace TimeControl
             this.currentScreenMessage = null;
         }
 
-        private IEnumerator UpdateHyperWarpScreenMessage()
-        {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateHyperWarpScreenMessage );
-            const float screenMessageUpdateFrequency = 1f;
 
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                while (true)
-                {
-                    if ((!this.isHyperWarping))
-                    {
-                        RemoveCurrentScreenMessage();
-                        yield break;
-                    }
-                    
-                    if (this.ShowOnscreenMessages)
-                    {
-                        ScreenMessage s;
-                        if (PerformanceCountersOn)
-                        {
-                            string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
-                            if (msg != this.currentScreenMessage.message)
-                            {
-                                s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
-                            }
-                            else
-                            {
-                                s = this.currentScreenMessage;
-                            }
-                        }
-                        else
-                        {
-                            s = this.defaultScreenMessage;
-                        }
-                        
-                        if (s.message != this.currentScreenMessage.message)
-                        {
-                            RemoveCurrentScreenMessage();
-                            this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
-                        }
-                    }
-                    else
-                    {
-                        RemoveCurrentScreenMessage();                        
-                    }
-
-                    yield return new WaitForSeconds( screenMessageUpdateFrequency );
-                }
-            }
-        }
         #endregion
 
         #endregion

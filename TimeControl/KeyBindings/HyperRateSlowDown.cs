@@ -19,6 +19,7 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.HyperRateSlowDown;
             SetDescription = "Hyper-Warp Decrease Rate By: ";
+            FireWhileHoldingKeyDown = true;
             UpdateDescription();
         }
 

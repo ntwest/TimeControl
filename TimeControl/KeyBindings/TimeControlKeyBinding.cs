@@ -92,6 +92,7 @@ namespace TimeControl.KeyBindings
 
                 ConfigNode newNode = new ConfigNode( kbNodeName );
                 newNode.AddValue( "Action", this.TimeControlKeyActionName );
+                newNode.AddValue( "IsUserDefined", this.IsUserDefined );
                 newNode.AddValue( "KeyCombination", this.KeyCombinationDescription );
                 return newNode;
             }

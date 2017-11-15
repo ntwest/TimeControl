@@ -46,39 +46,46 @@ namespace TimeControl
         private bool usePercentage;
         private bool valueParsed = false;
 
-        TimeControlKeyBindingValue kb;
+        TimeControlKeyBinding kb;
 
-        public KeyBindingsAddIMGUI(TimeControlKeyBindingValue kb)
+        public KeyBindingsAddIMGUI(TimeControlKeyBinding kb)
         {
             this.kb = kb;
-            usePercentage = (kb is SlowMoSetRate || kb is SlowMoSlowDown || kb is SlowMoSpeedUp);
 
-            if (!usePercentage)
+            if (kb is TimeControlKeyBindingValue tckbv)
             {
-                sValue = sCurrentValue = kb.V.MemoizedToString();
-            }
-            else
-            {
-                sValue = sCurrentValue = Mathf.RoundToInt( kb.V * 100.0f ).MemoizedToString();
-            }
+                usePercentage = (tckbv is SlowMoSetRate || tckbv is SlowMoSlowDown || tckbv is SlowMoSpeedUp);
 
-            parseValue();
+                if (!usePercentage)
+                {
+                    sValue = sCurrentValue = tckbv.V.MemoizedToString();
+                }
+                else
+                {
+                    sValue = sCurrentValue = Mathf.RoundToInt( tckbv.V * 100.0f ).MemoizedToString();
+                }
+
+                parseValue();
+            }
         }
 
         private void parseValue()
         {
-            valueParsed = float.TryParse( sValue, out float f );
-            if (valueParsed)
+            if (kb is TimeControlKeyBindingValue tckbv)
             {
-                if (!usePercentage)
+                valueParsed = float.TryParse( sValue, out float f );
+                if (valueParsed)
                 {
-                    kb.V = f;
-                    sValue = sCurrentValue = kb.V.MemoizedToString();
-                }
-                else
-                {
-                    kb.V = (f / 100.0f);
-                    sValue = sCurrentValue = Mathf.RoundToInt( kb.V * 100.0f ).MemoizedToString();
+                    if (!usePercentage)
+                    {
+                        tckbv.V = f;
+                        sValue = sCurrentValue = tckbv.V.MemoizedToString();
+                    }
+                    else
+                    {
+                        tckbv.V = (f / 100.0f);
+                        sValue = sCurrentValue = Mathf.RoundToInt( tckbv.V * 100.0f ).MemoizedToString();
+                    }
                 }
             }
         }
@@ -95,14 +102,20 @@ namespace TimeControl
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label( kb.SetDescription, GUILayout.Width( 250 ) );                
-                sValue = GUILayout.TextField( sValue, GUILayout.Width( 50 ) );
-                if (sValue != sCurrentValue)
+                if (kb is TimeControlKeyBindingValue tckbv)
                 {
-                    parseValue();
+                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 250 ) );
+                    sValue = GUILayout.TextField( sValue, GUILayout.Width( 50 ) );
+                    if (sValue != sCurrentValue)
+                    {
+                        parseValue();
+                    }
+                    GUI.enabled = guiPriorEnabled && valueParsed;
                 }
-
-                GUI.enabled = guiPriorEnabled && valueParsed;
+                else
+                {
+                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 300 ) );
+                }
                 if (GUILayout.Button( "ADD", GUILayout.Width( 40 ) ))
                 {
                     KeyboardInputManager.Instance.AddKeyBinding( kb );

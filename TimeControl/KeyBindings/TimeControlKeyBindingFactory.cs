@@ -50,7 +50,15 @@ namespace TimeControl.KeyBindings
                     Log.Error( "Key has a bad value 'VesselOrbitLocation' assigned in config. Ignoring Key Definition.", logBlockName );
                     return null;
                 }
-                
+
+                bool hasTimeIncrement = cn.HasValue( "TI" );
+                bool assignedTimeIncrement = cn.TryAssignFromConfigEnum( "TI", out WarpForNTimeIncrements.TimeIncrement ti);
+                if (hasTimeIncrement && !assignedTimeIncrement)
+                {
+                    Log.Error( "Key has a bad value 'TI' assigned in config. Ignoring Key Definition.", logBlockName );
+                    return null;
+                }
+
                 switch (tcka)
                 {
                     case TimeControlKeyAction.GUIToggle:
@@ -67,6 +75,14 @@ namespace TimeControl.KeyBindings
                         return new SlowMoToggle() { KeyCombination = iekc };
                     case TimeControlKeyAction.WarpToNextKACAlarm:
                         return new WarpToNextKACAlarm() { KeyCombination = iekc };
+                    case TimeControlKeyAction.HyperActivate:
+                        return new HyperActivate() { KeyCombination = iekc };
+                    case TimeControlKeyAction.HyperDeactivate:
+                        return new HyperDeactivate() { KeyCombination = iekc };
+                    case TimeControlKeyAction.SlowMoActivate:
+                        return new SlowMoActivate() { KeyCombination = iekc };
+                    case TimeControlKeyAction.SlowMoDeactivate:
+                        return new SlowMoDeactivate() { KeyCombination = iekc };
                     case TimeControlKeyAction.HyperRateSetRate:
                         return new HyperRateSetRate() { KeyCombination = iekc, V = v };
                     case TimeControlKeyAction.HyperRateSlowDown:
@@ -87,13 +103,13 @@ namespace TimeControl.KeyBindings
                         return new SlowMoSpeedUp() { KeyCombination = iekc, V = v };
                     case TimeControlKeyAction.WarpForNOrbits:
                         return new WarpForNOrbits() { KeyCombination = iekc, V = v };
-                    case TimeControlKeyAction.WarpForNSeconds:
-                        return new WarpForNSeconds() { KeyCombination = iekc, V = v };
+                    case TimeControlKeyAction.WarpForNTimeIncrements:
+                        return new WarpForNTimeIncrements( ti ) { KeyCombination = iekc, V = v };
                     case TimeControlKeyAction.WarpToVesselOrbitLocation:
                         return new WarpToVesselOrbitLocation( vol ) { KeyCombination = iekc, V = v };
                 }
 
-                Log.Error( "Key " + tcka.ToString() + " not mapped internally.", logBlockName );
+                Log.Error( "Key action " + tcka.ToString() + " not mapped to internal action. Please report this error to the developer!", logBlockName );
                 return null;
             }
         }

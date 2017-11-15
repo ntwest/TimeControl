@@ -48,7 +48,7 @@ namespace TimeControl
         #region Singleton
         internal static KeyboardInputManager Instance { get; private set; }
         public static bool IsReady { get; private set; } = false;
-        public int KeyRepeatStart { get; private set; } = 300;
+        public int KeyRepeatStart { get; private set; } = 500;
         public int KeyRepeatInterval { get; private set; } = 15;
         #endregion
 
@@ -56,6 +56,11 @@ namespace TimeControl
         private List<KeyCode> keysPressed;
         private List<KeyCode> keysPressedDown;
         private List<KeyCode> keysReleased;
+
+        private bool isAssigningKey = false;
+        private bool clearKeys = false;
+        private float pressedDownStart = 0f;
+        private float lastInterval = 0f;
 
         private List<TimeControlKeyBinding> activeKeyBinds;
         
@@ -73,7 +78,7 @@ namespace TimeControl
         /// </summary>
         private Dictionary<KeyCode, KeyCode> checkKeys = new Dictionary<KeyCode, KeyCode>();
 
-        bool clearKeys = false;
+        
 
         #region MonoBehavior
 
@@ -144,7 +149,11 @@ namespace TimeControl
             if (Input.anyKey)
             {
                 LoadKeyPresses();
-                CheckKeyBindings();
+
+                if (!isAssigningKey)
+                {
+                    ProcessKeyPressActions();
+                }
 
                 clearKeys = true;
             }
@@ -269,10 +278,7 @@ namespace TimeControl
             }
         }
 
-        float pressedDownStart = 0f;
-        float lastInterval = 0f;
-
-        private void CheckKeyBindings()
+        private void ProcessKeyPressActions()
         {
             foreach (TimeControlKeyBinding k in this.activeKeyBinds)
             {
@@ -298,7 +304,8 @@ namespace TimeControl
                     {
                         float timeNow = Time.realtimeSinceStartup;
                         if ((timeNow > pressedDownStart + (((float)this.KeyRepeatStart)) / 1000f ) // wait for initial hold down
-                            && (timeNow > lastInterval + (((float)(this.KeyRepeatInterval)) / 60f) )) // repeats per real time second
+                            && (timeNow > lastInterval + (1.0f / ((float)(this.KeyRepeatInterval)))) // repeats per real time second
+                            ) 
                         {
                             lastInterval = timeNow;
                             k.Press();
@@ -327,13 +334,14 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 List<KeyCode> lkc = new List<KeyCode>();
-                StartCoroutine( GetPressedKeyCombinationRepeat( lkc, callback ) );
+                isAssigningKey = true;
+                StartCoroutine( CRGetPressedKeyCombination( lkc, callback ) );
             }
         }
 
-        internal IEnumerator GetPressedKeyCombinationRepeat(List<KeyCode> lkc, Action<List<KeyCode>> callback)
+        internal IEnumerator CRGetPressedKeyCombination(List<KeyCode> lkc, Action<List<KeyCode>> callback)
         {
-            const string logBlockName = nameof( KeyboardInputManager ) + "." + nameof( GetPressedKeyCombinationRepeat );
+            const string logBlockName = nameof( KeyboardInputManager ) + "." + nameof( CRGetPressedKeyCombination );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 // Wait unti a key is pressed
@@ -356,7 +364,9 @@ namespace TimeControl
 
                 // Finally execute the callback function to send back the key combination
                 callback.Invoke( lkc );
-                
+
+                isAssigningKey = false;
+
                 yield break;
             }
         }

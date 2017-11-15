@@ -92,7 +92,7 @@ namespace TimeControl
                 };
                 
                 Func<float, float> modifySlowMo = delegate (float f) { return Mathf.Floor(f); };                
-                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, ratePct, 1f, 99f, 1f, updateSlowMo, modifySlowMo, true );
+                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, ratePct, 0f, 100f, 1f, updateSlowMo, modifySlowMo, true );
                 
                 GUILayout.Label( "", GUILayout.Height( 5 ) );
 

@@ -238,7 +238,7 @@ namespace TimeControl
             }
         }
 
-        private int keyRepeatStart = 300;
+        private int keyRepeatStart = 500;
         public int KeyRepeatStart
         {
             get => keyRepeatStart;
@@ -850,7 +850,7 @@ namespace TimeControl
                 activeKeyBinds.Add( new HyperToggle() );
                 activeKeyBinds.Add( new SlowMoToggle() );
                 activeKeyBinds.Add( new WarpToNextKACAlarm() );
-                activeKeyBinds.Add( new WarpForNSeconds() { V = 60f } );
+                activeKeyBinds.Add( new WarpForNTimeIncrements(WarpForNTimeIncrements.TimeIncrement.Seconds) { V = 30f } );
                 activeKeyBinds.Add( new HyperRateSlowDown() { V = 1f } );
                 activeKeyBinds.Add( new HyperRateSpeedUp() { V = 1f } );
                 activeKeyBinds.Add( new HyperPhysicsAccuracyDown() { V = 0.5f } );
@@ -920,20 +920,51 @@ namespace TimeControl
                         Log.Trace( "Parsing key binding node."
                             .MemoizedConcat( " TimeControlKeyActionName = " )
                             .MemoizedConcat( wtvol.TimeControlKeyActionName.MemoizedToString() )
+                            .MemoizedConcat( " IsUserDefined = " )
+                            .MemoizedConcat( wtvol.IsUserDefined.MemoizedToString() )
                             .MemoizedConcat( " V = " )
                             .MemoizedConcat( wtvol.V.MemoizedToString() )
                             .MemoizedConcat( " VesselLocation = ")
                             .MemoizedConcat( wtvol.VesselLocation.MemoizedToString() ), logBlockName );
 
                         var keys = activeKeyBinds
-                            .Where( k => k is TimeControlKeyBindingValue && k.TimeControlKeyActionName == wtvol.TimeControlKeyActionName )
+                            .Where( k => k is TimeControlKeyBindingValue && k.TimeControlKeyActionName == wtvol.TimeControlKeyActionName && k.IsUserDefined == wtvol.IsUserDefined)
                             .Select( k => (TimeControlKeyBindingValue)k )
                             .Where( k => k.V == wtvol.V )
                             .Select( k => (WarpToVesselOrbitLocation)k )
                             .Where( k => k.VesselLocation == wtvol.VesselLocation );
+
                         if (keys.Count() == 0)
                         {
-                            tckb.IsUserDefined = true;
+                            activeKeyBinds.Add( tckb );
+                        }
+                        else
+                        {
+                            TimeControlKeyBinding tckbOrig = keys.First();
+                            tckbOrig.KeyCombination = tckb.KeyCombination?.ToList() ?? new List<KeyCode>();
+                        }
+                    }
+                    else if (tckb is WarpForNTimeIncrements wfnti)
+                    {
+                        Log.Trace( "Parsing key binding node."
+                            .MemoizedConcat( " TimeControlKeyActionName = " )
+                            .MemoizedConcat( wfnti.TimeControlKeyActionName.MemoizedToString() )
+                            .MemoizedConcat( " IsUserDefined = " )
+                            .MemoizedConcat( wfnti.IsUserDefined.MemoizedToString() )
+                            .MemoizedConcat( " V = " )
+                            .MemoizedConcat( wfnti.V.MemoizedToString() )
+                            .MemoizedConcat( " TI = " )
+                            .MemoizedConcat( wfnti.TI.MemoizedToString() ), logBlockName );
+
+                        var keys = activeKeyBinds
+                            .Where( k => k is TimeControlKeyBindingValue && k.TimeControlKeyActionName == wfnti.TimeControlKeyActionName && k.IsUserDefined == wfnti.IsUserDefined )
+                            .Select( k => (TimeControlKeyBindingValue)k )
+                            .Where( k => k.V == wfnti.V )
+                            .Select( k => (WarpForNTimeIncrements)k )
+                            .Where( k => k.TI == wfnti.TI );
+
+                        if (keys.Count() == 0)
+                        {
                             activeKeyBinds.Add( tckb );
                         }
                         else
@@ -947,16 +978,17 @@ namespace TimeControl
                         Log.Trace( "Parsing key binding node."
                             .MemoizedConcat( " TimeControlKeyActionName = " )
                             .MemoizedConcat( tckbv.TimeControlKeyActionName.MemoizedToString() )
+                            .MemoizedConcat( " IsUserDefined = " )
+                            .MemoizedConcat( tckbv.IsUserDefined.MemoizedToString() )
                             .MemoizedConcat( " V = " )
                             .MemoizedConcat( tckbv.V.MemoizedToString() ), logBlockName );
 
                         var keys = activeKeyBinds
-                            .Where( k => k is TimeControlKeyBindingValue && k.TimeControlKeyActionName == tckbv.TimeControlKeyActionName )
+                            .Where( k => k is TimeControlKeyBindingValue && k.TimeControlKeyActionName == tckbv.TimeControlKeyActionName && k.IsUserDefined == tckbv.IsUserDefined )
                             .Select( k => (TimeControlKeyBindingValue)k )
                             .Where( k => k.V == tckbv.V );
                         if (keys.Count() == 0)
                         {
-                            tckb.IsUserDefined = true;
                             activeKeyBinds.Add( tckb );
                         }
                         else
@@ -969,12 +1001,14 @@ namespace TimeControl
                     {
                         Log.Trace( "Parsing key binding node."
                             .MemoizedConcat( " TimeControlKeyActionName = " )
-                            .MemoizedConcat( tckb.TimeControlKeyActionName.MemoizedToString() ), logBlockName );
+                            .MemoizedConcat( tckb.TimeControlKeyActionName.MemoizedToString()
+                            .MemoizedConcat( " IsUserDefined = " )
+                            .MemoizedConcat( tckb.IsUserDefined.MemoizedToString() )
+                            ), logBlockName );
 
-                        var keys = activeKeyBinds.Where( k => k.TimeControlKeyActionName == tckb.TimeControlKeyActionName );
+                        var keys = activeKeyBinds.Where( k => k.TimeControlKeyActionName == tckb.TimeControlKeyActionName && k.IsUserDefined == tckb.IsUserDefined );
                         if (keys.Count() == 0)
                         {
-                            tckb.IsUserDefined = true;
                             activeKeyBinds.Add( tckb );
                         }
                         else

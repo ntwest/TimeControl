@@ -34,7 +34,7 @@ namespace TimeControl
         public LogSeverity LoggingLevel = LogSeverity.Warning;
 
         [GameParameters.CustomIntParameterUI( "Key Repeat Start", minValue = 0, maxValue = 1000, stepSize = 100, toolTip = "For repeatable key bindings, the time in milliseconds the key must be held down before starting to repeat." )]
-        public int KeyRepeatStart = 300;
+        public int KeyRepeatStart = 500;
         [GameParameters.CustomIntParameterUI( "Key Repeat Interval", minValue = 1, maxValue = 60, stepSize = 1, toolTip = "For repeatable key bindings, the number of times key is repeated per second." )]
         public int KeyRepeatInterval = 15;
 

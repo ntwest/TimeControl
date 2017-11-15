@@ -93,6 +93,60 @@ namespace TimeControl
                     return;
                 }
             }
+
+            UpdateSlowMoScreenMessage();
+        }
+
+        private void RemoveCurrentScreenMessage()
+        {
+            if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
+            {
+                ScreenMessages.RemoveMessage( this.currentScreenMessage );
+            }
+            this.currentScreenMessage = null;
+        }
+
+        private void UpdateSlowMoScreenMessage()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateSlowMoScreenMessage );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if ((!IsSlowMo))
+                {
+                    RemoveCurrentScreenMessage();
+                    return;
+                }
+                if (this.ShowOnscreenMessages)
+                {
+                    ScreenMessage s;
+                    if (PerformanceCountersOn)
+                    {
+                        string msg = "SLOW-MOTION ".MemoizedConcat( (Math.Round( this.SlowMoRate * 100f, 1 )).MemoizedToString() ).MemoizedConcat( "%" );
+                        if (msg != (this.currentScreenMessage?.message ?? ""))
+                        {
+                            s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
+                        }
+                        else
+                        {
+                            s = this.currentScreenMessage;
+                        }
+                    }
+                    else
+                    {
+                        s = this.defaultScreenMessage;
+                    }
+
+                    if (s.message != (this.currentScreenMessage?.message ?? ""))
+                    {
+                        RemoveCurrentScreenMessage();
+                        this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
+                    }
+                }
+                else
+                {
+                    RemoveCurrentScreenMessage();
+                }
+            }
         }
 
         private void OnDestroy()
@@ -449,9 +503,7 @@ namespace TimeControl
                 isSlowMo = true;
 
                 SetSlowMoTimeScale();
-                SetSlowMoFixedDeltaTime();
-
-                StartCoroutine( UpdateSlowMoScreenMessage() );                
+                SetSlowMoFixedDeltaTime();          
             }
         }
 
@@ -542,31 +594,6 @@ namespace TimeControl
             }
         }
 
-        private IEnumerator UpdateSlowMoScreenMessage()
-        {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( UpdateSlowMoScreenMessage );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                if (this.ShowOnscreenMessages)
-                {
-                    this.currentScreenMessage = ScreenMessages.PostScreenMessage( defaultScreenMessage );
-                }
-
-                while (true)
-                {
-                    if ((!this.isSlowMo))
-                    {
-                        if ((!this.ShowOnscreenMessages) || CurrentScreenMessageOn)
-                        {
-                            ScreenMessages.RemoveMessage( this.currentScreenMessage );
-                            currentScreenMessage = null;
-                        }
-                        yield break;
-                    }
-                    yield return null;
-                }
-            }
-        }
         #endregion
 
         /*

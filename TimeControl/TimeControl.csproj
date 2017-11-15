@@ -33,8 +33,12 @@
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
     <Compile Include="IMGUI\KeyBindingsAddIMGUI.cs" />
+    <Compile Include="KeyBindings\HyperDeactivate.cs" />
+    <Compile Include="KeyBindings\HyperActivate.cs" />
+    <Compile Include="KeyBindings\SlowMoActivate.cs" />
+    <Compile Include="KeyBindings\SlowMoDeactivate.cs" />
     <Compile Include="KeyBindings\TimeControlKeyBindingFactory.cs" />
-    <Compile Include="KeyBindings\WarpForNSeconds.cs" />
+    <Compile Include="KeyBindings\WarpForNTimeIncrements.cs" />
     <Compile Include="KeyBindings\WarpToNextKACAlarm.cs" />
     <Compile Include="KeyBindings\WarpForNOrbits.cs" />
     <Compile Include="KeyBindings\WarpToVesselOrbitLocation.cs" />
