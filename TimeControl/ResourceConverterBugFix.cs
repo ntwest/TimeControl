@@ -7,16 +7,36 @@ using System.Text;
 using UnityEngine;
 
 /*
-/* ntwest - Portions of this code file derived from BetterTimeWarp Continued by linuxgurugamer
+All code in this file Copyright(c) 2016 Nate West
+Rewritten from scratch. Portions of the logic in this file is derived from code in BetterTimeWarp Continued by linuxgurugamer
 https://github.com/linuxgurugamer/BetterTimeWarpContinued/blob/master/BetterTimeWarp/BetterTimeWarp.cs
-Author: linuxgurugamer
+linuxgurugamer has provided permission for me to use this code.
 
-linuxgurugamer has given me permission to use this code.
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
 */
 
-namespace TimeControl
+namespace ResourceConverterWarpFix
 {
-    [KSPAddon( KSPAddon.Startup.MainMenu, true )]
+    [KSPAddon( KSPAddon.Startup.Instantly, true )]
     internal class ResourceConverterWarpFix : MonoBehaviour
     {
         #region Singleton
@@ -33,27 +53,17 @@ namespace TimeControl
         #region MonoBehavior
         private void Awake()
         {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( Awake );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                DontDestroyOnLoad( this );
-                instance = this;
+            DontDestroyOnLoad( this );
+            instance = this;
 
-                resourceConverterParts = new List<Part>();
-                lastWarpRateIdx = 0;
-            }
+            resourceConverterParts = new List<Part>();
+            lastWarpRateIdx = 0;
         }
         private void Start()
         {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( Start );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                GameEvents.onTimeWarpRateChanged.Add( onTimeWarpRateChanged );
-                GameEvents.onPartUnpack.Add( onPartUnpack );
-
-                Log.Info( nameof( ResourceConverterWarpFix ) + " is ready.", logBlockName );
-                IsReady = true;
-            }
+            GameEvents.onTimeWarpRateChanged.Add( onTimeWarpRateChanged );
+            GameEvents.onPartUnpack.Add( onPartUnpack );
+            IsReady = true;
         }
 
         private void OnDestroy()
@@ -71,79 +81,58 @@ namespace TimeControl
         /// <param name="p"></param>
         private void onPartUnpack(Part p)
         {
-            const string logBlockName = nameof( ResourceConverterWarpFix ) + "." + nameof( onPartUnpack );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            if (resourceConverterParts.Contains( p ))
             {
-                if (resourceConverterParts.Contains( p ))
+                resourceConverterParts.Remove( p );
+                foreach (PartModule pm in p.Modules)
                 {
-                    resourceConverterParts.Remove( p );
-                    foreach (PartModule pm in p.Modules)
+                    if (pm is ModuleResourceConverter mrc)
                     {
-                        if (pm is ModuleResourceConverter mrc)
-                        {
-                            CorrectLastUpdateTime( mrc );
-                        }
+                        CorrectLastUpdateTime( mrc );
                     }
                 }
             }
         }
 
-
         /// <summary>
-        /// When changing warp rate, fix issue with ResourceConverter
-        /// Bug Fix for resource converter provided by linuxgurugamer
+        /// When changing warp rate, correct the last update time if the converter is active
+        ///   (or add the part to the list of parts to be corrected when warp slows)
         /// </summary>
         private void onTimeWarpRateChanged()
         {
-            const string logBlockName = nameof( ResourceConverterWarpFix ) + "." + nameof( onTimeWarpRateChanged );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            if (TimeWarp.fetch != null)
             {
-                if (TimeWarp.fetch != null)
+                if (lastWarpRateIdx > 0 && TimeWarp.CurrentRate > 1)
                 {
-                    if (Log.LoggingLevel == LogSeverity.Trace)
+                    foreach (var v in FlightGlobals.fetch.vesselsLoaded)
                     {
-                        Log.Trace( "TimeWarp.fetch.current_rate_index: ".MemoizedConcat( TimeWarp.fetch.current_rate_index.MemoizedToString() ), logBlockName );
-                        Log.Trace( "TimeWarp.CurrentRate: ".MemoizedConcat( TimeWarp.CurrentRate.MemoizedToString() ), logBlockName );
-                        Log.Trace( "lastWarpRateIdx: ".MemoizedConcat( lastWarpRateIdx.MemoizedToString() ), logBlockName );
-                    }
-
-                    if (lastWarpRateIdx > 0 && TimeWarp.CurrentRate > 1)
-                    {
-                        foreach (var v in FlightGlobals.fetch.vesselsLoaded)
+                        foreach (var p in v.Parts)
                         {
-                            foreach (var p in v.Parts)
+                            foreach (PartModule pm in p.Modules)
                             {
-                                foreach (PartModule pm in p.Modules)
+                                if (pm is ModuleResourceConverter mrc)
                                 {
-                                    if (pm is ModuleResourceConverter mrc)
+                                    if (!mrc.IsActivated)
                                     {
-                                        if (Log.LoggingLevel == LogSeverity.Trace)
+                                        if (!resourceConverterParts.Contains( p ))
                                         {
-                                            Log.Trace( "Found ModuleResourceConverter" );
-                                            Log.Trace( "moduleName = ".MemoizedConcat( mrc.moduleName ), logBlockName );
-                                            Log.Trace( "IsActivated= ".MemoizedConcat( mrc.IsActivated.MemoizedToString() ), logBlockName );
+                                            resourceConverterParts.Add( p );
                                         }
-
-                                        if (!mrc.IsActivated)
+                                    }
+                                    else
+                                    {
+                                        if (resourceConverterParts.Contains( p ))
                                         {
-                                            if (!resourceConverterParts.Contains( p ))
-                                                resourceConverterParts.Add( p );
-                                        }
-                                        else
-                                        {
-                                            if (resourceConverterParts.Contains( p ))
-                                            {
-                                                resourceConverterParts.Remove( p );
-                                                CorrectLastUpdateTime( mrc );
-                                            }
+                                            resourceConverterParts.Remove( p );
+                                            CorrectLastUpdateTime( mrc );
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                    lastWarpRateIdx = TimeWarp.fetch.current_rate_index;
                 }
+                lastWarpRateIdx = TimeWarp.fetch.current_rate_index;
             }
         }
         #endregion GameEvents
@@ -151,19 +140,19 @@ namespace TimeControl
         #region Private Methods
         private void CorrectLastUpdateTime(ModuleResourceConverter mrc)
         {
-            const string logBlockName = nameof( ResourceConverterWarpFix ) + "." + nameof( CorrectLastUpdateTime );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            if (mrc is null)
             {
-                FieldInfo fi = mrc.GetType().GetField( "lastUpdateTime", BindingFlags.NonPublic | BindingFlags.Instance );
-                if (fi != null)
-                {
-                    Log.Info( "Updating lastUpdateTime" );
-                    fi.SetValue( mrc, Planetarium.GetUniversalTime() );
-                }
-                else
-                {
-                    Log.Error( "Unable to get pointer to lastUpdateTime" );
-                }
+                throw new ArgumentNullException( nameof( mrc ) );
+            }
+
+            FieldInfo fi = mrc.GetType().GetField( "lastUpdateTime", BindingFlags.NonPublic | BindingFlags.Instance );
+            if (fi != null)
+            {
+                fi.SetValue( mrc, Planetarium.GetUniversalTime() );
+            }
+            else
+            {
+                throw new InvalidOperationException( "Unable to get a lastUpdateTime field on module " + mrc.moduleName );
             }
         }
         #endregion Private Methods

@@ -74,7 +74,7 @@ namespace TimeControl
             const string logBlockName = nameof( SlowMoController ) + "." + nameof( Start );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                StartCoroutine( CRInit() );
+                StartCoroutine( Configure() );
             }
         }
 
@@ -102,18 +102,20 @@ namespace TimeControl
         #endregion
 
         #region Initialization
-        private IEnumerator CRInit()
+        private IEnumerator Configure()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( CRInit );
+            const string logBlockName = nameof( SlowMoController ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 this.SetDefaults();
                 this.SubscribeToGameEvents();
 
-                while (TimeWarp.fetch == null || FlightGlobals.Bodies == null || FlightGlobals.Bodies.Count <= 0)
+                while (!GlobalSettings.IsReady || TimeWarp.fetch == null || FlightGlobals.Bodies == null || FlightGlobals.Bodies.Count <= 0)
                 {
                     yield return new WaitForSeconds( 1f );
                 }
+
+                this.slowMoRate = GlobalSettings.Instance.SlowMoRate;
 
                 SlowMoController.IsReady = true;
                 yield break;

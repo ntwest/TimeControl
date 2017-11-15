@@ -10,9 +10,6 @@ namespace TimeControl.KeyBindings
     {
         private float v = 0.01f;
 
-        private float fireDelta = 0.05f;
-        private float timeDelay = 0.0f;
-
         private float VPercent
         {
             get => Mathf.RoundToInt( v * 100 );
@@ -27,21 +24,21 @@ namespace TimeControl.KeyBindings
         {            
             TimeControlKeyActionName = TimeControlKeyAction.SlowMoSlowDown;
             SetDescription = "Slow-Motion Decrease Rate By: ";
-            FireWhilePressedDown = true;
+            FireWhileHoldingKeyDown = true;
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => 0.5f;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => 0.01f;
         }
 
-        override public float V
+        public override float V
         {
             get => v;
             set
@@ -63,16 +60,11 @@ namespace TimeControl.KeyBindings
             }
         }
         
-        override public void Press()
+        public override void Press()
         {
-            timeDelay = timeDelay + Time.deltaTime;
-            if (timeDelay > fireDelta)
+            if (SlowMoController.IsReady)
             {
-                timeDelay = 0.0f;
-                if (SlowMoController.IsReady)
-                {
-                    SlowMoController.Instance.SlowDown( v );
-                }
+                SlowMoController.Instance.SlowDown( v );
             }
         }
     }

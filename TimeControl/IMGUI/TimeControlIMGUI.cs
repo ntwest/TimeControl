@@ -246,15 +246,20 @@ namespace TimeControl
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( LoadSettings );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                spaceCenterWindow_x = GlobalSettings.Instance.SpaceCenterWindow_x;
-                spaceCenterWindow_y = GlobalSettings.Instance.SpaceCenterWindow_y;
-                trackingStationWindow_x = GlobalSettings.Instance.TrackingStationWindow_x;
-                trackingStationWindow_y = GlobalSettings.Instance.TrackingStationWindow_y;
-                flightModeWindow_x = GlobalSettings.Instance.FlightModeWindow_x;
-                flightModeWindow_y = GlobalSettings.Instance.FlightModeWindow_y;
-                spaceCenterWindowIsDisplayed = GlobalSettings.Instance.SpaceCenterWindowIsDisplayed;
-                trackingStationWindowIsDisplayed = GlobalSettings.Instance.TrackingStationWindowIsDisplayed;
-                flightModeWindowIsDisplayed = GlobalSettings.Instance.FlightModeWindowIsDisplayed;                
+                if (!GlobalSettings.IsReady)
+                {
+                    Log.Error( "Global Settings Object is not ready", logBlockName );
+                    return;
+                }
+                spaceCenterWindow_x = GlobalSettings.Instance.SpaceCenterWindow.X;
+                spaceCenterWindow_y = GlobalSettings.Instance.SpaceCenterWindow.Y;
+                trackingStationWindow_x = GlobalSettings.Instance.TrackStationWindow.X;
+                trackingStationWindow_y = GlobalSettings.Instance.TrackStationWindow.Y;
+                flightModeWindow_x = GlobalSettings.Instance.FlightWindow.X;
+                flightModeWindow_y = GlobalSettings.Instance.FlightWindow.Y;
+                spaceCenterWindowIsDisplayed = GlobalSettings.Instance.SpaceCenterWindow.IsDisplayed;
+                trackingStationWindowIsDisplayed = GlobalSettings.Instance.TrackStationWindow.IsDisplayed;
+                flightModeWindowIsDisplayed = GlobalSettings.Instance.FlightWindow.IsDisplayed;
             }
         }
 
@@ -262,18 +267,24 @@ namespace TimeControl
         {
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( SaveSettings );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {   
-                GlobalSettings.Instance.SpaceCenterWindow_x = spaceCenterWindow_x;
-                GlobalSettings.Instance.SpaceCenterWindow_y = spaceCenterWindow_y;
-                GlobalSettings.Instance.TrackingStationWindow_x = trackingStationWindow_x;
-                GlobalSettings.Instance.TrackingStationWindow_y = trackingStationWindow_y;
-                GlobalSettings.Instance.FlightModeWindow_x = flightModeWindow_x;
-                GlobalSettings.Instance.FlightModeWindow_y = flightModeWindow_y;
-                GlobalSettings.Instance.SpaceCenterWindowIsDisplayed = spaceCenterWindowIsDisplayed;
-                GlobalSettings.Instance.TrackingStationWindowIsDisplayed = trackingStationWindowIsDisplayed;
-                GlobalSettings.Instance.FlightModeWindowIsDisplayed = flightModeWindowIsDisplayed;
+            {
+                if (!GlobalSettings.IsReady)
+                {
+                    Log.Error( "Global Settings Object is not ready", logBlockName );
+                    return;
+                }
 
-                GlobalSettings.Instance.Save();
+                GlobalSettings.Instance.SpaceCenterWindow.X = spaceCenterWindow_x;
+                GlobalSettings.Instance.SpaceCenterWindow.Y = spaceCenterWindow_y;
+                GlobalSettings.Instance.SpaceCenterWindow.IsDisplayed = spaceCenterWindowIsDisplayed;
+
+                GlobalSettings.Instance.TrackStationWindow.X = trackingStationWindow_x;
+                GlobalSettings.Instance.TrackStationWindow.Y = trackingStationWindow_y;
+                GlobalSettings.Instance.TrackStationWindow.IsDisplayed = trackingStationWindowIsDisplayed;
+
+                GlobalSettings.Instance.FlightWindow.X = flightModeWindow_x;
+                GlobalSettings.Instance.FlightWindow.Y = flightModeWindow_y;
+                GlobalSettings.Instance.FlightWindow.IsDisplayed = flightModeWindowIsDisplayed;
             }
         }
 
@@ -291,7 +302,7 @@ namespace TimeControl
                     yield return null;
                 }
                 
-                OnTimeControlGlobalSettingsLoadedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlGlobalSettingsLoaded ) );
+                OnTimeControlGlobalSettingsLoadedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlGlobalSettingsChanged ) );
                 OnTimeControlGlobalSettingsLoadedEvent?.Add( OnTimeControlGlobalSettingsLoaded );
 
                 railsWarpToGUI = new RailsWarpToIMGUI();

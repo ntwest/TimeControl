@@ -67,10 +67,15 @@ namespace TimeControl
         private float smoothSlider = 0f;
 
         private bool deltaLocked = false;
-        
+
         #endregion
 
-        #region Properties       
+        #region Properties    
+        private double CurrentUT
+        {
+            get => Planetarium.GetUniversalTime();
+        }
+
 
         public CelestialBody CurrentGameSOI
         {
@@ -170,7 +175,7 @@ namespace TimeControl
             {
                 defaultFixedDeltaTime = Time.fixedDeltaTime; // 0.02f
 
-                GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
+                //GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
                 GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
 
                 Log.Info( "TimeController.Instance is Ready!", logBlockName );
@@ -215,21 +220,6 @@ namespace TimeControl
             const string logBlockName = nameof( TimeController ) + "." + nameof( onGamePause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-            }
-        }
-
-        private void OnGameSettingsApplied()
-        {
-            const string logBlockName = nameof( TimeController ) + "." + nameof( OnGameSettingsApplied );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                GameSettings.KERBIN_TIME = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime;
-                Log.LoggingLevel = HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel;
-
-                if (GlobalSettings.Instance != null && GlobalSettings.IsReady)
-                {
-                    GlobalSettings.Instance.Save();
-                }
             }
         }
 
@@ -447,7 +437,7 @@ namespace TimeControl
 
             while (true)
             {
-                var list = KACWrapper.KAC.Alarms.Where( f => f.AlarmTime > Planetarium.GetUniversalTime() && f.AlarmType != KACWrapper.KACAPI.AlarmTypeEnum.EarthTime ).OrderBy( f => f.AlarmTime );
+                var list = KACWrapper.KAC.Alarms.Where( f => f.AlarmTime > CurrentUT && f.AlarmType != KACWrapper.KACAPI.AlarmTypeEnum.EarthTime ).OrderBy( f => f.AlarmTime );
                 if (list != null && list.Count() != 0)
                 {
                     var upNextAlarm = list.First();

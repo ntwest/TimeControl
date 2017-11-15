@@ -115,26 +115,9 @@ namespace TimeControl
             
             GUI.enabled = guiPriorEnabled && !currentlyAssigningKey;
 
-            if (!addingNewKeyBinding)
-            {
-                if (GUILayout.Button( "Reset Key Bindings" ))
-                {
-                    KeyboardInputManager.Instance.ResetKeyBindingsToDefault();
-                    refreshKBCache = true;
-                }
-
-                if (GUILayout.Button( "Add New User-Defined Action"))
-                {
-                    addingNewKeyBinding = true;
-                    ResetUserDefinedKBAdd();
-                }
-            }
-            
-            GUILayout.Label( "", GUILayout.Height( 5 ) );
-
             if (addingNewKeyBinding)
             {
-                GUILayout.Label( "Add New User-Defined Key Binding Action" );
+                GUILayout.Label( "Adding New User-Defined Key Binding Action" );
                 if (GUILayout.Button( "Cancel" ))
                 {
                     addingNewKeyBinding = false;
@@ -152,36 +135,28 @@ namespace TimeControl
             else
             {
                 GUILayout.Label( "Key Bindings: Left-Click Set, Right-Click Clear" );
-                GUILayout.Label( "Built-In Actions:" );
 
-                GUILayout.BeginVertical();
-                {
-                    foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == false ))
-                    {
-                        if (kb is WarpToNextKACAlarm)
-                        {
-                            GUI.enabled = guiPriorEnabled && KACWrapper.InstanceExists;
-                        }
-
-                        GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
-                        string buttonDesc = kb.Description.MemoizedConcat( ": " ).MemoizedConcat( kb.IsKeyAssigned ? kb.KeyCombinationDescription : "None" );
-                        if (GUILayout.Button( buttonDesc ))
-                        {
-                            GUIAssignKey( buttonDesc, kb );
-                        }
-
-                        GUI.enabled = guiPriorEnabled;
-                    }
-                }
-                GUILayout.EndVertical();
-
-                GUILayout.Label( "", GUILayout.Height( 5 ) );
-                GUILayout.Label( "User-Defined Actions:" );
-
-                userDefinedScroll = GUILayout.BeginScrollView( userDefinedScroll, GUILayout.Height( 210 ) );
+                userDefinedScroll = GUILayout.BeginScrollView( userDefinedScroll, GUILayout.Height( 400 ) );
                 {
                     GUILayout.BeginVertical();
                     {
+                        foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == false ))
+                        {
+                            if (kb is WarpToNextKACAlarm)
+                            {
+                                GUI.enabled = guiPriorEnabled && KACWrapper.InstanceExists;
+                            }
+
+                            GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
+                            string buttonDesc = kb.Description.MemoizedConcat( ": " ).MemoizedConcat( kb.IsKeyAssigned ? kb.KeyCombinationDescription : "None" );
+                            if (GUILayout.Button( buttonDesc ))
+                            {
+                                GUIAssignKey( buttonDesc, kb );
+                            }
+
+                            GUI.enabled = guiPriorEnabled;
+                        }
+
                         foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == true ))
                         {
                             GUILayout.BeginHorizontal();
@@ -205,6 +180,24 @@ namespace TimeControl
                 }
                 GUILayout.EndScrollView();
             }
+
+            GUILayout.Label( "", GUILayout.Height( 5 ) );
+
+            if (!addingNewKeyBinding)
+            {
+                if (GUILayout.Button( "Reset Key Bindings" ))
+                {
+                    KeyboardInputManager.Instance.ResetKeyBindingsToDefault();
+                    refreshKBCache = true;
+                }
+
+                if (GUILayout.Button( "Add New User-Defined Action" ))
+                {
+                    addingNewKeyBinding = true;
+                    ResetUserDefinedKBAdd();
+                }
+            }            
+
             GUI.contentColor = guiPriorColor;
             GUI.enabled = guiPriorEnabled;
         }

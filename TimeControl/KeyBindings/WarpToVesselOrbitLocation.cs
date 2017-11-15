@@ -20,8 +20,7 @@ namespace TimeControl.KeyBindings
             ManuverNode = 6
         }
 
-        private float v = 0f;
-
+        
         private VesselOrbitLocation vesselLocation;
         public VesselOrbitLocation VesselLocation
         {
@@ -54,17 +53,18 @@ namespace TimeControl.KeyBindings
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => Mathf.Infinity;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => 0f;
         }
 
-        override public float V
+        private float v = 0f;
+        public override float V
         {
             get => v;
             set
@@ -86,7 +86,14 @@ namespace TimeControl.KeyBindings
             }
         }
 
-        override public void Press()
+        public override ConfigNode GetConfigNode()
+        {
+            ConfigNode newNode = base.GetConfigNode();
+            newNode.AddValue( "VesselOrbitLocation", VesselLocation );
+            return newNode;
+        }
+
+        public override void Press()
         {
             Vessel vsl = FlightGlobals.ActiveVessel;
 

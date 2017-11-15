@@ -22,17 +22,17 @@ namespace TimeControl.KeyBindings
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => 3f;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => 0.05f;
         }
 
-        override public float V
+        public override float V
         {
             get => v;
             set
@@ -54,7 +54,7 @@ namespace TimeControl.KeyBindings
             }
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (HyperWarpController.IsReady)
             {

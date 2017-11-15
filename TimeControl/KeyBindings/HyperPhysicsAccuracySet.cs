@@ -18,17 +18,17 @@ namespace TimeControl.KeyBindings
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => HyperWarpController.PhysicsAccuracyMax;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => HyperWarpController.PhysicsAccuracyMin;
         }
 
-        override public float V
+        public override float V
         {
             get => v;
             set
@@ -50,7 +50,7 @@ namespace TimeControl.KeyBindings
             }
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (HyperWarpController.IsReady)
             {

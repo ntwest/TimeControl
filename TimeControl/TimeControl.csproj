@@ -33,6 +33,7 @@
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
     <Compile Include="IMGUI\KeyBindingsAddIMGUI.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyBindingFactory.cs" />
     <Compile Include="KeyBindings\WarpForNSeconds.cs" />
     <Compile Include="KeyBindings\WarpToNextKACAlarm.cs" />
     <Compile Include="KeyBindings\WarpForNOrbits.cs" />

@@ -12,10 +12,9 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.PauseToggle;
             Description = "Toggle Pause";
-            IsUserDefined = false;
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (TimeController.IsReady)
             {

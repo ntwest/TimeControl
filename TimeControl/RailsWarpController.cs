@@ -343,10 +343,7 @@ namespace TimeControl
 
             FixedUpdateRailsWarpToUT();
         }
-        
-        #endregion MonoBehavior
 
-        #region Configuration        
         /// <summary>
         /// Configures the Rails Warp Controller once game state is ready to go
         /// </summary>
@@ -355,6 +352,11 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                while (!GlobalSettings.IsReady)
+                {
+                    yield return new WaitForSeconds( 1f );
+                }
+
                 while (!(this.CanCacheDefaultWarpRates && this.CanCacheDefaultAltitudeLimits))
                 {
                     yield return new WaitForSeconds( 1f );
@@ -395,18 +397,21 @@ namespace TimeControl
 
                 ExecRateUpdateAndSave();
                 IsReady = true;
-                
+
                 yield break;
             }
         }
 
+        /// <summary>
+        /// Update the warp rates and altitude limits in the arrays
+        /// </summary>
         private void ExecRateUpdateAndSave()
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( ExecRateUpdateAndSave );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Updating Internal Time Warp Arrays", logBlockName );
-                
+
                 var tw = TimeWarp.fetch;
 
                 customWarpRates.Clear();
@@ -428,13 +433,13 @@ namespace TimeControl
                 {
                     tw.warpRates[i] = customWarpRates[i];
                     Log.Trace( string.Format( "Setting Warp Level {0}: {1}x", i, tw.warpRates[i] ), logBlockName );
-                }                
+                }
 
                 Log.Trace( "Updating Internal Celestial Body Altitude Limits Arrays", logBlockName );
                 foreach (CelestialBody cb in FlightGlobals.Bodies)
                 {
                     Log.Trace( "Setting Altitude Limits for Body " + cb.bodyName + ":", logBlockName );
-                    if (cb.timeWarpAltitudeLimits.Length != this.customWarpRates.Count )
+                    if (cb.timeWarpAltitudeLimits.Length != this.customWarpRates.Count)
                     {
                         Log.Trace( "Resizing Internal Celestial Body Array for " + cb.bodyName, logBlockName );
                         Array.Resize( ref cb.timeWarpAltitudeLimits, this.customWarpRates.Count );
@@ -446,11 +451,10 @@ namespace TimeControl
                         Log.Trace( String.Format( "Altitude Level {0}: {1}", i, cb.timeWarpAltitudeLimits[i] ), logBlockName );
                     }
                 }
-                
+
                 // Force a game settings save
                 GameSettings.SaveSettings();
                 
-
                 RatesNeedUpdatedAndSaved = false;
 
                 TimeControlEvents.OnTimeControlCustomWarpRatesChanged.Fire( true );
@@ -544,7 +548,8 @@ namespace TimeControl
             }
         }
 
-        #endregion
+        #endregion MonoBehavior
+
 
         #region Modify Warp Rates and Altitude Limits
         /// <summary>
@@ -1211,7 +1216,7 @@ namespace TimeControl
                     return false;
                 }
                 
-                double targetUT = Planetarium.GetUniversalTime() + (v.orbit.period * orbitCount);
+                double targetUT = CurrentUT + (v.orbit.period * orbitCount);
                 return RailsWarpToUT( targetUT );
             }
         }
@@ -1304,9 +1309,7 @@ namespace TimeControl
                     Log.Warning( "Vessel has no orbit!", logBlockName );
                     return false;
                 }
-
-                double CurrentUT = Planetarium.GetUniversalTime();
-
+                
                 if (v.orbit.timeToAp <= 0 || (CurrentUT + v.orbit.timeToAp > v.orbit.EndUT))
                 {
                     Log.Warning( "Vessel has no valid future AP!", logBlockName );
@@ -1333,9 +1336,7 @@ namespace TimeControl
                     Log.Warning( "Vessel has no orbit!", logBlockName );
                     return false;
                 }
-
-                double CurrentUT = Planetarium.GetUniversalTime();
-
+                
                 if (v.orbit.timeToPe <= 0 || (CurrentUT + v.orbit.timeToPe > v.orbit.EndUT))
                 {
                     Log.Warning( "Vessel has no valid future PE!", logBlockName );
@@ -1392,7 +1393,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to Rails Warp for " + seconds.ToString() + " seconds", logBlockName );
-                double UT = Planetarium.GetUniversalTime() + seconds;
+                double UT = CurrentUT + seconds;
                 return RailsWarpToUT( UT );
             }
         }
@@ -1409,16 +1410,15 @@ namespace TimeControl
                     return false;
                 }
 
-                if (Planetarium.GetUniversalTime() >= warpTime)
+                if (CurrentUT >= warpTime)
                 {
-                    Log.Warning( "Cannot Rails Warp to UT " + warpTime.ToString() + ". Already passed! Current UT is " + Planetarium.GetUniversalTime(), logBlockName );
+                    Log.Warning( "Cannot Rails Warp to UT " + warpTime.ToString() + ". Already passed! Current UT is " + CurrentUT, logBlockName );
                     return false;
                 }
 
                 IsRailsWarpingToUT = true;
                 RailsWarpingToUT = warpTime;
                 
-                double CurrentUT = Planetarium.GetUniversalTime();
                 Log.Info( "Current UT: " + CurrentUT.ToString(), logBlockName );
 
                 currentWarpToWarpIndex = GetMaxWarpRateIndexToNotPassUT( CurrentUT, this.RailsWarpingToUT );
@@ -1502,7 +1502,6 @@ namespace TimeControl
                 return;
             }
 
-            double CurrentUT = Planetarium.GetUniversalTime();
             Log.Trace( "Current UT: " + CurrentUT.ToString(), logBlockName );
 
             if (CurrentUT >= this.RailsWarpingToUT)

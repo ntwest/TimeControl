@@ -12,10 +12,9 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.HyperToggle;
             Description = "Toggle Hyper-Warp";
-            IsUserDefined = false;
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (HyperWarpController.IsReady)
             {

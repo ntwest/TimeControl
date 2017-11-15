@@ -8,8 +8,6 @@ namespace TimeControl.KeyBindings
 {
     public class WarpToNextKACAlarm : TimeControlKeyBinding
     {
-        private bool TriedToHookToKAC = false;
-
         private double CurrentUT
         {
             get => Planetarium.GetUniversalTime();
@@ -24,20 +22,9 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.WarpToNextKACAlarm;
             UpdateDescription();
-
-            GameEvents.onLevelWasLoaded.Add( onLevelWasLoaded );
-
-        }
-
-        private void onLevelWasLoaded(GameScenes gs)
-        {
-            if (!KACWrapper.InstanceExists)
-            {
-                TriedToHookToKAC = false;
-            }
         }
         
-        override public void Press()
+        public override void Press()
         {
             if (!TimeController.IsReady || !RailsWarpController.IsReady || !KACWrapper.InstanceExists || !(HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION))
             {

@@ -20,5 +20,12 @@ namespace TimeControl.KeyBindings
         {
             get; set;
         }
+
+        public override ConfigNode GetConfigNode()
+        {
+            ConfigNode newNode = base.GetConfigNode();
+            newNode.AddValue( "V", V );
+            return newNode;
+        }
     }
 }

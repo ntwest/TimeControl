@@ -12,10 +12,9 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.SlowMoToggle;
             Description = "Toggle Slow-Motion";
-            IsUserDefined = false;
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (SlowMoController.IsReady)
             {

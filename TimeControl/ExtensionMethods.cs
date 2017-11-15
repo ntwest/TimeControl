@@ -51,7 +51,21 @@ namespace TimeControl
             return nodes.First();
         }
 
-        internal static bool TryAssignFromConfigFloat(this ConfigNode cn, string property, ref float v)
+        internal static bool TryAssignFromConfigInt(this ConfigNode cn, string property, out int v)
+        {
+            if (cn.HasValue( property ) && int.TryParse( cn.GetValue( property ), out int cv ))
+            {
+                v = cv;
+                return true;
+            }
+            else
+            {
+                v = default( int );
+                return false;
+            }
+        }
+
+        internal static bool TryAssignFromConfigFloat(this ConfigNode cn, string property, out float v)
         {
             if (cn.HasValue( property ) && float.TryParse( cn.GetValue( property ), out float cv ))
             {
@@ -60,11 +74,12 @@ namespace TimeControl
             }
             else
             {
+                v = default( float );
                 return false;
             }
         }
 
-        internal static bool TryAssignFromConfigBool(this ConfigNode cn, string property, ref bool v)
+        internal static bool TryAssignFromConfigBool(this ConfigNode cn, string property, out bool v)
         {
             if (cn.HasValue( property ) && bool.TryParse( cn.GetValue( property ), out bool cv ))
             {
@@ -73,6 +88,31 @@ namespace TimeControl
             }
             else
             {
+                v = default( bool );
+                return false;
+            }
+        }
+
+        internal static bool TryAssignFromConfigEnum<T>(this ConfigNode cn, string property, out T e)
+        {
+            if (cn.HasValue( property ))
+            {
+                Type eT = typeof( T );
+                string ll = cn.GetValue( property );
+                if (Enum.IsDefined( eT, ll ))
+                {
+                    e = (T)Enum.Parse( eT, ll );
+                    return true;
+                }
+                else
+                {
+                    e = default( T );
+                    return false;
+                }
+            }
+            else
+            {
+                e = default( T );
                 return false;
             }
         }

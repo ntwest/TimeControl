@@ -12,10 +12,9 @@ namespace TimeControl.KeyBindings
         {
             TimeControlKeyActionName = TimeControlKeyAction.GUIToggle;
             Description = "Toggle GUI";
-            IsUserDefined = false;
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (TimeControlIMGUI.IsReady)
             {

@@ -77,7 +77,7 @@ namespace TimeControl
 
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent;
         private EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChangedEvent;
-        private EventData<float> OnTimeControlDefaultFixedDeltaTimeChangedEvent;
+        private EventData<float> OnTimeControlDefaultFixedDeltaTimeChangedEvent;        
 
         private Boolean hyperPauseOnTimeReached = false;
         private float physicsAccuracy = 1f;
@@ -102,8 +102,10 @@ namespace TimeControl
         #endregion
 
         #region Properties
-
-        // PRIVATE
+        private double CurrentUT
+        {
+            get => Planetarium.GetUniversalTime();
+        }
 
         private bool ShowOnscreenMessages
         {
@@ -129,10 +131,6 @@ namespace TimeControl
         {
             get => PerformanceManager.Instance?.PhysicsTimeRatio ?? 0.0f;
         }
-
-        // PUBLIC
-
-
         
         /// <summary>
         /// 
@@ -267,14 +265,51 @@ namespace TimeControl
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Start );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                
+                StartCoroutine( Configure() );
+            }
+        }
+
+        private void OnDestroy()
+        {
+            OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Remove( DefaultFixedDeltaTimeChanged );
+            OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Remove( MaxAttemptedRateChanged );
+            OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( PhysicsAccuracyChanged );
+        }
+
+        private void Update()
+        {
+            if (GlobalSettings.IsReady && isHyperWarping)
+            {
+                if (GlobalSettings.Instance.CameraZoomFix)
+                {
+                    cam.SetDistanceImmediate( cam.Distance );
+                }
+
+                if (!CanHyperWarp)
+                {
+                    DeactivateHyper();
+                    return;
+                }
+            }
+        }
+
+        private IEnumerator Configure()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Configure );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                while (!GlobalSettings.IsReady || TimeWarp.fetch == null || FlightGlobals.Bodies == null || FlightGlobals.Bodies.Count <= 0)
+                {
+                    yield return new WaitForSeconds( 1f );
+                }
+
                 OnTimeControlDefaultFixedDeltaTimeChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlDefaultFixedDeltaTimeChanged ) );
                 OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Add( DefaultFixedDeltaTimeChanged );
 
-                OnTimeControlHyperWarpMaxAttemptedRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof (TimeControlEvents.OnTimeControlHyperWarpMaxAttemptedRateChanged ) );
+                OnTimeControlHyperWarpMaxAttemptedRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpMaxAttemptedRateChanged ) );
                 OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Add( MaxAttemptedRateChanged );
 
-                OnTimeControlHyperWarpPhysicsAccuracyChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof ( TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
+                OnTimeControlHyperWarpPhysicsAccuracyChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
                 OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Add( PhysicsAccuracyChanged );
 
                 currentScreenMessage = null;
@@ -296,31 +331,11 @@ namespace TimeControl
                 FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
                 cam = cams[0];
 
-                HyperWarpController.IsReady = true;
-            }
-        }
+                this.maxAttemptedRate = GlobalSettings.Instance.HyperWarpMaxAttemptedRate;
+                this.physicsAccuracy = GlobalSettings.Instance.HyperWarpPhysicsAccuracy;
 
-        private void OnDestroy()
-        {
-            OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Remove( DefaultFixedDeltaTimeChanged );
-            OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Remove( MaxAttemptedRateChanged );
-            OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( PhysicsAccuracyChanged );
-        }
-
-        private void Update()
-        {
-            if (isHyperWarping)
-            {
-                if (GlobalSettings.IsReady && GlobalSettings.Instance.CameraZoomFix)
-                {
-                    cam.SetDistanceImmediate( cam.Distance );
-                }
-
-                if (!CanHyperWarp)
-                {
-                    DeactivateHyper();
-                    return;
-                }
+                IsReady = true;
+                yield break;
             }
         }
         #endregion
@@ -445,6 +460,7 @@ namespace TimeControl
                 }
             }
         }
+        
         #endregion
 
         public void ActivateHyper()
@@ -582,7 +598,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 Log.Info( "Trying to Hyper Warp for " + seconds.ToString() + " seconds", logBlockName );
-                double UT = Planetarium.GetUniversalTime() + seconds;
+                double UT = CurrentUT + seconds;
                 return HyperWarpToUT( UT );
             }
         }
@@ -717,6 +733,15 @@ namespace TimeControl
             }
         }
 
+        private void RemoveCurrentScreenMessage()
+        {
+            if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
+            {
+                ScreenMessages.RemoveMessage( this.currentScreenMessage );
+            }
+            this.currentScreenMessage = null;
+        }
+
         private IEnumerator UpdateHyperWarpScreenMessage()
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateHyperWarpScreenMessage );
@@ -728,42 +753,39 @@ namespace TimeControl
                 {
                     if ((!this.isHyperWarping))
                     {
-                        if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
-                        {
-                            ScreenMessages.RemoveMessage( this.currentScreenMessage );
-                        }
+                        RemoveCurrentScreenMessage();
                         yield break;
                     }
-
+                    
                     if (this.ShowOnscreenMessages)
                     {
                         ScreenMessage s;
                         if (PerformanceCountersOn)
                         {
-                            int idx = (int)(Math.Round( this.PhysicsTimeRatio, 1 ) * 10);
-                            s = this.HyperWarpMessagesCache[idx];
+                            string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
+                            if (msg != this.currentScreenMessage.message)
+                            {
+                                s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
+                            }
+                            else
+                            {
+                                s = this.currentScreenMessage;
+                            }
                         }
                         else
                         {
                             s = this.defaultScreenMessage;
                         }
                         
-                        if (s != this.currentScreenMessage)
+                        if (s.message != this.currentScreenMessage.message)
                         {
-                            if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
-                            {
-                                ScreenMessages.RemoveMessage( this.currentScreenMessage );
-                            }
+                            RemoveCurrentScreenMessage();
                             this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
                         }
                     }
                     else
                     {
-                        if (ScreenMessages.Instance?.ActiveMessages?.Contains( this.currentScreenMessage ) ?? false)
-                        {
-                            ScreenMessages.RemoveMessage( this.currentScreenMessage );
-                        }
-                        this.currentScreenMessage = null;
+                        RemoveCurrentScreenMessage();                        
                     }
 
                     yield return new WaitForSeconds( screenMessageUpdateFrequency );

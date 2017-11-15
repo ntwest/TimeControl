@@ -29,17 +29,17 @@ namespace TimeControl.KeyBindings
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => Mathf.Infinity;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => 1f;
         }
 
-        override public float V
+        public override float V
         {
             get => v;
             set
@@ -61,7 +61,7 @@ namespace TimeControl.KeyBindings
             }
         }
         
-        override public void Press()
+        public override void Press()
         {
             Vessel vsl = FlightGlobals.ActiveVessel;
 

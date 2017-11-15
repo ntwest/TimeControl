@@ -60,6 +60,15 @@ namespace TimeControl
         {
             altitudeLimits = new Dictionary<CelestialBody, List<float>>();
 
+            if (!GlobalSettings.IsReady)
+            {
+                Log.Error( "Global Settings not ready. Cannot create Rails Editor GUI." );
+                throw new InvalidOperationException();
+            }
+
+            altitudeHeight = GlobalSettings.Instance.ResetAltitudeToValue;
+            sAltitudeHeight = altitudeHeight.ToString();
+            
             SubscribeEvents();
         }
 
@@ -226,6 +235,10 @@ namespace TimeControl
                 if (this.sAltitudeHeight != curSAltitudeHeight)
                 {
                     this.altitudeHeight = float.TryParse( this.sAltitudeHeight, out float alH ) ? alH : -1;
+                    if (this.altitudeHeight >= 0)
+                    {
+                        GlobalSettings.Instance.ResetAltitudeToValue = altitudeHeight;
+                    }
                 }
                 GUILayout.Label( "m" );
 
@@ -246,6 +259,10 @@ namespace TimeControl
                 if (this.sAltitudeHeight != curSAltitudeHeight)
                 {
                     this.altitudeHeight = float.TryParse( this.sAltitudeHeight, out float alH ) ? alH : -1;
+                    if (this.altitudeHeight >= 0)
+                    {
+                        GlobalSettings.Instance.ResetAltitudeToValue = altitudeHeight;
+                    }
                 }
                 GUILayout.Label( "m" );
 

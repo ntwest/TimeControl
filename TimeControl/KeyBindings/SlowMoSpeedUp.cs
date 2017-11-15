@@ -23,22 +23,22 @@ namespace TimeControl.KeyBindings
         public SlowMoSpeedUp()
         {
             TimeControlKeyActionName = TimeControlKeyAction.SlowMoSpeedUp;
-            FireWhilePressedDown = true;
+            FireWhileHoldingKeyDown = true;
             SetDescription = "Slow-Motion Increase Rate By: ";
             UpdateDescription();
         }
 
-        override public float VMax
+        public override float VMax
         {
             get => 0.5f;
         }
 
-        override public float VMin
+        public override float VMin
         {
             get => 0.01f;
         }
 
-        override public float V
+        public override float V
         {
             get => v;
             set
@@ -60,7 +60,7 @@ namespace TimeControl.KeyBindings
             }
         }
 
-        override public void Press()
+        public override void Press()
         {
             if (SlowMoController.IsReady)
             {
