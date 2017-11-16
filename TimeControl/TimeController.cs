@@ -280,6 +280,8 @@ namespace TimeControl
                         SetupKACAlarms();
                     }
                 }
+
+                TimeControlEvents.OnTimeControlTimeUnpaused?.Fire( true );
             }
         }
         #endregion

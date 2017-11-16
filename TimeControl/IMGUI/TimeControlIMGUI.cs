@@ -357,7 +357,7 @@ namespace TimeControl
                     WindowVisible = flightModeWindowIsDisplayed;
                 }
                 windowRect.ClampToScreen();
-                onShowUI();
+                TempUnHideGUI();
             }
         }
 

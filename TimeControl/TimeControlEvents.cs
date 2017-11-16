@@ -24,6 +24,7 @@ namespace TimeControl
         public static EventData<float> OnTimeControlHyperWarpStopping;
         public static EventData<float> OnTimeControlHyperWarpStopped;
 
+        public static EventData<bool> OnTimeControlSlowMoDeltaLockedChanged;
         public static EventData<float> OnTimeControlSlowMoRateChanged;
         public static EventData<float> OnTimeControlSlowMoStarting;
         public static EventData<float> OnTimeControlSlowMoStarted;
@@ -63,6 +64,7 @@ namespace TimeControl
 
                 // Slow Motion
                 OnTimeControlSlowMoRateChanged = new EventData<float>( nameof( OnTimeControlSlowMoRateChanged ) );
+                OnTimeControlSlowMoDeltaLockedChanged = new EventData<bool>( nameof( OnTimeControlSlowMoDeltaLockedChanged ) );
 
                 OnTimeControlSlowMoStarting = new EventData<float>( nameof( OnTimeControlSlowMoStarting ) );
                 OnTimeControlSlowMoStarted = new EventData<float>( nameof( OnTimeControlSlowMoStarted ) );

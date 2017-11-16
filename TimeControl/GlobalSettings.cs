@@ -139,6 +139,7 @@ namespace TimeControl
         private EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChangedEvent { get; set; }
         private EventData<float> OnTimeControlSlowMoRateChangedEvent { get; set; }
         private EventData<TimeControlKeyBinding> OnTimeControlKeyBindingsChangedEvent;
+        private EventData<bool> OnTimeControlSlowMoDeltaLockedChangedEvent { get; set; }
 
         private const float saveTimeDelta = 10f;
         private float saveTimeDelay = 0f;
@@ -207,6 +208,17 @@ namespace TimeControl
             }
         }
 
+        private bool deltaLocked = true;
+        public bool DeltaLocked
+        {
+            get => deltaLocked;
+            set
+            {
+                deltaLocked = value;
+                mainNode?.SetValue( nameof( DeltaLocked ), value, true );
+                saveOnNextUpdate = true;
+            }
+        }
         private float resetAltitudeToValue = 1000f;
         public float ResetAltitudeToValue
         {
@@ -262,7 +274,7 @@ namespace TimeControl
         }
 
         // This is managed in the time control parameters screen, but is applied globally by the settings
-        private LogSeverity loggingLevel;
+        private LogSeverity loggingLevel = LogSeverity.Warning;
         public LogSeverity LoggingLevel
         {
             get => loggingLevel;
@@ -299,6 +311,7 @@ namespace TimeControl
             }
         }
 
+
         private string version = TimeControl.PluginAssemblyUtilities.VERSION;
         
         #region MonoBehavior
@@ -331,6 +344,7 @@ namespace TimeControl
                 mainNode.SetValue( nameof( HyperWarpPhysicsAccuracy ), HyperWarpPhysicsAccuracy, true );
                 mainNode.SetValue( nameof( HyperWarpMaxAttemptedRate ), HyperWarpMaxAttemptedRate, true );
                 mainNode.SetValue( nameof( SlowMoRate ), SlowMoRate, true );
+                mainNode.SetValue( nameof( DeltaLocked ), DeltaLocked, true );
                 mainNode.SetValue( nameof( ResetAltitudeToValue ), ResetAltitudeToValue, true );
                 mainNode.SetValue( nameof( LoggingLevel ), LoggingLevel.ToString(), true );
                 mainNode.SetValue( nameof( CameraZoomFix ), CameraZoomFix, true );
@@ -381,6 +395,9 @@ namespace TimeControl
 
             OnTimeControlSlowMoRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlSlowMoRateChanged ) );
             OnTimeControlSlowMoRateChangedEvent?.Add( OnTimeControlSlowMoRateChanged );
+
+            OnTimeControlSlowMoDeltaLockedChangedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlSlowMoDeltaLockedChanged ) );
+            OnTimeControlSlowMoDeltaLockedChangedEvent?.Add( OnTimeControlSlowMoDeltaLockedChanged );
 
             SpaceCenterWindow.OnChanged += GUIWindowsChanged;
             TrackStationWindow.OnChanged += GUIWindowsChanged;
@@ -491,6 +508,18 @@ namespace TimeControl
             }
         }
 
+        private void OnTimeControlSlowMoDeltaLockedChanged(bool data)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( OnTimeControlSlowMoDeltaLockedChanged );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (SlowMoController.IsReady)
+                {
+                    DeltaLocked = SlowMoController.Instance.DeltaLocked;
+                }
+            }
+        }
+        
         private void OnTimeControlKeyBindingsChanged(TimeControlKeyBinding tckb)
         {
             const string logBlockName = nameof( GlobalSettings ) + "." + nameof( OnTimeControlKeyBindingsChanged );
@@ -662,6 +691,18 @@ namespace TimeControl
                     Log.Warning( nameof( SlowMoRate ) + " has error in configuration file. Using default.", logBlockName );
                 }
 
+                ////////////////////////////////////////////////
+                // DeltaLocked
+                ////////////////////////////////////////////////
+                if (tmpConfigMain.TryAssignFromConfigBool( nameof( DeltaLocked ), out bool tmpDeltaLocked ))
+                {
+                    DeltaLocked = tmpDeltaLocked;
+                }
+                else
+                {
+                    Log.Warning( nameof( DeltaLocked ) + " has error in configuration file. Using default.", logBlockName );
+                }
+                
                 ////////////////////////////////////////////////
                 // ResetAltitudeToValue
                 ////////////////////////////////////////////////

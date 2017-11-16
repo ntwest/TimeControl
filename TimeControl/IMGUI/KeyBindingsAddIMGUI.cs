@@ -118,7 +118,8 @@ namespace TimeControl
                 }
                 if (GUILayout.Button( "ADD", GUILayout.Width( 40 ) ))
                 {
-                    KeyboardInputManager.Instance.AddKeyBinding( kb );
+                    var newkb = TimeControlKeyBindingFactory.LoadFromConfigNode( kb.GetConfigNode() );
+                    KeyboardInputManager.Instance.AddKeyBinding( newkb );
                     return true;
                 }                
             }

@@ -109,7 +109,11 @@ namespace TimeControl
         public bool DeltaLocked
         {
             get => deltaLocked;
-            set => deltaLocked = value;
+            set
+            {
+                deltaLocked = value;
+                TimeControlEvents.OnTimeControlSlowMoDeltaLockedChanged?.Fire( deltaLocked );
+            }
         }
         private bool deltaLocked = true;
 
@@ -224,6 +228,7 @@ namespace TimeControl
                 }
 
                 this.slowMoRate = GlobalSettings.Instance.SlowMoRate;
+                this.deltaLocked = GlobalSettings.Instance.DeltaLocked;
 
                 this.SetDefaults();
                 this.SubscribeToGameEvents();
@@ -533,7 +538,7 @@ namespace TimeControl
         private void SetFixedDeltaTime()
         {
             float defaultDeltaTime = TimeController.Instance.DefaultFixedDeltaTime;
-            TimeController.Instance.FixedDeltaTime = DeltaLocked ? defaultDeltaTime : defaultDeltaTime * this.SlowMoRate;
+            TimeController.Instance.FixedDeltaTime = DeltaLocked ? defaultDeltaTime : (defaultDeltaTime * this.SlowMoRate);
         }
 
         /// <summary>

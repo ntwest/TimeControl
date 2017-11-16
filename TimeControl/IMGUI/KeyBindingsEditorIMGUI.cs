@@ -135,8 +135,8 @@ namespace TimeControl
             {
                 GUILayout.BeginHorizontal();
                 {
-                    GUILayout.Label( "Adding New User-Defined Key Binding Action" );
-                    if (GUILayout.Button( "Cancel" ))
+                    GUILayout.Label( "Adding New User-Defined Key Binding Actions" );
+                    if (GUILayout.Button( "DONE" ))
                     {
                         addingNewKeyBinding = false;
                     }
@@ -151,7 +151,6 @@ namespace TimeControl
                         {
                             if (kbadd.KeyBindingsAddGUI())
                             {
-                                addingNewKeyBinding = false;
                                 refreshKBCache = true;
                             }
                         }

@@ -162,7 +162,7 @@ namespace TimeControl.KeyBindings
 
         private static List<KeyCode> GetKeyCombinationFromString(string s)
         {
-            const string logBlockName = nameof( TimeControlKeyBinding ) + "." + nameof( GetKeyCombinationFromString );
+            const string logBlockName = nameof( TimeControlKeyBindingFactory ) + "." + nameof( GetKeyCombinationFromString );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 string parse = s.Trim();
@@ -180,10 +180,10 @@ namespace TimeControl.KeyBindings
                 parse = parse.Substring( 1, parse.Length - 2 );
 
                 IEnumerable<string> keys;
-                if (s.Contains( "][" ))
+                if (parse.Contains( "][" ))
                 {
                     // Split On ][
-                    keys = s.Split( new string[] { "][" }, StringSplitOptions.None ).Select( x => x.Trim() );
+                    keys = parse.Split( new string[] { "][" }, StringSplitOptions.None ).Select( x => x.Trim() );
                 }
                 else
                 {
