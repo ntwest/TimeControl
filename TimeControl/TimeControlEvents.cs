@@ -4,9 +4,11 @@ using System.Linq;
 using System.Text;
 using UnityEngine;
 
+using TimeControl.KeyBindings;
+
 namespace TimeControl
 {
-    [KSPAddon( KSPAddon.Startup.MainMenu, true )]
+    [KSPAddon( KSPAddon.Startup.Instantly, true )]
     public class TimeControlEvents : MonoBehaviour
     {
         public static EventData<float> OnTimeControlDefaultFixedDeltaTimeChanged;
@@ -22,6 +24,7 @@ namespace TimeControl
         public static EventData<float> OnTimeControlHyperWarpStopping;
         public static EventData<float> OnTimeControlHyperWarpStopped;
 
+        public static EventData<bool> OnTimeControlSlowMoDeltaLockedChanged;
         public static EventData<float> OnTimeControlSlowMoRateChanged;
         public static EventData<float> OnTimeControlSlowMoStarting;
         public static EventData<float> OnTimeControlSlowMoStarted;
@@ -31,7 +34,9 @@ namespace TimeControl
         public static EventData<bool> OnTimeControlCustomWarpRatesChanged;
 
         public static EventData<bool> OnTimeControlGlobalSettingsSaved;
-        public static EventData<bool> OnTimeControlGlobalSettingsLoaded;
+        public static EventData<bool> OnTimeControlGlobalSettingsChanged;
+
+        public static EventData<TimeControlKeyBinding> OnTimeControlKeyBindingsChanged;
 
         private void Awake()
         {
@@ -59,6 +64,7 @@ namespace TimeControl
 
                 // Slow Motion
                 OnTimeControlSlowMoRateChanged = new EventData<float>( nameof( OnTimeControlSlowMoRateChanged ) );
+                OnTimeControlSlowMoDeltaLockedChanged = new EventData<bool>( nameof( OnTimeControlSlowMoDeltaLockedChanged ) );
 
                 OnTimeControlSlowMoStarting = new EventData<float>( nameof( OnTimeControlSlowMoStarting ) );
                 OnTimeControlSlowMoStarted = new EventData<float>( nameof( OnTimeControlSlowMoStarted ) );
@@ -71,7 +77,10 @@ namespace TimeControl
 
                 // Global Settings
                 OnTimeControlGlobalSettingsSaved = new EventData<bool>( nameof( OnTimeControlGlobalSettingsSaved ) );
-                OnTimeControlGlobalSettingsLoaded = new EventData<bool>( nameof( OnTimeControlGlobalSettingsLoaded ) );
+                OnTimeControlGlobalSettingsChanged = new EventData<bool>( nameof( OnTimeControlGlobalSettingsChanged ) );
+
+                // Key Bindings
+                OnTimeControlKeyBindingsChanged = new EventData<TimeControlKeyBinding>( nameof( OnTimeControlKeyBindingsChanged ) );
             } 
         }       
     }

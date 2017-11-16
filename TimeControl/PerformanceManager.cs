@@ -92,7 +92,7 @@ namespace TimeControl
 
         private void Awake()
         {
-            const string logBlockName = "PerformanceManager.Awake()";
+            const string logBlockName = nameof( PerformanceManager ) + "." + nameof( Awake );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 DontDestroyOnLoad( this );
@@ -102,7 +102,16 @@ namespace TimeControl
 
         private void Start()
         {
-            const string logBlockName = "PerformanceManager.Start()";
+            const string logBlockName = nameof( PerformanceManager ) + "." + nameof( Start );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                StartCoroutine( Configure() );
+            }
+        }
+
+        private IEnumerator Configure()
+        {
+            const string logBlockName = nameof( PerformanceManager ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 ptrRollingQ = new Queue<double>();
@@ -111,13 +120,20 @@ namespace TimeControl
                 PhysicsUpdatesPerSecond = 0f;
                 PhysicsTimeRatio = 0d;
                 PerformanceCountersOn = false;
+
+                while (!GlobalSettings.IsReady)
+                {
+                    yield return new WaitForSeconds( 1 );
+                }
+
                 IsReady = true;
+                yield break;
             }
         }
 
         //Functions
         private void Update()
-        {
+        { 
             if (!PerformanceCountersOn)
             {
                 return;

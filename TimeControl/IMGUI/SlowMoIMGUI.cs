@@ -78,7 +78,9 @@ namespace TimeControl
 
         private void GUITimeScale()
         {
-            GUI.enabled = SlowMoController.Instance?.CanSlowMo ?? false;
+            bool priorGUIEnabled = GUI.enabled;
+
+            GUI.enabled = priorGUIEnabled && (SlowMoController.Instance?.CanSlowMo ?? false);
 
             GUILayout.BeginVertical();
             {
@@ -92,7 +94,7 @@ namespace TimeControl
                 };
                 
                 Func<float, float> modifySlowMo = delegate (float f) { return Mathf.Floor(f); };                
-                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, ratePct, 1f, 99f, 1f, updateSlowMo, modifySlowMo, true );
+                IMGUIExtensions.floatTextBoxSliderPlusMinus( slowMoSliderLabel, ratePct, 0f, 100f, 1f, updateSlowMo, modifySlowMo, true );
                 
                 GUILayout.Label( "", GUILayout.Height( 5 ) );
 
@@ -100,7 +102,7 @@ namespace TimeControl
             }
             GUILayout.EndVertical();
 
-            GUI.enabled = true;
+            GUI.enabled = priorGUIEnabled;
         }
 
         private void GUIButtons()

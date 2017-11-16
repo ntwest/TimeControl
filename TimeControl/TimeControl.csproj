@@ -32,9 +32,36 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>AssemblyVersion.tt</DependentUpon>
     </Compile>
-    <Compile Include="Enums\TimeControllerUserAction.cs" />
+    <Compile Include="IMGUI\KeyBindingsAddIMGUI.cs" />
+    <Compile Include="KeyBindings\HyperDeactivate.cs" />
+    <Compile Include="KeyBindings\HyperActivate.cs" />
+    <Compile Include="KeyBindings\SlowMoActivate.cs" />
+    <Compile Include="KeyBindings\SlowMoDeactivate.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyBindingFactory.cs" />
+    <Compile Include="KeyBindings\WarpForNTimeIncrements.cs" />
+    <Compile Include="KeyBindings\WarpToNextKACAlarm.cs" />
+    <Compile Include="KeyBindings\WarpForNOrbits.cs" />
+    <Compile Include="KeyBindings\WarpToVesselOrbitLocation.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyAction.cs" />
+    <Compile Include="KeyBindings\HyperPhysicsAccuracyDown.cs" />
+    <Compile Include="KeyBindings\HyperPhysicsAccuracySet.cs" />
+    <Compile Include="KeyBindings\HyperPhysicsAccuracyUp.cs" />
+    <Compile Include="KeyBindings\HyperToggle.cs" />
+    <Compile Include="KeyBindings\GUIToggle.cs" />
+    <Compile Include="KeyBindings\TimeStep.cs" />
+    <Compile Include="KeyBindings\PauseToggle.cs" />
+    <Compile Include="KeyBindings\Realtime.cs" />
+    <Compile Include="KeyBindings\HyperRateSetRate.cs" />
+    <Compile Include="KeyBindings\HyperRateSlowDown.cs" />
+    <Compile Include="KeyBindings\SlowMoSlowDown.cs" />
+    <Compile Include="KeyBindings\SlowMoSetRate.cs" />
+    <Compile Include="KeyBindings\SlowMoToggle.cs" />
+    <Compile Include="KeyBindings\SlowMoSpeedUp.cs" />
+    <Compile Include="KeyBindings\HyperRateSpeedUp.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyBindingValue.cs" />
+    <Compile Include="ResourceConverterBugFix.cs" />
     <Compile Include="TimeControlScenario.cs" />
-    <Compile Include="Enums\LogSeverity.cs" />
+    <Compile Include="Logging\LogSeverity.cs" />
     <Compile Include="FPSKeeperController.cs" />
     <Compile Include="IMGUI\QuickWarpToIMGUI.cs" />
     <Compile Include="IMGUI\SharedIMGUI.cs" />
@@ -55,7 +82,7 @@
     <Compile Include="Logging\EntryExitLogger.cs" />
     <Compile Include="Logging\Log.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="POCO\KeyBinding.cs" />
+    <Compile Include="KeyBindings\TimeControlKeyBinding.cs" />
     <Compile Include="GlobalSettings.cs" />
     <Compile Include="HyperWarpController.cs" />
     <Compile Include="TimeControlParameters.cs" />
@@ -77,18 +104,18 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\KSPlib\1.3.1\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.3.1\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\KSPlib\1.3.1\UnityEngine.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.3.1\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\KSPlib\1.3.1\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.3.1\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>

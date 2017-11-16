@@ -32,8 +32,11 @@ namespace TimeControl
         public bool CameraZoomFix = true;
         [GameParameters.CustomParameterUI("Debug Logging Level", toolTip = "")]
         public LogSeverity LoggingLevel = LogSeverity.Warning;
-        
 
+        [GameParameters.CustomIntParameterUI( "Key Repeat Start", minValue = 0, maxValue = 1000, stepSize = 100, toolTip = "For repeatable key bindings, the time in milliseconds the key must be held down before starting to repeat." )]
+        public int KeyRepeatStart = 500;
+        [GameParameters.CustomIntParameterUI( "Key Repeat Interval", minValue = 1, maxValue = 60, stepSize = 1, toolTip = "For repeatable key bindings, the number of times key is repeated per second." )]
+        public int KeyRepeatInterval = 15;
 
         [GameParameters.CustomStringParameterUI("UIExperimentalFeaturesString", autoPersistance = true, lines = 2, title = "Experimental Features", toolTip = "")]
         public string UIExperimentalFeaturesString = "";
@@ -107,7 +110,15 @@ namespace TimeControl
             const string logBlockName = nameof( TimeControlParameterNode ) + "." + nameof( OnLoad );           
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                if (GlobalSettings.IsReady)
+                {
+                    LoggingLevel = GlobalSettings.Instance.LoggingLevel;
+                    CameraZoomFix = GlobalSettings.Instance.CameraZoomFix;
+                    KeyRepeatStart = GlobalSettings.Instance.KeyRepeatStart;
+                    KeyRepeatInterval = GlobalSettings.Instance.KeyRepeatInterval;
+                }
 
+                UseKerbinTime = GameSettings.KERBIN_TIME;
             }
         }
         
