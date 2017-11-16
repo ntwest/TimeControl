@@ -46,7 +46,7 @@ namespace TimeControl
         #region MonoBehavior
         private void Awake()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( Awake );
+            const string logBlockName = nameof( FPSKeeperController ) + "." + nameof( Awake );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 DontDestroyOnLoad( this );
@@ -56,10 +56,10 @@ namespace TimeControl
 
         private void Start()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( Start );
+            const string logBlockName = nameof( FPSKeeperController ) + "." + nameof( Start );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                StartCoroutine( CRInit() );
+                StartCoroutine( Configure() );
             }
         }
 
@@ -72,9 +72,9 @@ namespace TimeControl
         #endregion
 
         #region Initialization
-        private IEnumerator CRInit()
+        private IEnumerator Configure()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( CRInit );
+            const string logBlockName = nameof( FPSKeeperController ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 this.SetDefaults();
@@ -92,7 +92,7 @@ namespace TimeControl
 
         private void SetDefaults()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( SetDefaults );
+            const string logBlockName = nameof( FPSKeeperController ) + "." + nameof( SetDefaults );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 /*
@@ -108,7 +108,7 @@ namespace TimeControl
 
         private void SubscribeToGameEvents()
         {
-            const string logBlockName = nameof( SlowMoController ) + "." + nameof( SubscribeToGameEvents );
+            const string logBlockName = nameof( FPSKeeperController ) + "." + nameof( SubscribeToGameEvents );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 /*

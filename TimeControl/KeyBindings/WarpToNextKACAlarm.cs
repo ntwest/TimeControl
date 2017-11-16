@@ -15,7 +15,7 @@ namespace TimeControl.KeyBindings
 
         private void UpdateDescription()
         {
-            Description = "Rails Warp to Next KAC Alarm";
+            SetDescription = Description = "Rails Warp to Next KAC Alarm";
         }
 
         public WarpToNextKACAlarm()

@@ -11,7 +11,7 @@ namespace TimeControl.KeyBindings
         public HyperToggle()
         {
             TimeControlKeyActionName = TimeControlKeyAction.HyperToggle;
-            Description = "Toggle Hyper-Warp";
+            SetDescription = Description = "Toggle Hyper-Warp";
         }
 
         public override void Press()

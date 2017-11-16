@@ -228,6 +228,11 @@ namespace TimeControl
         {
             if (!activeKeyBinds.Contains( kb ))
             {
+                var l = activeKeyBinds.FindAll( tckb => tckb.TimeControlKeyActionName == kb.TimeControlKeyActionName && tckb.ID == kb.ID );
+                if (l != null && l.Count > 0)
+                {
+                    kb.ID = l.Select( x => x.ID ).Max() + 1;
+                }
                 activeKeyBinds.Add( kb );
 
                 if (GlobalSettings.IsReady)
@@ -280,6 +285,11 @@ namespace TimeControl
 
         private void ProcessKeyPressActions()
         {
+            if (FlightDriver.Pause)
+            {
+                return;
+            }
+
             foreach (TimeControlKeyBinding k in this.activeKeyBinds)
             {
                 // Only if the keys we care about (and no others) are pressed. Otherwise continue the loop

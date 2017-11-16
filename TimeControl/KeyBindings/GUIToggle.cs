@@ -11,7 +11,7 @@ namespace TimeControl.KeyBindings
         public GUIToggle()
         {
             TimeControlKeyActionName = TimeControlKeyAction.GUIToggle;
-            Description = "Toggle GUI";
+            SetDescription = Description = "Toggle GUI";
         }
 
         public override void Press()

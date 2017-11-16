@@ -36,17 +36,6 @@ using System.Linq;
 namespace TimeControl
 {
 
-    [Flags]
-    public enum TimeControllable
-    {
-        None = 0,
-        Rails = 1,
-        Physics = 2,
-        Hyper = 4,
-        SlowMo = 8,
-        All = Rails | Hyper | SlowMo
-    }
-
     [KSPAddon( KSPAddon.Startup.MainMenu, true )]
     internal class TimeController : MonoBehaviour
     {
@@ -56,28 +45,29 @@ namespace TimeControl
         public static TimeController Instance { get { return instance; } }
         #endregion
 
-        #region Simple Properites and Fields
-
-        //PHYSICS
-        private float defaultFixedDeltaTime;
-        private float timeSlider = 0f;
-        private float maxDeltaTimeSlider = GameSettings.PHYSICS_FRAME_DT_LIMIT;
-        private bool timePaused;
-        private bool pauseOnNextFixedUpdate = false;
-        private float smoothSlider = 0f;
-
-        private bool deltaLocked = false;
-
-        #endregion
-
-        #region Properties    
-        private double CurrentUT
+        #region Properties and fields  
+        internal double CurrentUT
         {
             get => Planetarium.GetUniversalTime();
         }
 
+        internal static float MaxDeltaTimeSliderMin
+        {
+            get
+            {
+                return 0.02f;
+            }
+        }
 
-        public CelestialBody CurrentGameSOI
+        internal static float MaxDeltaTimeSliderMax
+        {
+            get
+            {
+                return 0.12f;
+            }
+        }
+
+        internal CelestialBody CurrentGameSOI
         {
             get
             {
@@ -104,10 +94,10 @@ namespace TimeControl
             }
         }
 
-        public float TimeScale
+        internal float TimeScale
         {
             get => Time.timeScale;
-            internal set
+            set
             {
                 if (Time.timeScale != value)
                 {
@@ -117,10 +107,16 @@ namespace TimeControl
             }
         }
 
-        public float FixedDeltaTime
+        private float defaultFixedDeltaTime;
+        internal float DefaultFixedDeltaTime
+        {
+            get => defaultFixedDeltaTime;
+        }
+
+        internal float FixedDeltaTime
         {
             get => Time.fixedDeltaTime;
-            internal set
+            set
             {
                 if (Time.fixedDeltaTime != value || (Planetarium.fetch != null && Planetarium.fetch.fixedDeltaTime != value))
                 {
@@ -134,29 +130,68 @@ namespace TimeControl
             }
         }
 
-        public bool SupressFlightResultsDialog
+        internal bool SupressFlightResultsDialog
         {
             get => HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.SupressFlightResultsDialog ?? false;
         }
 
-        public IDateTimeFormatter CurrentDTF
+        internal IDateTimeFormatter CurrentDTF
         {
             get => KSPUtil.dateTimeFormatter;
         }
 
-        public KACWrapper.KACAPI.KACAlarm ClosestKACAlarm
+        internal KACWrapper.KACAPI.KACAlarm ClosestKACAlarm
         {
             get;
             private set;
         }
-
-        public float DefaultFixedDeltaTime
+        
+        private bool isTimeControlPaused;
+        internal bool IsTimeControlPaused
         {
-            get => defaultFixedDeltaTime;
+            get => isTimeControlPaused;
         }
 
-        #endregion
+        private float maxDeltaTime = GameSettings.PHYSICS_FRAME_DT_LIMIT;
+        internal float MaxDeltaTime
+        {
+            get
+            {
+                return maxDeltaTime;
+            }
 
+            set
+            {
+                if (maxDeltaTime != value)
+                {
+                    // round to 2 decimal points, then clamp between min and max
+                    float v = Mathf.Clamp( (Mathf.Round( value * 100f ) / 100f), MaxDeltaTimeSliderMin, MaxDeltaTimeSliderMax );
+                    maxDeltaTime = v;
+                    Time.maximumDeltaTime = v;
+                    GameSettings.PHYSICS_FRAME_DT_LIMIT = v;
+                    GameSettings.SaveSettings();
+                }
+            }
+        }
+
+        private bool pauseOnNextFixedUpdate = false;
+        internal bool PauseOnNextFixedUpdate
+        {
+            get
+            {
+                return pauseOnNextFixedUpdate;
+            }
+
+            set
+            {
+                if (pauseOnNextFixedUpdate != value)
+                {
+                    pauseOnNextFixedUpdate = value;
+                }
+            }
+        }
+
+        #endregion Properties
 
         #region MonoBehavior
         private void Awake()
@@ -177,27 +212,26 @@ namespace TimeControl
 
                 //GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
                 GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
+                GameEvents.onGamePause.Add( this.onGamePause );
+                GameEvents.onGameUnpause.Add( this.onGameUnpause );
 
                 Log.Info( "TimeController.Instance is Ready!", logBlockName );
                 IsReady = true;
             }
         }
-
         #region Update Functions
         private void FixedUpdate()
         {
             if (PauseOnNextFixedUpdate)
             {
-                TimePaused = true;
+                Pause();
                 PauseOnNextFixedUpdate = false;
             }
         }
-
         private void LateUpdate()
         {
             LateUpdateFlightResultsDialog();
         }
-
         private void LateUpdateFlightResultsDialog()
         {
             if (!HighLogic.LoadedSceneIsFlight)
@@ -220,6 +254,7 @@ namespace TimeControl
             const string logBlockName = nameof( TimeController ) + "." + nameof( onGamePause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                TimeControlEvents.OnTimeControlTimePaused?.Fire( true );
             }
         }
 
@@ -228,6 +263,7 @@ namespace TimeControl
             const string logBlockName = nameof( TimeController ) + "." + nameof( onGameUnpause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                TimeControlEvents.OnTimeControlTimeUnpaused?.Fire( true );
             }
         }
         
@@ -247,173 +283,7 @@ namespace TimeControl
             }
         }
         #endregion
-
-        #region Properties
-        #region Static Properties
-        public static float MaxDeltaTimeSliderMin {
-            get {
-                return 0.02f;
-            }
-        }
-        public static float MaxDeltaTimeSliderMax {
-            get {
-                return 0.12f;
-            }
-        }
-        public static float HyperMinPhysMin {
-            get {
-                return 1f;
-            }
-        }
-        public static float HyperMinPhysMax {
-            get {
-                return 6f;
-            }
-        }
-        public static float HyperMaxRateMin {
-            get {
-                return 2f;
-            }
-        }
-        public static float HyperMaxRateMax {
-            get {
-                return 100f;
-            }
-        }
-        #endregion
-
-        #region Read-Only Private Set Properties
-
-
-        public float TimeSlider {
-            get {
-                return timeSlider;
-            }
-            private set {
-                if (timeSlider != value)
-                {
-                    timeSlider = value;
-                }
-            }
-        }
-
-        public float SmoothSlider {
-            get {
-                return smoothSlider;
-            }
-
-            private set {
-                if (smoothSlider != value)
-                {
-                    smoothSlider = value;
-                }
-            }
-        }
-
-        public bool TimePaused {
-            get {
-                return timePaused;
-            }
-            private set {
-                if (timePaused != value)
-                {
-                    timePaused = value;
-                    if (value)
-                    {
-                        Time.timeScale = 0f;
-                        TimeControlEvents.OnTimeControlTimePaused?.Fire( true );
-                    }
-                    else
-                    {
-                        Time.timeScale = 1f;
-                        TimeControlEvents.OnTimeControlTimeUnpaused?.Fire( true );
-                    }
-                }
-            }
-        }
-
-        public TimeControllable CurrentWarpState {
-            get {
-                if (RailsWarpController.Instance?.IsRailsWarpingNoPhys ?? false)
-                {
-                    return TimeControllable.Rails;
-                }
-                if (RailsWarpController.Instance?.IsRailsWarpingPhys ?? false)
-                {
-                    return TimeControllable.Physics;
-                }
-                if (HyperWarpController.Instance?.IsHyperWarping ?? false)
-                {
-                    return TimeControllable.Hyper;
-                }
-                if (SlowMoController.Instance?.IsSlowMo ?? false)
-                {
-                    return TimeControllable.SlowMo;
-                }
-                return TimeControllable.None;
-            }
-        }
-
-        public TimeControllable CanControlWarpType {
-            get {
-                if (HighLogic.LoadedSceneIsFlight)
-                    return TimeControllable.All;
-                else if (HighLogic.LoadedScene == GameScenes.TRACKSTATION || HighLogic.LoadedScene == GameScenes.SPACECENTER)
-                    return TimeControllable.Rails;
-                else
-                    return TimeControllable.None;
-            }
-        }
-        #endregion
-        #region Read Write Properties
-        public bool DeltaLocked {
-            get {
-                return deltaLocked;
-            }
-            set {
-                if (deltaLocked != value)
-                {
-                    deltaLocked = value;
-                }
-            }
-        }
-
-        public float MaxDeltaTime {
-            get {
-                return maxDeltaTimeSlider;
-            }
-
-            set {
-                if (maxDeltaTimeSlider != value)
-                {
-                    // round to 2 decimal points, then clamp between min and max
-                    float v = Mathf.Clamp( (Mathf.Round( value * 100f ) / 100f), MaxDeltaTimeSliderMin, MaxDeltaTimeSliderMax );
-                    maxDeltaTimeSlider = v;
-                    Time.maximumDeltaTime = v;
-                    GameSettings.PHYSICS_FRAME_DT_LIMIT = v;
-                    GameSettings.SaveSettings();
-                }
-            }
-        }
-
-        public bool PauseOnNextFixedUpdate {
-            get {
-                return pauseOnNextFixedUpdate;
-            }
-
-            set {
-                if (pauseOnNextFixedUpdate != value)
-                {
-                    pauseOnNextFixedUpdate = value;
-                }
-            }
-        }
-
-
-        #endregion
-
-        #endregion
-
+        
         #region Private Methods 
         private void SetupKACAlarms()
         {
@@ -496,38 +366,76 @@ namespace TimeControl
                 this.TimeScale = 1f;
             }
         }
-        #endregion Internal Methods
 
-        #region Public Methods
+        public void Pause()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( Pause );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (!isTimeControlPaused)
+                {                    
+                    Time.timeScale = 0f;
+                    isTimeControlPaused = true;
+                    TimeControlEvents.OnTimeControlTimePaused?.Fire( true );
+                }
+            }
+        }
+
+        public void Unpause()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( Unpause );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (isTimeControlPaused)
+                {                    
+                    Time.timeScale = 1f;
+                    isTimeControlPaused = false;
+                    TimeControlEvents.OnTimeControlTimeUnpaused?.Fire( true );
+                }
+            }
+        }
+
         public void TogglePause()
         {
-            const string logBlockName = "TimeController.TogglePause()";
+            const string logBlockName = nameof( TimeController ) + "." + nameof( TogglePause );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {                
-                TimePaused = !TimePaused;                
+            {
+                if (this.isTimeControlPaused)
+                {
+                    this.Unpause();
+                }
+                else
+                {
+                    this.Pause();
+                }
             }
         }
+
         public void IncrementTimeStep()
         {
-            const string logBlockName = "TimeController.IncrementTimeStep()";
+            const string logBlockName = nameof( TimeController ) + "." + nameof( IncrementTimeStep );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                TimePaused = false;
-                PauseOnNextFixedUpdate = true;
+                this.Unpause();
+                this.PauseOnNextFixedUpdate = true;
             }
         }
+        
         public void GoRealTime()
         {
-            const string logBlockName = "TimeController.GoRealTime()";
+            const string logBlockName = nameof( TimeController ) + "." + nameof( GoRealTime );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                TimePaused = false;
+                Unpause();
                 PauseOnNextFixedUpdate = false;
                 RailsWarpController.Instance?.DeactivateRails();
                 HyperWarpController.Instance?.DeactivateHyper();
                 SlowMoController.Instance?.DeactivateSlowMo();
+                ResetTime();
             }
         }
+
+
 
 
         // TODO - QuickWarp / WarpTo based on ksp date time formatter settings
@@ -568,7 +476,7 @@ namespace TimeControl
 
 
 
-        
+
         #endregion
     }
 }

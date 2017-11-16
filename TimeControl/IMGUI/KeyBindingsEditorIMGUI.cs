@@ -60,45 +60,43 @@ namespace TimeControl
             userDefinedKBAdd = userDefinedKBAdd ?? new List<KeyBindingsAddIMGUI>();
             userDefinedKBAdd.Clear();
 
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperToggle() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperActivate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperDeactivate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSetRate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSlowDown() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSpeedUp() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracySet() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyUp() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyDown() { IsUserDefined = true } ) );
-
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoToggle() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoActivate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoDeactivate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSetRate() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSpeedUp() { IsUserDefined = true } ) );
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSlowDown() { IsUserDefined = true } ) );
-
-
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new GUIToggle() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new Realtime() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new PauseToggle() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new TimeStep() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperToggle() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoToggle() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperToggle() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperActivate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperDeactivate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoToggle() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoActivate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoDeactivate() { IsUserDefined = true } ) );
+            
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSetRate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSlowDown() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSpeedUp() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracySet() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyUp() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperPhysicsAccuracyDown() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSetRate() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSpeedUp() { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoSlowDown() { IsUserDefined = true } ) );
 
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Seconds ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Minutes ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Hours ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Days ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Years ) { IsUserDefined = true } ) );
-
-            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNOrbits() { IsUserDefined = true } ) );
-
+            
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Ap ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Pe ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.AN ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.DN ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.SOI ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.ManuverNode ) { IsUserDefined = true } ) );
+
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNOrbits() { IsUserDefined = true } ) );
         }
 
         private void CacheKeyBinds()
@@ -130,8 +128,8 @@ namespace TimeControl
                 && !SlowMoController.Instance.IsSlowMo;
 
             CacheKeyBinds();
-            
-            GUI.enabled = guiPriorEnabled && !currentlyAssigningKey;
+
+            bool guiEditorEnabled = GUI.enabled = guiPriorEnabled && !currentlyAssigningKey;
 
             if (addingNewKeyBinding)
             {
@@ -145,7 +143,7 @@ namespace TimeControl
                 }
                 GUILayout.EndHorizontal();
 
-                userDefinedScroll = GUILayout.BeginScrollView( userDefinedScroll, GUILayout.Height( 400 ) );
+                userDefinedScroll = GUILayout.BeginScrollView( userDefinedScroll, GUILayout.Height( 430 ) );
                 {
                     GUILayout.BeginVertical();
                     {
@@ -174,7 +172,7 @@ namespace TimeControl
                         {
                             if (kb is WarpToNextKACAlarm)
                             {
-                                GUI.enabled = guiPriorEnabled && KACWrapper.InstanceExists;
+                                GUI.enabled = guiEditorEnabled && KACWrapper.InstanceExists;
                             }
 
                             GUI.contentColor = (kb.IsKeyAssigned ? Color.yellow : guiPriorColor);
@@ -184,7 +182,7 @@ namespace TimeControl
                                 GUIAssignKey( buttonDesc, kb );
                             }
 
-                            GUI.enabled = guiPriorEnabled;
+                            GUI.enabled = guiEditorEnabled;
                         }
 
                         foreach (TimeControlKeyBinding kb in keyBindings.Where( k => k.IsUserDefined == true ))
@@ -204,6 +202,8 @@ namespace TimeControl
                                 }
                             }
                             GUILayout.EndHorizontal();
+
+                            GUI.enabled = guiEditorEnabled;
                         }
                     }
                     GUILayout.EndVertical();
@@ -213,6 +213,7 @@ namespace TimeControl
 
             GUILayout.Label( "", GUILayout.Height( 5 ) );
 
+            GUI.enabled = guiEditorEnabled;
             GUI.contentColor = guiPriorColor;
             
             if (!addingNewKeyBinding)

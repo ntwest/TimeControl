@@ -10,6 +10,8 @@ namespace TimeControl.KeyBindings
     {
         protected const string kbNodeName = "KeyBind";
 
+        public int ID { get; set; } = 0;
+
         public string Description { get; set; }
         public string SetDescription { get; set; } = "";
 
@@ -92,8 +94,10 @@ namespace TimeControl.KeyBindings
 
                 ConfigNode newNode = new ConfigNode( kbNodeName );
                 newNode.AddValue( "Action", this.TimeControlKeyActionName );
+                newNode.AddValue( "ID", this.ID );
                 newNode.AddValue( "IsUserDefined", this.IsUserDefined );
                 newNode.AddValue( "KeyCombination", this.KeyCombinationDescription );
+                
                 return newNode;
             }
         }

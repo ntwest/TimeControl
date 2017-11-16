@@ -78,7 +78,9 @@ namespace TimeControl
 
         private void GUITimeScale()
         {
-            GUI.enabled = SlowMoController.Instance?.CanSlowMo ?? false;
+            bool priorGUIEnabled = GUI.enabled;
+
+            GUI.enabled = priorGUIEnabled && (SlowMoController.Instance?.CanSlowMo ?? false);
 
             GUILayout.BeginVertical();
             {
@@ -100,7 +102,7 @@ namespace TimeControl
             }
             GUILayout.EndVertical();
 
-            GUI.enabled = true;
+            GUI.enabled = priorGUIEnabled;
         }
 
         private void GUIButtons()

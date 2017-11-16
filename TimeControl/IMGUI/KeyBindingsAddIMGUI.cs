@@ -104,7 +104,7 @@ namespace TimeControl
             {
                 if (kb is TimeControlKeyBindingValue tckbv)
                 {
-                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 250 ) );
+                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 225 ) );
                     sValue = GUILayout.TextField( sValue, GUILayout.Width( 50 ) );
                     if (sValue != sCurrentValue)
                     {
@@ -114,7 +114,7 @@ namespace TimeControl
                 }
                 else
                 {
-                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 300 ) );
+                    GUILayout.Label( kb.SetDescription, GUILayout.Width( 280 ) );
                 }
                 if (GUILayout.Button( "ADD", GUILayout.Width( 40 ) ))
                 {

@@ -11,7 +11,7 @@ namespace TimeControl.KeyBindings
         public HyperDeactivate()
         {
             TimeControlKeyActionName = TimeControlKeyAction.HyperDeactivate;
-            Description = "Dectivate Hyper-Warp";
+            SetDescription = Description = "Dectivate Hyper-Warp";
         }
 
         public override void Press()

@@ -25,7 +25,11 @@ namespace TimeControl.KeyBindings
         public VesselOrbitLocation VesselLocation
         {
             get => vesselLocation;
-            private set => vesselLocation = value;
+            set
+            {
+                vesselLocation = value;
+                UpdateDescription();
+            }
         }
 
         private double CurrentUT
@@ -43,13 +47,19 @@ namespace TimeControl.KeyBindings
             {
                 Description = String.Format( "Rails Warp to {0} - {1} seconds", VesselLocation.ToString(), v );
             }
+            SetDescription = String.Format( "Rails Warp to {0} (- X sec): ", VesselLocation.ToString() );
+        }
+
+        public WarpToVesselOrbitLocation()
+        {
+            TimeControlKeyActionName = TimeControlKeyAction.WarpToVesselOrbitLocation;            
+            UpdateDescription();
         }
 
         public WarpToVesselOrbitLocation(VesselOrbitLocation vol)
         {
             TimeControlKeyActionName = TimeControlKeyAction.WarpToVesselOrbitLocation;
             VesselLocation = vol;
-            SetDescription = String.Format( "Rails Warp to {0} (- X sec): ", VesselLocation.ToString() );
             UpdateDescription();
         }
 

@@ -11,7 +11,7 @@ namespace TimeControl.KeyBindings
         public TimeStep()
         {
             TimeControlKeyActionName = TimeControlKeyAction.TimeStep;
-            Description = "Increment Time Step";
+            SetDescription = Description = "Increment Time Step";
         }
 
         public override void Press()

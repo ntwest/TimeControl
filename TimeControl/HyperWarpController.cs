@@ -77,16 +77,14 @@ namespace TimeControl
 
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent;
         private EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChangedEvent;
-        private EventData<float> OnTimeControlDefaultFixedDeltaTimeChangedEvent;        
+        private EventData<float> OnTimeControlDefaultFixedDeltaTimeChangedEvent;
+        private EventData<bool> OnTimeControlTimePausedEvent;
+        private EventData<bool> OnTimeControlTimeUnpausedEvent;
 
-        private Boolean hyperPauseOnTimeReached = false;
-        private float physicsAccuracy = 1f;
-        private float maxAttemptedRate = 2f;
         private double hyperWarpingToUT = Mathf.Infinity;
         private bool isHyperWarpingToUT = false;
-
-        private bool canHyperWarp = false;
-        private bool isHyperWarping = false;
+        
+        
         //private bool isHyperWarpPaused = false;
 
         private ScreenMessage currentScreenMessage;
@@ -98,6 +96,8 @@ namespace TimeControl
         private List<ScreenMessage> HyperWarpMessagesCache = new List<ScreenMessage>();
 
         private FlightCamera cam;
+        private bool isGamePaused;
+        private bool needToUpdateTimeScale = true;
 
         #endregion
 
@@ -131,10 +131,13 @@ namespace TimeControl
         {
             get => PerformanceManager.Instance?.PhysicsTimeRatio ?? 0.0f;
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
+
+        public bool CanHyperWarp
+        {
+            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex == 0 && (Mathf.Approximately( Time.timeScale, 1f ) || IsHyperWarping) && HighLogic.LoadedSceneIsFlight);
+        }
+
+        private bool hyperPauseOnTimeReached = false;
         public bool HyperPauseOnTimeReached
         {
             get => this.hyperPauseOnTimeReached;
@@ -147,6 +150,7 @@ namespace TimeControl
             }
         }
 
+        private float physicsAccuracy = 1f;
         public float PhysicsAccuracy
         {
             get => this.physicsAccuracy;
@@ -160,6 +164,7 @@ namespace TimeControl
             }
         }
 
+        private float maxAttemptedRate = 2f;
         public float MaxAttemptedRate
         {
             get => this.maxAttemptedRate;
@@ -172,12 +177,8 @@ namespace TimeControl
                 }
             }
         }
-
-        public bool CanHyperWarp
-        {
-            get => (TimeWarp.fetch != null && TimeWarp.CurrentRateIndex == 0 && (Mathf.Approximately( Time.timeScale, 1f ) || IsHyperWarping) && HighLogic.LoadedSceneIsFlight);
-        }
-
+        
+        private bool isHyperWarping = false;
         public bool IsHyperWarping
         {
             get => isHyperWarping;
@@ -185,8 +186,7 @@ namespace TimeControl
             {
                 if (this.isHyperWarping != value)
                 {
-                    this.isHyperWarping = value;
-                    TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged?.Fire( this.physicsAccuracy );
+                    this.isHyperWarping = value;                    
                 }
             }
         }
@@ -295,6 +295,12 @@ namespace TimeControl
                 OnTimeControlHyperWarpPhysicsAccuracyChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
                 OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Add( PhysicsAccuracyChanged );
 
+                OnTimeControlTimePausedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlTimePaused ) );
+                OnTimeControlTimePausedEvent?.Add( this.OnTimeControlTimePaused );
+
+                OnTimeControlTimeUnpausedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlTimeUnpaused ) );
+                OnTimeControlTimeUnpausedEvent?.Add( this.OnTimeControlTimeUnpaused );
+
                 currentScreenMessage = null;
                 currentScreenMessageStyle = ScreenMessageStyle.UPPER_CENTER;
                 currentScreenMessageDuration = Mathf.Infinity;
@@ -302,8 +308,6 @@ namespace TimeControl
                 UpdateDefaultScreenMessage();
                 CacheHyperWarpMessages();
 
-                GameEvents.onGamePause.Add( this.onGamePause );
-                GameEvents.onGameUnpause.Add( this.onGameUnpause );
                 GameEvents.onGameSceneLoadRequested.Add( this.onGameSceneLoadRequested );
                 GameEvents.onPartDestroyed.Add( this.onPartDestroyed );
                 GameEvents.onVesselDestroy.Add( this.onVesselDestroy );
@@ -324,7 +328,7 @@ namespace TimeControl
 
         private void Update()
         {
-            if (GlobalSettings.IsReady && isHyperWarping)
+            if (isHyperWarping && !isGamePaused)
             {
                 if (GlobalSettings.Instance.CameraZoomFix)
                 {
@@ -336,79 +340,75 @@ namespace TimeControl
                     DeactivateHyper();
                     return;
                 }
+
+                if (needToUpdateTimeScale)
+                {
+                    SetHyperTimeScale();
+                    SetHyperFixedDeltaTime();
+                    needToUpdateTimeScale = false;
+                }
             }
 
-            UpdateHyperWarpScreenMessage();
+            UpdateScreenMessage();
         }
 
-        private void UpdateHyperWarpScreenMessage()
+        private void UpdateScreenMessage()
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateHyperWarpScreenMessage );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateScreenMessage );
+            if ((!this.isHyperWarping) || isGamePaused || !this.ShowOnscreenMessages)
             {
-                if ((!this.isHyperWarping))
-                {
-                    RemoveCurrentScreenMessage();
-                    return;
-                }
-                if (this.ShowOnscreenMessages)
-                {
-                    ScreenMessage s;
-                    if (PerformanceCountersOn)
-                    {
-                        string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
-                        if (msg != (this.currentScreenMessage?.message ?? ""))
-                        {
-                            s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
-                        }
-                        else
-                        {
-                            s = this.currentScreenMessage;
-                        }
-                    }
-                    else
-                    {
-                        s = this.defaultScreenMessage;
-                    }
+                RemoveCurrentScreenMessage();
+                return;
+            }
 
-                    if (s.message != (this.currentScreenMessage?.message ?? ""))
-                    {
-                        RemoveCurrentScreenMessage();
-                        this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
-                    }
+            ScreenMessage s;
+            if (PerformanceCountersOn)
+            {
+                string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
+                if (msg != (this.currentScreenMessage?.message ?? ""))
+                {
+                    s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
                 }
                 else
                 {
-                    RemoveCurrentScreenMessage();
+                    s = this.currentScreenMessage;
+                }
+            }
+            else
+            {
+                s = this.defaultScreenMessage;
+            }
+
+            if (s.message != (this.currentScreenMessage?.message ?? ""))
+            {
+                RemoveCurrentScreenMessage();
+                this.currentScreenMessage = ScreenMessages.PostScreenMessage( s );
+                if (Log.LoggingLevel == LogSeverity.Trace)
+                {
+                    Log.Trace( "Posting new screen message ".MemoizedConcat( this.currentScreenMessage.message ), logBlockName );
                 }
             }
         }
         #endregion
 
         #region GameEvents
-        private void onGamePause()
+        private void OnTimeControlTimePaused(bool b)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGamePause );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlTimePaused );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                isGamePaused = true;
+                RemoveCurrentScreenMessage();
             }
         }
-        
-        private void onGameUnpause()
+
+        private void OnTimeControlTimeUnpaused(bool b)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( onGameUnpause );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlTimeUnpaused );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (this.isHyperWarping)
-                {
-                    if (!this.canHyperWarp)
-                    {
-                        DeactivateHyper();
-                        return;
-                    }
-                    SetHyperTimeScale();
-                    SetHyperFixedDeltaTime();
-                }
+                isGamePaused = false;
+                needToUpdateTimeScale = true;
             }
         }
 
@@ -475,7 +475,7 @@ namespace TimeControl
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( MaxAttemptedRateChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (isHyperWarping)
+                if (isHyperWarping && !isGamePaused)
                 {
                     SetHyperTimeScale();
                 }
@@ -487,7 +487,7 @@ namespace TimeControl
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( PhysicsAccuracyChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (isHyperWarping)
+                if (isHyperWarping && !isGamePaused)
                 {
                     SetHyperFixedDeltaTime();
                 }
@@ -499,7 +499,7 @@ namespace TimeControl
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( DefaultFixedDeltaTimeChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                if (isHyperWarping)
+                if (isHyperWarping && !isGamePaused)
                 {
                     SetHyperFixedDeltaTime();
                 }

@@ -34,6 +34,20 @@ namespace TimeControl.KeyBindings
                 {
                     Log.Error( "Key combination ( " + keycombo + " ) is not defined correctly for action ( " + s_tcka + " ). Will use [None].", logBlockName );
                 }
+                
+                bool assignedID = cn.TryAssignFromConfigInt( "ID", out int id );
+                if (!assignedID)
+                {
+                    Log.Error( "Key has a bad value ID assigned in config. Ignoring Key Definition.", logBlockName );
+                    return null;
+                }
+
+                bool assignedIsUserDefined = cn.TryAssignFromConfigBool( "IsUserDefined", out bool isUserDefined );
+                if (!assignedIsUserDefined)
+                {
+                    Log.Error( "Key has a bad value IsUserDefined assigned in config. Ignoring Key Definition.", logBlockName );
+                    return null;
+                }
 
                 bool hasV = cn.HasValue( "V" );
                 bool assignedV = cn.TryAssignFromConfigFloat( "V", out float v );
@@ -59,56 +73,88 @@ namespace TimeControl.KeyBindings
                     return null;
                 }
 
+                TimeControlKeyBinding tckb = GetFromAction( tcka );
+                if (tckb is null)
+                {
+                    return null;
+                }
+
+                tckb.KeyCombination = iekc;
+                tckb.ID = id;
+                tckb.IsUserDefined = isUserDefined;
+
+                if (tckb is TimeControlKeyBindingValue tckbv)
+                {
+                    tckbv.V = v;
+                }
+                if (tckb is WarpToVesselOrbitLocation wtvol)
+                {
+                    wtvol.VesselLocation = vol;
+                }
+                if (tckb is WarpForNTimeIncrements wfnti)
+                {
+                    wfnti.TI = ti;
+                }
+
+
+                return tckb;
+            }
+        }
+
+        private static TimeControlKeyBinding GetFromAction(TimeControlKeyAction tcka)
+        {
+            const string logBlockName = nameof( TimeControlKeyBindingFactory ) + "." + nameof( GetFromAction );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
                 switch (tcka)
                 {
                     case TimeControlKeyAction.GUIToggle:
-                        return new GUIToggle() { KeyCombination = iekc };
+                        return new GUIToggle();
                     case TimeControlKeyAction.Realtime:
-                        return new Realtime() { KeyCombination = iekc };
+                        return new Realtime();
                     case TimeControlKeyAction.PauseToggle:
-                        return new PauseToggle() { KeyCombination = iekc };
+                        return new PauseToggle();
                     case TimeControlKeyAction.TimeStep:
-                        return new TimeStep() { KeyCombination = iekc };
+                        return new TimeStep();
                     case TimeControlKeyAction.HyperToggle:
-                        return new HyperToggle() { KeyCombination = iekc };
+                        return new HyperToggle();
                     case TimeControlKeyAction.SlowMoToggle:
-                        return new SlowMoToggle() { KeyCombination = iekc };
+                        return new SlowMoToggle();
                     case TimeControlKeyAction.WarpToNextKACAlarm:
-                        return new WarpToNextKACAlarm() { KeyCombination = iekc };
+                        return new WarpToNextKACAlarm();
                     case TimeControlKeyAction.HyperActivate:
-                        return new HyperActivate() { KeyCombination = iekc };
+                        return new HyperActivate();
                     case TimeControlKeyAction.HyperDeactivate:
-                        return new HyperDeactivate() { KeyCombination = iekc };
+                        return new HyperDeactivate();
                     case TimeControlKeyAction.SlowMoActivate:
-                        return new SlowMoActivate() { KeyCombination = iekc };
+                        return new SlowMoActivate();
                     case TimeControlKeyAction.SlowMoDeactivate:
-                        return new SlowMoDeactivate() { KeyCombination = iekc };
+                        return new SlowMoDeactivate();
                     case TimeControlKeyAction.HyperRateSetRate:
-                        return new HyperRateSetRate() { KeyCombination = iekc, V = v };
+                        return new HyperRateSetRate();
                     case TimeControlKeyAction.HyperRateSlowDown:
-                        return new HyperRateSlowDown() { KeyCombination = iekc, V = v };
+                        return new HyperRateSlowDown();
                     case TimeControlKeyAction.HyperRateSpeedUp:
-                        return new HyperRateSpeedUp() { KeyCombination = iekc, V = v };
+                        return new HyperRateSpeedUp();
                     case TimeControlKeyAction.HyperPhysicsAccuracySet:
-                        return new HyperPhysicsAccuracySet() { KeyCombination = iekc, V = v };
+                        return new HyperPhysicsAccuracySet();
                     case TimeControlKeyAction.HyperPhysicsAccuracyDown:
-                        return new HyperPhysicsAccuracyDown() { KeyCombination = iekc, V = v };
+                        return new HyperPhysicsAccuracyDown();
                     case TimeControlKeyAction.HyperPhysicsAccuracyUp:
-                        return new HyperPhysicsAccuracyUp() { KeyCombination = iekc, V = v };
+                        return new HyperPhysicsAccuracyUp();
                     case TimeControlKeyAction.SlowMoSetRate:
-                        return new SlowMoSetRate() { KeyCombination = iekc, V = v };
+                        return new SlowMoSetRate();
                     case TimeControlKeyAction.SlowMoSlowDown:
-                        return new SlowMoSlowDown() { KeyCombination = iekc, V = v };
+                        return new SlowMoSlowDown();
                     case TimeControlKeyAction.SlowMoSpeedUp:
-                        return new SlowMoSpeedUp() { KeyCombination = iekc, V = v };
+                        return new SlowMoSpeedUp();
                     case TimeControlKeyAction.WarpForNOrbits:
-                        return new WarpForNOrbits() { KeyCombination = iekc, V = v };
+                        return new WarpForNOrbits();
                     case TimeControlKeyAction.WarpForNTimeIncrements:
-                        return new WarpForNTimeIncrements( ti ) { KeyCombination = iekc, V = v };
+                        return new WarpForNTimeIncrements();
                     case TimeControlKeyAction.WarpToVesselOrbitLocation:
-                        return new WarpToVesselOrbitLocation( vol ) { KeyCombination = iekc, V = v };
+                        return new WarpToVesselOrbitLocation();
                 }
-
                 Log.Error( "Key action " + tcka.ToString() + " not mapped to internal action. Please report this error to the developer!", logBlockName );
                 return null;
             }

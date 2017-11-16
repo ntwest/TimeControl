@@ -220,11 +220,13 @@ namespace TimeControl
                 global::GameEvents.onLevelWasLoaded.Add( this.onLevelWasLoaded );
                 global::GameEvents.onHideUI.Add( this.onHideUI );
                 global::GameEvents.onShowUI.Add( this.onShowUI );
+                global::GameEvents.onGamePause.Add( this.onGamePause );
+                global::GameEvents.onGameUnpause.Add( this.onGameUnpause );
                 //global::GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
 
                 //defaultDTFormatter = KSPUtil.dateTimeFormatter;
 
-                StartCoroutine( StartAfterSettingsAndControllerAreReady() );
+                StartCoroutine( Configure() );
             }
         }
         private void OnDestroy()
@@ -291,9 +293,9 @@ namespace TimeControl
         /// <summary>
         /// Configures the GUI once the Settings are loaded and the TimeController is ready to operate
         /// </summary>
-        private IEnumerator StartAfterSettingsAndControllerAreReady()
+        private IEnumerator Configure()
         {
-            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( StartAfterSettingsAndControllerAreReady );
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 // Wait for TimeController object to be ready
@@ -359,12 +361,32 @@ namespace TimeControl
             }
         }
 
+        private void onGamePause()
+        {
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onGamePause );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Hiding GUI for KSP Pause", logBlockName );
+                TempHideGUI( "GamePaused" );
+            }
+        }
+
+        private void onGameUnpause()
+        {
+            const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onGameUnpause );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Unhiding GUI for KSP Pause", logBlockName );
+                TempUnHideGUI( "GamePaused" );
+            }
+        }
+
         private void onHideUI()
         {
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onHideUI );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                Log.Info( "Hiding GUI for Settings Lock", logBlockName );
+                Log.Info( "Hiding GUI for Game Event", logBlockName );
                 TempHideGUI( "GameEventsUI" );
             }
         }
@@ -374,7 +396,7 @@ namespace TimeControl
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onShowUI );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                Log.Info( "Unhiding GUI for Settings Lock", logBlockName );
+                Log.Info( "Unhiding GUI for Game Event", logBlockName );
                 TempUnHideGUI( "GameEventsUI" );
             }
         }
@@ -384,7 +406,7 @@ namespace TimeControl
         private void OnGUI()
         {
             // Don't do anything until the settings are loaded or we can actally warp
-            if (!IsReady || GUITempHidden || !TimeController.IsReady)
+            if (GUITempHidden || !IsReady || !TimeController.IsReady)
             {
                 return;
             }
@@ -494,10 +516,10 @@ namespace TimeControl
 
         #region Main GUI
         private void MainGUI(int windowId)
-        {
-            UnityEngine.GUI.enabled = true;
-
+        {            
             GUIHeaderButtons();
+
+            GUI.enabled = !FlightDriver.Pause;
             GUIHeaderCurrentWarpState();
 
 
@@ -505,7 +527,7 @@ namespace TimeControl
             {
                 WindowSelectedMode = GUIMode.RailsWarpTo;
             }
-
+            
             switch (WindowSelectedMode)
             {
                 case GUIMode.SlowMotion:
@@ -691,8 +713,6 @@ namespace TimeControl
                 }
             }            
             UnityEngine.GUI.backgroundColor = bc;
-            
-            GUI.enabled = true;
         }
 
         private void GUIReturnToRealtimeButton()
@@ -702,7 +722,7 @@ namespace TimeControl
             {
                 GUILayout.Label( "PAUSED-KSP" );
             }
-            else if (TimeController.Instance.TimePaused)
+            else if (TimeController.Instance.IsTimeControlPaused)
             {
                 GUILayout.Label( "PAUSED-TC" );
             }
@@ -734,7 +754,7 @@ namespace TimeControl
 
         private void GUIPauseOrResumeButton()
         {
-            if (GUILayout.Button( (TimeController.Instance.TimePaused ? "Resume" : "Pause"), GUILayout.Width( 60 ) ))
+            if (GUILayout.Button( (TimeController.Instance.IsTimeControlPaused ? "Resume" : "Pause"), GUILayout.Width( 60 ) ))
             {
                 TimeController.Instance?.TogglePause();
             }

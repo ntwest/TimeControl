@@ -180,13 +180,12 @@ namespace TimeControl
             }
 
             bool priorEnabled = GUI.enabled;
-            GUI.enabled = true;
 
             GUILayout.BeginVertical();
             {
                 GUIHeader();
 
-                GUI.enabled = !RailsWarpController.Instance.IsRailsWarping;
+                GUI.enabled = priorEnabled && !RailsWarpController.Instance.IsRailsWarping;
 
                 GUIQuickWarpToTime();
 

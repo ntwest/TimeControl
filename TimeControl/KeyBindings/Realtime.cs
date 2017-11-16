@@ -11,7 +11,7 @@ namespace TimeControl.KeyBindings
         public Realtime()
         {
             TimeControlKeyActionName = TimeControlKeyAction.Realtime;
-            Description = "Realtime";
+            SetDescription = Description = "Realtime";
         }
 
         public override void Press()

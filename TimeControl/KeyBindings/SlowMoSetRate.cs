@@ -17,7 +17,7 @@ namespace TimeControl.KeyBindings
 
         private void UpdateDescription()
         {
-            Description = String.Format( "Set Slow-Mo Rate to {0}", VPercent );
+            Description = String.Format( "Set Slow-Mo Rate to {0}%", VPercent );
         }
 
         public SlowMoSetRate()

@@ -61,7 +61,8 @@ namespace TimeControl
                 return;
             }
 
-            GUI.enabled = HyperWarpController.Instance.CanHyperWarp;
+            bool priorGUIEnabled = GUI.enabled;
+            GUI.enabled = priorGUIEnabled && HyperWarpController.Instance.CanHyperWarp;
 
             {
                 GUILayout.BeginVertical();
@@ -76,7 +77,7 @@ namespace TimeControl
                 }
                 GUILayout.EndVertical();
             }
-            GUI.enabled = true;
+            GUI.enabled = priorGUIEnabled;
         }
 
         private void GUIMaxRate()

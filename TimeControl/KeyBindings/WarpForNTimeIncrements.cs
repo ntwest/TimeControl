@@ -21,6 +21,11 @@ namespace TimeControl.KeyBindings
         public TimeIncrement TI
         {
             get => ti;
+            set
+            {
+                ti = value;
+                UpdateDescription();
+            }
         }
 
         private float v = 1f;
@@ -33,13 +38,19 @@ namespace TimeControl.KeyBindings
         private void UpdateDescription()
         {
             Description = String.Format( "Rails Warp for {0} {1}", v, ti.ToString() );
-        }    
+            SetDescription = String.Format( "Rails Warp for # {0}", ti.ToString() ); ;
+        }
+
+        public WarpForNTimeIncrements()
+        {
+            TimeControlKeyActionName = TimeControlKeyAction.WarpForNTimeIncrements;            
+            UpdateDescription();
+        }
 
         public WarpForNTimeIncrements(TimeIncrement pti)
         {
             ti = pti;
             TimeControlKeyActionName = TimeControlKeyAction.WarpForNTimeIncrements;
-            SetDescription = String.Format( "Rails Warp for # {0}", ti.ToString() ); ;
             UpdateDescription();
         }
 
