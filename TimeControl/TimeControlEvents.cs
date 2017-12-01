@@ -17,6 +17,7 @@ namespace TimeControl
         public static EventData<bool> OnTimeControlTimePaused;
         public static EventData<bool> OnTimeControlTimeUnpaused;
 
+        public static EventData<float> OnTimeControlHyperWarpMaximumDeltaTimeChanged;
         public static EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChanged;
         public static EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChanged;        
         public static EventData<float> OnTimeControlHyperWarpStarting;
@@ -53,6 +54,7 @@ namespace TimeControl
                 OnTimeControlTimeUnpaused = new EventData<bool>( nameof( OnTimeControlTimeUnpaused ) );
 
                 // Hyper Warp
+                OnTimeControlHyperWarpMaximumDeltaTimeChanged = new EventData<float>( nameof( OnTimeControlHyperWarpMaximumDeltaTimeChanged ) );
                 OnTimeControlHyperWarpMaxAttemptedRateChanged = new EventData<float>( nameof( OnTimeControlHyperWarpMaxAttemptedRateChanged ) );
                 OnTimeControlHyperWarpPhysicsAccuracyChanged = new EventData<float>( nameof( OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
 

@@ -135,6 +135,7 @@ namespace TimeControl
         public static GlobalSettings Instance { get; private set; }
         #endregion
 
+        private EventData<float> OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent { get; set; }
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent { get; set; }
         private EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChangedEvent { get; set; }
         private EventData<float> OnTimeControlSlowMoRateChangedEvent { get; set; }
@@ -172,15 +173,33 @@ namespace TimeControl
             saveOnNextUpdate = true;
         }
 
+        private float hyperWarpMaximumDeltaTime = GameSettings.PHYSICS_FRAME_DT_LIMIT;
+        public float HyperWarpMaximumDeltaTime
+        {
+            get => hyperWarpMaximumDeltaTime;
+            set
+            {
+                if (hyperWarpMaximumDeltaTime != value)
+                {
+                    hyperWarpMaximumDeltaTime = value;
+                    mainNode?.SetValue( nameof( HyperWarpMaximumDeltaTime ), value, true );
+                    saveOnNextUpdate = true;
+                }
+            }
+        }
+
         private float hyperWarpPhysicsAccuracy = 1f;
         public float HyperWarpPhysicsAccuracy
         {
             get => hyperWarpPhysicsAccuracy;
             set
             {
-                hyperWarpPhysicsAccuracy = value;
-                mainNode?.SetValue( nameof( HyperWarpPhysicsAccuracy ), value, true );
-                saveOnNextUpdate = true;
+                if (hyperWarpPhysicsAccuracy != value)
+                {
+                    hyperWarpPhysicsAccuracy = value;
+                    mainNode?.SetValue( nameof( HyperWarpPhysicsAccuracy ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
 
@@ -190,9 +209,12 @@ namespace TimeControl
             get => hyperWarpMaxAttemptedRate;
             set
             {
-                hyperWarpMaxAttemptedRate = value;
-                mainNode?.SetValue( nameof( HyperWarpMaxAttemptedRate ), value, true );
-                saveOnNextUpdate = true;
+                if (hyperWarpMaxAttemptedRate != value)
+                {
+                    hyperWarpMaxAttemptedRate = value;
+                    mainNode?.SetValue( nameof( HyperWarpMaxAttemptedRate ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
 
@@ -202,9 +224,12 @@ namespace TimeControl
             get => slowMoRate;
             set
             {
-                slowMoRate = value;
-                mainNode?.SetValue( nameof( SlowMoRate ), value, true );
-                saveOnNextUpdate = true;
+                if (slowMoRate != value)
+                {
+                    slowMoRate = value;
+                    mainNode?.SetValue( nameof( SlowMoRate ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
 
@@ -214,9 +239,12 @@ namespace TimeControl
             get => deltaLocked;
             set
             {
-                deltaLocked = value;
-                mainNode?.SetValue( nameof( DeltaLocked ), value, true );
-                saveOnNextUpdate = true;
+                if (deltaLocked != value)
+                {
+                    deltaLocked = value;
+                    mainNode?.SetValue( nameof( DeltaLocked ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
         private float resetAltitudeToValue = 1000f;
@@ -225,13 +253,15 @@ namespace TimeControl
             get => resetAltitudeToValue;
             set
             {
-                resetAltitudeToValue = value;
-                mainNode?.SetValue( nameof( ResetAltitudeToValue ), value, true );
-                saveOnNextUpdate = true;
+                if (resetAltitudeToValue != value)
+                {
+                    resetAltitudeToValue = value;
+                    mainNode?.SetValue( nameof( ResetAltitudeToValue ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
-
-
+        
         // This is managed in the time control parameters screen, but is applied globally by the settings
         private bool cameraZoomFix = true;
         public bool CameraZoomFix
@@ -239,14 +269,17 @@ namespace TimeControl
             get => cameraZoomFix;
             set
             {
-                cameraZoomFix = value;
-                try
+                if (cameraZoomFix != value)
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().CameraZoomFix = value;
+                    cameraZoomFix = value;
+                    try
+                    {
+                        HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().CameraZoomFix = value;
+                    }
+                    catch (NullReferenceException) { }
+                    mainNode?.SetValue( nameof( CameraZoomFix ), value, true );
+                    saveOnNextUpdate = true;
                 }
-                catch (NullReferenceException) { }
-                mainNode?.SetValue( nameof( CameraZoomFix ), value, true );
-                saveOnNextUpdate = true;
             }
         }
 
@@ -256,9 +289,12 @@ namespace TimeControl
             get => keyRepeatStart;
             set
             {
-                keyRepeatStart = value;
-                mainNode?.SetValue( nameof( KeyRepeatStart ), value, true );
-                saveOnNextUpdate = true;
+                if (keyRepeatStart != value)
+                {
+                    keyRepeatStart = value;
+                    mainNode?.SetValue( nameof( KeyRepeatStart ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
         private int keyRepeatInterval = 15;
@@ -267,9 +303,12 @@ namespace TimeControl
             get => keyRepeatInterval;
             set
             {
-                keyRepeatInterval = value;
-                mainNode?.SetValue( nameof( KeyRepeatInterval ), value, true );
-                saveOnNextUpdate = true;
+                if (keyRepeatInterval != value)
+                {
+                    keyRepeatInterval = value;
+                    mainNode?.SetValue( nameof( KeyRepeatInterval ), value, true );
+                    saveOnNextUpdate = true;
+                }
             }
         }
 
@@ -280,15 +319,18 @@ namespace TimeControl
             get => loggingLevel;
             set
             {
-                loggingLevel = value;
-                Log.LoggingLevel = value;
-                try
+                if (loggingLevel != value)
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = value;
+                    loggingLevel = value;
+                    Log.LoggingLevel = value;
+                    try
+                    {
+                        HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().LoggingLevel = value;
+                    }
+                    catch (NullReferenceException) { }
+                    mainNode?.SetValue( nameof( LoggingLevel ), value.ToString(), true );
+                    saveOnNextUpdate = true;
                 }
-                catch (NullReferenceException) { }
-                mainNode?.SetValue( nameof( LoggingLevel ), value.ToString(), true );
-                saveOnNextUpdate = true;
             }
         }
 
@@ -299,15 +341,18 @@ namespace TimeControl
             get => useKerbinTime;
             set
             {
-                useKerbinTime = value;
-                GameSettings.KERBIN_TIME = value;
-                try
+                if (useKerbinTime != value)
                 {
-                    HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime = value;
+                    useKerbinTime = value;
+                    GameSettings.KERBIN_TIME = value;
+                    try
+                    {
+                        HighLogic.CurrentGame.Parameters.CustomParams<TimeControlParameterNode>().UseKerbinTime = value;
+                    }
+                    catch (NullReferenceException) { }
+                    //mainNode?.SetValue( nameof( KerbinTime ), value.ToString(), true );
+                    //saveOnNextUpdate = true;
                 }
-                catch (NullReferenceException) { }
-                //mainNode?.SetValue( nameof( KerbinTime ), value.ToString(), true );
-                //saveOnNextUpdate = true;
             }
         }
 
@@ -343,6 +388,7 @@ namespace TimeControl
 
                 mainNode.SetValue( nameof( HyperWarpPhysicsAccuracy ), HyperWarpPhysicsAccuracy, true );
                 mainNode.SetValue( nameof( HyperWarpMaxAttemptedRate ), HyperWarpMaxAttemptedRate, true );
+                mainNode.SetValue( nameof( HyperWarpMaximumDeltaTime ), HyperWarpMaximumDeltaTime, true );
                 mainNode.SetValue( nameof( SlowMoRate ), SlowMoRate, true );
                 mainNode.SetValue( nameof( DeltaLocked ), DeltaLocked, true );
                 mainNode.SetValue( nameof( ResetAltitudeToValue ), ResetAltitudeToValue, true );
@@ -358,6 +404,8 @@ namespace TimeControl
                 LoadFromConfig();
 
                 SubscribeToEvents();
+
+                saveOnNextUpdate = true;
                 IsReady = true;
             }
         }
@@ -393,6 +441,9 @@ namespace TimeControl
             OnTimeControlHyperWarpPhysicsAccuracyChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
             OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Add( OnTimeControlHyperWarpPhysicsAccuracyChanged );
 
+            OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpMaximumDeltaTimeChanged ) );
+            OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent?.Add( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
+
             OnTimeControlSlowMoRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlSlowMoRateChanged ) );
             OnTimeControlSlowMoRateChangedEvent?.Add( OnTimeControlSlowMoRateChanged );
 
@@ -413,6 +464,7 @@ namespace TimeControl
             OnTimeControlKeyBindingsChangedEvent?.Remove( OnTimeControlKeyBindingsChanged );
             OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Remove( OnTimeControlHyperWarpMaxAttemptedRateChanged );
             OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( OnTimeControlHyperWarpPhysicsAccuracyChanged );
+            OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent?.Remove( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
             OnTimeControlSlowMoRateChangedEvent?.Remove( OnTimeControlSlowMoRateChanged );
 
             SpaceCenterWindow.OnChanged -= GUIWindowsChanged;
@@ -492,6 +544,18 @@ namespace TimeControl
                 if (HyperWarpController.IsReady)
                 {
                     HyperWarpMaxAttemptedRate = HyperWarpController.Instance.MaxAttemptedRate;
+                }
+            }
+        }
+
+        private void OnTimeControlHyperWarpMaximumDeltaTimeChanged(float data)
+        {
+            const string logBlockName = nameof( GlobalSettings ) + "." + nameof( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (HyperWarpController.IsReady)
+                {
+                    HyperWarpMaximumDeltaTime = HyperWarpController.Instance.MaximumDeltaTime;
                 }
             }
         }
@@ -677,6 +741,18 @@ namespace TimeControl
                 else
                 {
                     Log.Warning( nameof( HyperWarpPhysicsAccuracy ) + " has error in configuration file. Using default.", logBlockName );
+                }
+
+                ////////////////////////////////////////////////
+                // HyperWarpPhysicsAccuracy
+                ////////////////////////////////////////////////
+                if (tmpConfigMain.TryAssignFromConfigFloat( nameof( HyperWarpMaximumDeltaTime ), out float tmpHyperWarpMaximumDeltaTime ))
+                {
+                    HyperWarpMaximumDeltaTime = tmpHyperWarpMaximumDeltaTime;
+                }
+                else
+                {
+                    Log.Warning( nameof( HyperWarpMaximumDeltaTime ) + " has error in configuration file. Using default.", logBlockName );
                 }
 
                 ////////////////////////////////////////////////

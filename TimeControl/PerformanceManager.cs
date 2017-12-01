@@ -47,9 +47,9 @@ namespace TimeControl
         private float lastInterval = 0f;
         private double ptrLast = 0d;
         private Queue<double> ptrRollingQ;
-        //private double gsLastRT = 0d;
-        //private double gsLastUT = 0d;
-        //private Queue<double> gsRollingQ;
+        private double gsLastRT = 0d;
+        private double gsLastUT = 0d;
+        private Queue<double> gsRollingQ;
         private float updateInterval = 0.5f; //half a second
         private bool performanceCountersOn = true;
 
@@ -61,12 +61,15 @@ namespace TimeControl
                 return performanceCountersOn;
             }
             set {
-                performanceCountersOn = value;
-                if (!performanceCountersOn)
+                if (performanceCountersOn != value)
                 {
-                    this.ptrRollingQ.Clear();
-                    //this.gsRollingQ.Clear();
-                    frames = 0;
+                    performanceCountersOn = value;
+                    if (!performanceCountersOn)
+                    {
+                        this.ptrRollingQ.Clear();
+                        this.gsRollingQ.Clear();
+                        frames = 0;
+                    }
                 }
             }
         }
@@ -78,7 +81,7 @@ namespace TimeControl
         /// <summary>
         /// Gametime to Realtime Ratio
         /// </summary>
-        // public double GametimeToRealtimeRatio { get; set; }
+        public double GametimeToRealtimeRatio { get; set; }
 
         /// <summary>
         /// Physics Updates Per Second
@@ -115,11 +118,11 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 ptrRollingQ = new Queue<double>();
-                //gsRollingQ = new Queue<double>();
+                gsRollingQ = new Queue<double>();
                 FramesPerSecond = 0f;
                 PhysicsUpdatesPerSecond = 0f;
                 PhysicsTimeRatio = 0d;
-                PerformanceCountersOn = false;
+                PerformanceCountersOn = true;
 
                 while (!GlobalSettings.IsReady)
                 {
@@ -144,7 +147,7 @@ namespace TimeControl
             UpdateFPS( rtss );
             UpdatePPS( Time.timeScale, Time.fixedDeltaTime );
             UpdatePTR( rtss, Time.deltaTime );
-            // UpdateGTRR( rtss, Planetarium.GetUniversalTime() );
+            UpdateGTRR( rtss, Planetarium.GetUniversalTime() );
         }
 
         private void UpdateFPS(float rtss)
@@ -159,19 +162,23 @@ namespace TimeControl
             }
         }
 
-        //private void UpdateGTRR(float rtss, double UT)
-        //{
-        //    //Time Warp calculation            
-        //    gsRollingQ.Enqueue( (UT - gsLastUT) / (rtss - gsLastRT) );
-        //    gsLastRT = rtss;
-        //    gsLastUT = UT;
+        private void UpdateGTRR(float rtss, double UT)
+        {
+            //Time Warp calculation            
+            gsRollingQ.Enqueue( (UT - gsLastUT) / (rtss - gsLastRT) );
+            gsLastRT = rtss;
+            gsLastUT = UT;
 
-        //    while (gsRollingQ.Count > FramesPerSecond)
-        //        gsRollingQ.Dequeue();
+            while (gsRollingQ.Count > FramesPerSecond)
+            {
+                gsRollingQ.Dequeue();
+            }
 
-        //    if (gsRollingQ.Count > 0)
-        //        GametimeToRealtimeRatio = gsRollingQ.Average();
-        //}
+            if (gsRollingQ.Count > 0)
+            {
+                GametimeToRealtimeRatio = gsRollingQ.Average();
+            }
+        }
 
         private void UpdatePPS(float timeScale, float fixedDeltaTime)
         {
@@ -185,10 +192,14 @@ namespace TimeControl
             ptrLast = rtss;
 
             while (ptrRollingQ.Count > FramesPerSecond)
+            {
                 ptrRollingQ.Dequeue();
+            }
 
             if (ptrRollingQ.Count > 0)
+            {
                 PhysicsTimeRatio = ptrRollingQ.Average();
+            }
         }
     }
 }

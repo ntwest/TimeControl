@@ -64,7 +64,7 @@ namespace TimeControl
 
         private bool PerformanceCountersOn
         {
-            get => PerformanceManager.Instance?.PerformanceCountersOn ?? false;
+            get => PerformanceManager.IsReady && (PerformanceManager.Instance?.PerformanceCountersOn ?? false);
         }
 
         private bool CurrentScreenMessageOn
@@ -108,11 +108,14 @@ namespace TimeControl
         /// </summary>
         public bool DeltaLocked
         {
-            get => deltaLocked;
+            get => this.deltaLocked;
             set
             {
-                deltaLocked = value;
-                TimeControlEvents.OnTimeControlSlowMoDeltaLockedChanged?.Fire( deltaLocked );
+                if (this.deltaLocked != value)
+                {
+                    this.deltaLocked = value;
+                    TimeControlEvents.OnTimeControlSlowMoDeltaLockedChanged?.Fire( deltaLocked );
+                }
             }
         }
         private bool deltaLocked = true;
@@ -131,7 +134,13 @@ namespace TimeControl
         public bool IsSlowMo
         {
             get => this.isSlowMo;
-            private set => this.isSlowMo = value;
+            private set
+            {
+                if (this.isSlowMo != value)
+                {
+                    this.isSlowMo = value;
+                }
+            }
         }
         private bool isSlowMo = false;
 
@@ -144,19 +153,11 @@ namespace TimeControl
             get => this.slowMoRate;
             set
             {
-                if (value > 1f)
+                if (!Mathf.Approximately( this.slowMoRate, value ))
                 {
-                    this.SlowMoRate = 1f;
+                    this.slowMoRate = Mathf.Clamp01( value );
+                    TimeControlEvents.OnTimeControlSlowMoRateChanged?.Fire( this.slowMoRate );
                 }
-                else if (value < 0f)
-                {
-                    this.SlowMoRate = 0f;
-                }
-                else
-                {
-                    this.slowMoRate = value;
-                }
-                TimeControlEvents.OnTimeControlSlowMoRateChanged?.Fire( this.slowMoRate );
             }
         }
         private float slowMoRate = 0.5f;
@@ -166,8 +167,11 @@ namespace TimeControl
             get => this.currentScreenMessageStyle;
             set
             {
-                this.currentScreenMessageStyle = value;
-                UpdateDefaultScreenMessage();
+                if (this.currentScreenMessageStyle != value)
+                {
+                    this.currentScreenMessageStyle = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
         private ScreenMessageStyle currentScreenMessageStyle;
@@ -177,8 +181,11 @@ namespace TimeControl
             get => this.currentScreenMessageDuration;
             set
             {
-                this.currentScreenMessageDuration = value;
-                UpdateDefaultScreenMessage();
+                if (this.currentScreenMessageDuration != value)
+                {
+                    this.currentScreenMessageDuration = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
         private float currentScreenMessageDuration;
@@ -188,8 +195,11 @@ namespace TimeControl
             get => this.currentScreenMessagePrefix;
             set
             {
-                this.currentScreenMessagePrefix = value;
-                UpdateDefaultScreenMessage();
+                if (this.currentScreenMessagePrefix != value)
+                {
+                    this.currentScreenMessagePrefix = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
         private string currentScreenMessagePrefix;

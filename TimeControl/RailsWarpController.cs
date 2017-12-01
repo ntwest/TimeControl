@@ -119,7 +119,14 @@ namespace TimeControl
         {
             get => TimeController.Instance?.CurrentGameSOI;
         }
-
+        
+        /// <summary>
+        /// Reset the maximumDeltaTime to the setting value
+        /// </summary>
+        private void ResetMaximumDeltaTime()
+        {
+            TimeController.Instance.ResetMaximumDeltaTime();
+        }
 
         /// <summary>
         /// Allowed to update the internal warp rate array
@@ -155,7 +162,7 @@ namespace TimeControl
             }
             internal set
             {
-                if (HighLogic.CurrentGame?.Parameters?.Flight != null)
+                if (HighLogic.CurrentGame?.Parameters?.Flight != null && (HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh != value || HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow != value) )
                 {
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh = value;
                     HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpLow = value;
@@ -198,14 +205,23 @@ namespace TimeControl
             }
             private set
             {
-                railsWarpingToUT = value;
+                if (railsWarpingToUT != value)
+                {
+                    railsWarpingToUT = value;
+                }
             }
         }
 
         public bool IsRailsWarpingToUT
         {
             get => isRailsWarpingToUT;
-            private set => isRailsWarpingToUT = value;
+            private set
+            {
+                if (isRailsWarpingToUT != value)
+                {
+                    isRailsWarpingToUT = value;
+                }
+            }
         }
         
         public int NumberOfWarpLevels
@@ -349,6 +365,7 @@ namespace TimeControl
             FixedUpdateRailsWarpToUT();
         }
 
+        #region Initialization
         /// <summary>
         /// Configures the Rails Warp Controller once game state is ready to go
         /// </summary>
@@ -401,11 +418,33 @@ namespace TimeControl
                 Load();
 
                 ExecRateUpdateAndSave();
+                
+                GameEvents.onTimeWarpRateChanged.Add( onTimeWarpRateChanged );
+
                 IsReady = true;
 
                 yield break;
             }
         }
+
+
+        #endregion Initialization
+
+        #endregion MonoBehavior
+
+        #region GameEvents
+        private void onTimeWarpRateChanged()
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( onTimeWarpRateChanged );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (TimeWarp.CurrentRateIndex == 0)
+                {
+                    ResetMaximumDeltaTime();
+                }
+            }
+        }
+        #endregion GameEvents
 
         /// <summary>
         /// Update the warp rates and altitude limits in the arrays
@@ -552,8 +591,6 @@ namespace TimeControl
                 defaultAltitudeLimitsCached = true;
             }
         }
-
-        #endregion MonoBehavior
 
 
         #region Modify Warp Rates and Altitude Limits
@@ -907,23 +944,12 @@ namespace TimeControl
         #endregion
 
         #region Saving/Loading to ConfigNode
-        public void Save(ConfigNode gameNode)
-        {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Save );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                Log.Info( "Saving to Config", logBlockName );
-                this.SaveCustomWarpRates( gameNode );
-                this.SaveCustomAltitudeLimits( gameNode );
-            }
-        }
-
         public void Load()
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Load );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                Log.Info( "Loading from Config", logBlockName );
+                Log.Info( "Loading from Internal Config", logBlockName );
                 this.LoadCustomWarpRates( gameNode );
                 this.LoadCustomAltitudeLimits( gameNode );
             }
@@ -939,42 +965,7 @@ namespace TimeControl
                 this.LoadCustomAltitudeLimits( gameNode );
             }
         }
-
-        /// <summary>
-        /// Save custom warp rates
-        /// </summary>
-        private void SaveCustomWarpRates(ConfigNode cn)
-        {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SaveCustomWarpRates );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                if (cn == null)
-                {
-                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
-                    return;
-                }
-
-                // Rebuild the node
-                if (cn.HasNode( "CustomWarpRates" ))
-                {
-                    cn.RemoveNode( "CustomWarpRates" );
-                }
-                ConfigNode customWarpRatesNode = cn.AddNode( "customWarpRates" );
-
-                if (customWarpRates == null)
-                {
-                    Log.Error( "No custom warp rates defined. Cannot save", logBlockName );
-                    return;
-                }
-
-                Log.Trace( "creating custom warp rates node", logBlockName );
-                for (int i = 0; i < customWarpRates.Count; i++)
-                {
-                    customWarpRatesNode.AddValue( "customWarpRate" + i, customWarpRates[i] );
-                }
-            }
-        }
-
+        
         /// <summary>
         /// Load custom warp rates into this object from a config node
         /// </summary>
@@ -1039,65 +1030,7 @@ namespace TimeControl
                 }
             }
         }
-
-        /// <summary>
-        /// Save custom altitude limits into a config node
-        /// </summary>
-        /// <param name="cn"></param>
-        private void SaveCustomAltitudeLimits(ConfigNode cn)
-        {
-            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SaveCustomAltitudeLimits );
-            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {
-                if (cn == null)
-                {
-                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
-                    return;
-                }
-
-                if (customAltitudeLimits == null)
-                {
-                    Log.Error( "customAltitudeLimits list is empty", logBlockName );
-                    return;
-                }
-
-                const string cal = "CustomAltitudeLimits";
-                ConfigNode CustomAltitudeLimitsNode = (cn.HasNode( cal )) ? cn.GetNode( cal ) : cn.AddNode( cal );
-
-                foreach (var cb in customAltitudeLimits)
-                {
-                    string cbName = cb.Key.name;
-
-                    // Rebuild the celestial body node. 
-                    if (CustomAltitudeLimitsNode.HasNode( cbName ))
-                    {
-                        CustomAltitudeLimitsNode.RemoveNode( cbName );
-                    }
-
-                    ConfigNode celestialCN = CustomAltitudeLimitsNode.AddNode( cb.Key.name );
-
-                    float l = 0f;
-                    for (int j = 0; j < customWarpRates.Count; j++)
-                    {
-                        try
-                        {
-                            l = cb.Value[j];
-                        }
-                        catch (ArgumentOutOfRangeException)
-                        {
-                            Log.Warning( "The custom altitude limits list for body " + cbName + " is smaller than the number of warp rates. Padding list with final altitude limit.", logBlockName );
-                            // don't reassign l, just use the prior one.
-                        }
-
-                        celestialCN.AddValue( "customAltitudeLimit" + j, l );
-                    }
-                    Log.Trace( "Custom altitude limits for " + cb.Key.name + " built", logBlockName );
-                }
-
-                Log.Info( "Custom altitude limits saved.", logBlockName );
-            }
-        }
-
+        
         /// <summary>
         /// Load custom altitude limits into this object from a config node
         /// </summary>
@@ -1174,6 +1107,111 @@ namespace TimeControl
                 SetCustomAltitudeLimits( customLimits );
             }
         }
+
+        public void Save(ConfigNode gameNode)
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Save );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Saving to Config", logBlockName );
+                this.SaveCustomWarpRates( gameNode );
+                this.SaveCustomAltitudeLimits( gameNode );
+            }
+        }
+
+        /// <summary>
+        /// Save custom warp rates
+        /// </summary>
+        private void SaveCustomWarpRates(ConfigNode cn)
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SaveCustomWarpRates );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn == null)
+                {
+                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
+                    return;
+                }
+
+                // Rebuild the node
+                if (cn.HasNode( "CustomWarpRates" ))
+                {
+                    cn.RemoveNode( "CustomWarpRates" );
+                }
+                ConfigNode customWarpRatesNode = cn.AddNode( "customWarpRates" );
+
+                if (customWarpRates == null)
+                {
+                    Log.Error( "No custom warp rates defined. Cannot save", logBlockName );
+                    return;
+                }
+
+                Log.Trace( "creating custom warp rates node", logBlockName );
+                for (int i = 0; i < customWarpRates.Count; i++)
+                {
+                    customWarpRatesNode.AddValue( "customWarpRate" + i, customWarpRates[i] );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Save custom altitude limits into a config node
+        /// </summary>
+        /// <param name="cn"></param>
+        private void SaveCustomAltitudeLimits(ConfigNode cn)
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( SaveCustomAltitudeLimits );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn == null)
+                {
+                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
+                    return;
+                }
+
+                if (customAltitudeLimits == null)
+                {
+                    Log.Error( "customAltitudeLimits list is empty", logBlockName );
+                    return;
+                }
+
+                const string cal = "CustomAltitudeLimits";
+                ConfigNode CustomAltitudeLimitsNode = (cn.HasNode( cal )) ? cn.GetNode( cal ) : cn.AddNode( cal );
+
+                foreach (var cb in customAltitudeLimits)
+                {
+                    string cbName = cb.Key.name;
+
+                    // Rebuild the celestial body node. 
+                    if (CustomAltitudeLimitsNode.HasNode( cbName ))
+                    {
+                        CustomAltitudeLimitsNode.RemoveNode( cbName );
+                    }
+
+                    ConfigNode celestialCN = CustomAltitudeLimitsNode.AddNode( cb.Key.name );
+
+                    float l = 0f;
+                    for (int j = 0; j < customWarpRates.Count; j++)
+                    {
+                        try
+                        {
+                            l = cb.Value[j];
+                        }
+                        catch (ArgumentOutOfRangeException)
+                        {
+                            Log.Warning( "The custom altitude limits list for body " + cbName + " is smaller than the number of warp rates. Padding list with final altitude limit.", logBlockName );
+                            // don't reassign l, just use the prior one.
+                        }
+
+                        celestialCN.AddValue( "customAltitudeLimit" + j, l );
+                    }
+                    Log.Trace( "Custom altitude limits for " + cb.Key.name + " built", logBlockName );
+                }
+
+                Log.Info( "Custom altitude limits saved.", logBlockName );
+            }
+        }
+        
         #endregion
 
         #region Control Rails Warp
@@ -1196,6 +1234,8 @@ namespace TimeControl
                     Log.Info( "Setting warp rate to 0.", logBlockName );
                     TimeWarp.SetRate( 0, true, false );
                 }
+
+                ResetMaximumDeltaTime();
             }
         }
 
@@ -1416,18 +1456,7 @@ namespace TimeControl
                 return true;
             }
         }
-
-        class FloatComparer : Comparer<float>
-        {
-            public override int Compare(float x, float y)
-            {
-                if (Mathf.Approximately( x, y ))
-                    return 0;
-                else
-                    return x.CompareTo( y );
-            }
-        }
-
+       
         private readonly FloatComparer fc = new FloatComparer();
         
         private int GetMaxWarpRateIndexToNotPassUT(double CurrentUT, double TargetUT)

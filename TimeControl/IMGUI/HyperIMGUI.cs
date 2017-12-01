@@ -44,6 +44,7 @@ namespace TimeControl
         private string hyperWarpMinutes = "0";
         private string hyperWarpSeconds = "0";
 
+        private List<float> maxDeltaButtons = new List<float>() { 0.02f, 0.08f, 0.2f };
         private List<float> maxRateButtons = new List<float>() { 5, 10, 20, 50 };
         private List<float> phyAccuracyButtons = new List<float>() { 1, 3, 6 };
 
@@ -69,6 +70,7 @@ namespace TimeControl
                 {
                     GUIMaxRate();
                     GUIMinPhys();
+                    GUIMaxDelta();
                     GUIButtons();
                     GUILayout.Label( "", GUILayout.Height( 5 ) );
                     GUIWarpTime();
@@ -85,7 +87,7 @@ namespace TimeControl
             string hyperMaxRateLabel = "Attempted Rate: ".MemoizedConcat( Mathf.Round( HyperWarpController.Instance.MaxAttemptedRate ).MemoizedToString() );
             Action<float> updateHyperMaxRate = delegate (float f) { HyperWarpController.Instance.MaxAttemptedRate = f; };
             // Force slider to select integer values between min and max
-            Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Floor( f ); };
+            Func<float, float> modifyFieldHyperMaxRate = delegate (float f) { return Mathf.Round( f ); };
 
             IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMaxRateLabel, HyperWarpController.Instance.MaxAttemptedRate, HyperWarpController.AttemptedRateMin, HyperWarpController.AttemptedRateMax, 1f, updateHyperMaxRate, maxRateButtons, modifyFieldHyperMaxRate );
         }
@@ -106,9 +108,27 @@ namespace TimeControl
                 HyperWarpController.Instance.PhysicsAccuracy = f;
             };
             
-            Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Floor( f * (1f/physIncrement)) / (1f/physIncrement); };
+            Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Round( f * (1f/physIncrement)) / (1f/physIncrement); };
 
             IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.PhysicsAccuracyMin, HyperWarpController.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, phyAccuracyButtons, modifyFieldMinPhys );
+        }
+
+        private void GUIMaxDelta()
+        {
+            const float deltaIncrement = 0.01f;
+
+            string hyperMaxRateLabel = "Max Delta Time During Hyper-Warp: ".MemoizedConcat( HyperWarpController.Instance.MaximumDeltaTime.MemoizedToString() );
+
+            if (HyperWarpController.Instance.MaximumDeltaTime > 0.12f)
+            {
+                hyperMaxRateLabel = hyperMaxRateLabel.MemoizedConcat( " - Low FPS Likely");
+            }
+
+            Action<float> updateHyperMaxDelta = delegate (float f) { HyperWarpController.Instance.MaximumDeltaTime = f; };
+            // Force slider to select integer values between min and max
+            Func<float, float> modifyFieldHyperMaxDelta = delegate (float f) { return Mathf.Round( f * (1f / deltaIncrement) ) / (1f / deltaIncrement); };
+
+            IMGUIExtensions.floatTextBoxSliderPlusMinus( hyperMaxRateLabel, HyperWarpController.Instance.MaximumDeltaTime, TimeController.MaximumDeltaTimeMin, TimeController.MaximumDeltaTimeMax, deltaIncrement, updateHyperMaxDelta, modifyFieldHyperMaxDelta );
         }
 
         private void GUIButtons()

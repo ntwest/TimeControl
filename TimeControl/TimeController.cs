@@ -51,7 +51,7 @@ namespace TimeControl
             get => Planetarium.GetUniversalTime();
         }
 
-        internal static float MaxDeltaTimeSliderMin
+        internal static float MaximumDeltaTimeMin
         {
             get
             {
@@ -59,11 +59,11 @@ namespace TimeControl
             }
         }
 
-        internal static float MaxDeltaTimeSliderMax
+        internal static float MaximumDeltaTimeMax
         {
             get
             {
-                return 0.12f;
+                return 0.35f;
             }
         }
 
@@ -130,6 +130,15 @@ namespace TimeControl
             }
         }
 
+        internal float MaximumDeltaTime
+        {
+            get => Time.maximumDeltaTime;
+            set
+            {
+                Time.maximumDeltaTime = value;
+            }
+        }
+
         internal bool SupressFlightResultsDialog
         {
             get => HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.SupressFlightResultsDialog ?? false;
@@ -152,22 +161,22 @@ namespace TimeControl
             get => isTimeControlPaused;
         }
 
-        private float maxDeltaTime = GameSettings.PHYSICS_FRAME_DT_LIMIT;
-        internal float MaxDeltaTime
+        private float maximumDeltaTimeSetting = GameSettings.PHYSICS_FRAME_DT_LIMIT;
+        internal float MaximumDeltaTimeSetting
         {
             get
             {
-                return maxDeltaTime;
+                return maximumDeltaTimeSetting;
             }
 
             set
             {
-                if (maxDeltaTime != value)
+                if (!Mathf.Approximately( value, maximumDeltaTimeSetting ))
                 {
                     // round to 2 decimal points, then clamp between min and max
-                    float v = Mathf.Clamp( (Mathf.Round( value * 100f ) / 100f), MaxDeltaTimeSliderMin, MaxDeltaTimeSliderMax );
-                    maxDeltaTime = v;
-                    Time.maximumDeltaTime = v;
+                    float v = Mathf.Clamp( (Mathf.Round( value * 100f ) / 100f), MaximumDeltaTimeMin, MaximumDeltaTimeMax );
+                    maximumDeltaTimeSetting = v;
+                    MaximumDeltaTime = v;
                     GameSettings.PHYSICS_FRAME_DT_LIMIT = v;
                     GameSettings.SaveSettings();
                 }
@@ -342,6 +351,7 @@ namespace TimeControl
             {
                 this.ResetTimeScale();
                 this.ResetFixedDeltaTime();
+                this.ResetMaximumDeltaTime();
             }
         }
 
@@ -354,6 +364,15 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 this.FixedDeltaTime = DefaultFixedDeltaTime;
+            }
+        }
+
+        internal void ResetMaximumDeltaTime()
+        {
+            const string logBlockName = nameof( TimeController ) + "." + nameof( ResetMaximumDeltaTime );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                MaximumDeltaTime = GameSettings.PHYSICS_FRAME_DT_LIMIT;
             }
         }
 
@@ -432,7 +451,7 @@ namespace TimeControl
                 PauseOnNextFixedUpdate = false;
                 RailsWarpController.Instance?.DeactivateRails();
                 HyperWarpController.Instance?.DeactivateHyper();
-                SlowMoController.Instance?.DeactivateSlowMo();
+                SlowMoController.Instance?.DeactivateSlowMo();                
                 ResetTime();
             }
         }

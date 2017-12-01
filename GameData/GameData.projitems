@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\Flags\TimeControl.png" />
-    <Content Include="$(MSBuildThisFileDirectory)TimeControl\LICENSE.txt" />
+    <Content Include="$(MSBuildThisFileDirectory)TimeControl\LICENSE" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\BlizzyToolbarIcons\disabled.png" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\BlizzyToolbarIcons\enabled.png" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\StockToolbarIcons\disabled.png" />

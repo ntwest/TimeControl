@@ -158,28 +158,9 @@ namespace TimeControl
             }
         }
 
-        #region Private Methods
-
-        private void SetDateTimeFormatter()
+        private bool PerformanceCountersOn
         {
-            /*
-            if (UseCustomDateTimeFormatter)
-            {
-                Log.Info( "Changing Date Time Formatter to customDTFormatter" );
-                KSPUtil.dateTimeFormatter = customDTFormatter;
-                // Only run this test in trace mode
-                if (Log.LoggingLevel == LogSeverity.Trace)
-                    TestDateTimeDisplay.RunDateTimeDisplayTest(HighLogic.CurrentGame.UniversalTime);
-            }
-            else
-            {
-                Log.Info( "Changing Date Time Formatter to defaultDTFormatter" );
-                KSPUtil.dateTimeFormatter = defaultDTFormatter;
-                // Only run this test in trace mode
-                if (Log.LoggingLevel == LogSeverity.Trace)
-                    TestDateTimeDisplay.RunDateTimeDisplayTest(HighLogic.CurrentGame.UniversalTime);
-            }
-            */
+            get => PerformanceManager.IsReady && (PerformanceManager.Instance?.PerformanceCountersOn ?? false);
         }
 
         private bool SupressFlightResultsDialog
@@ -189,15 +170,14 @@ namespace TimeControl
         
         private double PhysicsTimeRatio
         {
-            get => (PerformanceManager.IsReady ? PerformanceManager.Instance?.PhysicsTimeRatio ?? 0.0 : 0.0);
+            get => ( PerformanceCountersOn ? PerformanceManager.Instance.PhysicsTimeRatio : 0.0);
         }
 
         private double FramesPerSecond
         {
-            get => (PerformanceManager.IsReady ? PerformanceManager.Instance?.FramesPerSecond ?? 0.0 : 0.0);
+            get => ( PerformanceCountersOn ? PerformanceManager.Instance.FramesPerSecond : 0.0);
         }
-
-        #endregion
+        
         #region MonoBehavior and related private methods
         #region One-Time
         private void Awake()
@@ -420,18 +400,18 @@ namespace TimeControl
             UnityEngine.GUI.skin = null;
             if (WindowVisible)
             {
-                if (PerformanceManager.IsReady)
-                {
-                    PerformanceManager.Instance.PerformanceCountersOn = true;
-                }
+                //if (PerformanceManager.IsReady)
+                //{
+                //    PerformanceManager.Instance.PerformanceCountersOn = true;
+                //}
                 OnGUIWindow();
             }
             else
             {
-                if (PerformanceManager.IsReady)
-                {
-                    PerformanceManager.Instance.PerformanceCountersOn = false;
-                }
+                //if (PerformanceManager.IsReady)
+                //{
+                //    PerformanceManager.Instance.PerformanceCountersOn = false;
+                //}
             }
             UnityEngine.GUI.skin = HighLogic.Skin;
 
@@ -577,7 +557,7 @@ namespace TimeControl
                 }
                 else
                 {
-                    if (PerformanceManager.Instance?.PerformanceCountersOn ?? false)
+                    if (PerformanceCountersOn)
                     {
                         string rate = ((PhysicsTimeRatio / 1 * 100).MemoizedToString( "0" )).MemoizedConcat( "%" );
                         GUILayout.Label( "PTR: ".MemoizedConcat( rate ) );
@@ -588,9 +568,9 @@ namespace TimeControl
                     }
                 }
 
-                if (PerformanceManager.Instance?.PerformanceCountersOn ?? false)
+                if (PerformanceCountersOn)
                 {
-                    GUILayout.Label( "FPS: ".MemoizedConcat( (Mathf.Floor( Convert.ToSingle( FramesPerSecond ) )).MemoizedToString() ) );
+                    GUILayout.Label( "FPS: ".MemoizedConcat( (Mathf.Round( Convert.ToSingle( FramesPerSecond ) * 10f ) / 10f).MemoizedToString() ) );
                 }
                 else
                 {

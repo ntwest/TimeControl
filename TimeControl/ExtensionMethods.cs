@@ -32,6 +32,17 @@ using System.Linq;
 
 namespace TimeControl
 {
+    internal class FloatComparer : Comparer<float>
+    {
+        public override int Compare(float x, float y)
+        {
+            if (Mathf.Approximately( x, y ))
+                return 0;
+            else
+                return x.CompareTo( y );
+        }
+    }
+
     internal static class ExtensionMethods
     {
         internal static ManeuverNode FirstUpcomingManuverNode(this Vessel v, double fromUT)

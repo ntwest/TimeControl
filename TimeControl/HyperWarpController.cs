@@ -75,6 +75,7 @@ namespace TimeControl
 
         #region Private Fields
 
+        private EventData<float> OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent;
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent;
         private EventData<float> OnTimeControlHyperWarpPhysicsAccuracyChangedEvent;
         private EventData<float> OnTimeControlDefaultFixedDeltaTimeChangedEvent;
@@ -114,7 +115,7 @@ namespace TimeControl
 
         private bool PerformanceCountersOn
         {
-            get => PerformanceManager.Instance?.PerformanceCountersOn ?? false;
+            get => PerformanceManager.IsReady && (PerformanceManager.Instance?.PerformanceCountersOn ?? false);
         }
 
         private bool CurrentScreenMessageOn
@@ -150,13 +151,27 @@ namespace TimeControl
             }
         }
 
+        private float maximumDeltaTime = GameSettings.PHYSICS_FRAME_DT_LIMIT;
+        public float MaximumDeltaTime
+        {
+            get => this.maximumDeltaTime;
+            set
+            {
+                if (!Mathf.Approximately( this.maximumDeltaTime, value ))
+                {
+                    this.maximumDeltaTime = Mathf.Clamp( value, TimeController.MaximumDeltaTimeMin, TimeController.MaximumDeltaTimeMax );
+                    TimeControlEvents.OnTimeControlHyperWarpMaximumDeltaTimeChanged?.Fire( this.maximumDeltaTime );
+                }
+            }
+        }
+
         private float physicsAccuracy = 1f;
         public float PhysicsAccuracy
         {
             get => this.physicsAccuracy;
             set
             {
-                if (this.physicsAccuracy != value)
+                if (!Mathf.Approximately(this.physicsAccuracy, value))
                 {
                     this.physicsAccuracy = Mathf.Clamp( value, PhysicsAccuracyMin, PhysicsAccuracyMax ); ;
                     TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged?.Fire( this.physicsAccuracy );
@@ -170,7 +185,7 @@ namespace TimeControl
             get => this.maxAttemptedRate;
             set
             {
-                if (this.maxAttemptedRate != value)
+                if (!Mathf.Approximately( this.maxAttemptedRate, value ))
                 {
                     this.maxAttemptedRate = Mathf.Clamp( value, AttemptedRateMin, AttemptedRateMax );
                     TimeControlEvents.OnTimeControlHyperWarpMaxAttemptedRateChanged?.Fire( this.maxAttemptedRate );
@@ -184,9 +199,9 @@ namespace TimeControl
             get => isHyperWarping;
             private set
             {
-                if (this.isHyperWarping != value)
+                if (isHyperWarping != value)
                 {
-                    this.isHyperWarping = value;                    
+                    isHyperWarping = value;                    
                 }
             }
         }
@@ -194,7 +209,13 @@ namespace TimeControl
         public bool IsHyperWarpingToUT
         {
             get => isHyperWarpingToUT;
-            private set => isHyperWarpingToUT = value;
+            private set
+            {
+                if (isHyperWarpingToUT != value)
+                {
+                    isHyperWarpingToUT = value;
+                }
+            }
         }
 
         public double HyperWarpingToUT
@@ -212,7 +233,10 @@ namespace TimeControl
             }
             private set
             {
-                hyperWarpingToUT = value;
+                if (hyperWarpingToUT != value)
+                {
+                    hyperWarpingToUT = value;
+                }
             }
         }
 
@@ -221,8 +245,11 @@ namespace TimeControl
             get => currentScreenMessageStyle;
             set
             {
-                currentScreenMessageStyle = value;
-                UpdateDefaultScreenMessage();
+                if (currentScreenMessageStyle != value)
+                {
+                    currentScreenMessageStyle = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
 
@@ -231,8 +258,11 @@ namespace TimeControl
             get => currentScreenMessageDuration;
             set
             {
-                currentScreenMessageDuration = value;
-                UpdateDefaultScreenMessage();
+                if (currentScreenMessageDuration != value)
+                {
+                    currentScreenMessageDuration = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
 
@@ -241,8 +271,11 @@ namespace TimeControl
             get => currentScreenMessagePrefix;
             set
             {
-                currentScreenMessagePrefix = value;
-                UpdateDefaultScreenMessage();
+                if (currentScreenMessagePrefix != value)
+                {
+                    currentScreenMessagePrefix = value;
+                    UpdateDefaultScreenMessage();
+                }
             }
         }
 
@@ -271,9 +304,10 @@ namespace TimeControl
 
         private void OnDestroy()
         {
-            OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Remove( DefaultFixedDeltaTimeChanged );
-            OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Remove( MaxAttemptedRateChanged );
-            OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( PhysicsAccuracyChanged );
+            OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Remove( OnTimeControlDefaultFixedDeltaTimeChanged );
+            OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Remove( OnTimeControlHyperWarpMaxAttemptedRateChanged );
+            OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Remove( OnTimeControlHyperWarpPhysicsAccuracyChanged );
+            OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent?.Remove( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
         }
 
         private IEnumerator Configure()
@@ -287,13 +321,16 @@ namespace TimeControl
                 }
 
                 OnTimeControlDefaultFixedDeltaTimeChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlDefaultFixedDeltaTimeChanged ) );
-                OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Add( DefaultFixedDeltaTimeChanged );
+                OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Add( OnTimeControlDefaultFixedDeltaTimeChanged );
 
                 OnTimeControlHyperWarpMaxAttemptedRateChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpMaxAttemptedRateChanged ) );
-                OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Add( MaxAttemptedRateChanged );
+                OnTimeControlHyperWarpMaxAttemptedRateChangedEvent?.Add( OnTimeControlHyperWarpMaxAttemptedRateChanged );
 
                 OnTimeControlHyperWarpPhysicsAccuracyChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpPhysicsAccuracyChanged ) );
-                OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Add( PhysicsAccuracyChanged );
+                OnTimeControlHyperWarpPhysicsAccuracyChangedEvent?.Add( OnTimeControlHyperWarpPhysicsAccuracyChanged );
+
+                OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlHyperWarpMaximumDeltaTimeChanged ) );
+                OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent?.Add( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
 
                 OnTimeControlTimePausedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlTimePaused ) );
                 OnTimeControlTimePausedEvent?.Add( this.OnTimeControlTimePaused );
@@ -345,6 +382,7 @@ namespace TimeControl
                 {
                     SetHyperTimeScale();
                     SetHyperFixedDeltaTime();
+                    SetHyperMaximumDeltaTime();
                     needToUpdateTimeScale = false;
                 }
             }
@@ -470,9 +508,11 @@ namespace TimeControl
 
         // CUSTOM EVENTS
 
-        private void MaxAttemptedRateChanged(float rate)
+
+
+        private void OnTimeControlHyperWarpMaxAttemptedRateChanged(float rate)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( MaxAttemptedRateChanged );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlHyperWarpMaxAttemptedRateChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 if (isHyperWarping && !isGamePaused)
@@ -482,9 +522,9 @@ namespace TimeControl
             }
         }
 
-        private void PhysicsAccuracyChanged(float rate)
+        private void OnTimeControlHyperWarpPhysicsAccuracyChanged(float rate)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( PhysicsAccuracyChanged );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlHyperWarpPhysicsAccuracyChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 if (isHyperWarping && !isGamePaused)
@@ -494,9 +534,9 @@ namespace TimeControl
             }
         }
 
-        private void DefaultFixedDeltaTimeChanged(float rate)
+        private void OnTimeControlDefaultFixedDeltaTimeChanged(float rate)
         {
-            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( DefaultFixedDeltaTimeChanged );
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlDefaultFixedDeltaTimeChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 if (isHyperWarping && !isGamePaused)
@@ -505,7 +545,19 @@ namespace TimeControl
                 }
             }
         }
-        
+
+        private void OnTimeControlHyperWarpMaximumDeltaTimeChanged(float rate)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( OnTimeControlHyperWarpMaximumDeltaTimeChanged );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (isHyperWarping && !isGamePaused)
+                {
+                    SetHyperMaximumDeltaTime();
+                }
+            }
+        }
+
         #endregion
 
         public void ActivateHyper()
@@ -529,6 +581,7 @@ namespace TimeControl
 
                 SetHyperTimeScale();
                 SetHyperFixedDeltaTime();
+                SetHyperMaximumDeltaTime();
             }
         }
 
@@ -538,7 +591,7 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 ResetWarpToUT();
-
+                
                 if (!this.isHyperWarping)
                 {
                     Log.Info( "Hyper warp not currently running.", logBlockName );
@@ -546,7 +599,8 @@ namespace TimeControl
                 }
 
                 ResetTimeScale();
-                ResetFixedDeltaTime();                
+                ResetFixedDeltaTime();
+                ResetMaximumDeltaTime();
 
                 isHyperWarping = false;
                 SetCanRailsWarp( true );
@@ -697,6 +751,14 @@ namespace TimeControl
         }
 
         /// <summary>
+        /// Modify the Unity max delta time
+        /// </summary>
+        private void SetHyperMaximumDeltaTime()
+        {
+            TimeController.Instance.MaximumDeltaTime = MaximumDeltaTime;
+        }
+
+        /// <summary>
         ///  Reset the time scale
         /// </summary>
         private void ResetTimeScale()
@@ -710,6 +772,14 @@ namespace TimeControl
         private void ResetFixedDeltaTime()
         {
             TimeController.Instance.ResetFixedDeltaTime();
+        }
+
+        /// <summary>
+        /// Reset the maximumDeltaTime to the setting value
+        /// </summary>
+        private void ResetMaximumDeltaTime()
+        {
+            TimeController.Instance.ResetMaximumDeltaTime();
         }
 
         /// <summary>
