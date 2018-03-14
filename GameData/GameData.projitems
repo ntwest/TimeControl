@@ -19,10 +19,8 @@
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.md" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\MiniAVC.dll" />
+    <None Include="$(MSBuildThisFileDirectory)TimeControl\PluginData\TimeControl\GlobalSettings.cfg" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\README.md" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\TimeControl.version" />
-  </ItemGroup>
-  <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)TimeControl\PluginData\TimeControl\" />
   </ItemGroup>
 </Project>
