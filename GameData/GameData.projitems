@@ -18,7 +18,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.md" />
-    <None Include="$(MSBuildThisFileDirectory)TimeControl\PluginData\GlobalSettings.cfg" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\README.md" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\TimeControl.version" />
   </ItemGroup>

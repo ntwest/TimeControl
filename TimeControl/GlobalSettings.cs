@@ -627,8 +627,21 @@ namespace TimeControl
                         return;
                     }
 
-                    if (System.IO.File.Exists( globalSettingsFilePath ))
+                    if (!System.IO.Directory.Exists( PluginAssemblyUtilities.PathPluginData ))
                     {
+                        try
+                        {
+                            System.IO.Directory.CreateDirectory( PluginAssemblyUtilities.PathPluginData );
+                        }
+                        catch (Exception ex) when (ex is System.IO.IOException || ex is UnauthorizedAccessException)
+                        {
+                            Log.Error( "Unable to create directory " + PluginAssemblyUtilities.PathPluginData, logBlockName );
+                            return;
+                        }
+                    }
+
+                    if (System.IO.File.Exists( globalSettingsFilePath ))
+                    {        
                         try
                         {
                             System.IO.File.Delete( globalSettingsFilePath );
