@@ -104,18 +104,18 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.3\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.3\UnityEngine.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.3\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -145,8 +145,8 @@
     </T4ParameterValues>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.4.3
-SET KSPMHTest=D:\KSP\KSP_win64-1.4.3-MH
+    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.4.4
+SET KSPMHTest=D:\KSP\KSP_win64-1.4.4-MH
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (
