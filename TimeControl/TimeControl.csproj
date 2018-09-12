@@ -104,18 +104,18 @@
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.5\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\UnityEngine.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.5\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.4\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\_Dependencies\KSPAssemblies_1.4.5\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -145,22 +145,15 @@
     </T4ParameterValues>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.4.4
-SET KSPMHTest=D:\KSP\KSP_win64-1.4.4-MH
+    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.4.5
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (
    RMDIR /S /Q "%25GameDataTarget%25"
 )
 
-SET GameDataMHTarget=%25KSPMHTest%25\GameData\TimeControl
-IF EXIST %25GameDataMHTarget%25 (
-   RMDIR /S /Q "%25GameDataMHTarget%25"
-)
-
 copy  "$(TargetPath)" "$(SolutionDir)\GameData\TimeControl"
 robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
-robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataMHTarget%25"
 
 exit 0</PostBuildEvent>
   </PropertyGroup>
