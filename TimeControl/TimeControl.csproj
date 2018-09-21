@@ -15,16 +15,14 @@
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Build|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Build\</OutputPath>
-    <DefineConstants>TRACE</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-  </PropertyGroup>
   <PropertyGroup>
     <SignAssembly>false</SignAssembly>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
+    <OutputPath>bin\Debug\</OutputPath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <OutputPath>bin\Release\</OutputPath>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="AssemblyVersion.cs">
@@ -144,16 +142,29 @@
     </T4ParameterValues>
   </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>SET KSPTest=D:\KSP\KSP_win64-1.4.5
+    <PostBuildEvent>if $(ConfigurationName) == Debug goto :debug
+
+:release
+
+robocopy  /E "$(TargetPath)" $(SolutionDir)\GameData\TimeControl
+
+goto :exit
+
+:debug
+
+SET KSPTest=D:\KSP\KSP_win64-1.4.5
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (
    RMDIR /S /Q "%25GameDataTarget%25"
 )
 
-copy  "$(TargetPath)" "$(SolutionDir)\GameData\TimeControl"
 robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
+robocopy  /E "$(TargetPath)" "%25GameDataTarget%25"
 
+goto :exit
+
+:exit
 exit 0</PostBuildEvent>
   </PropertyGroup>
   <PropertyGroup>

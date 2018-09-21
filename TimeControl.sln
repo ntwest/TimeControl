@@ -12,17 +12,14 @@ Global
 		GameData\GameData.projitems*{cbbb7888-e232-463d-b26e-49a9e510e735}*SharedItemsImports = 13
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
-		Build|Any CPU = Build|Any CPU
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Build|Any CPU.ActiveCfg = Build|Any CPU
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Build|Any CPU.Build.0 = Build|Any CPU
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Debug|Any CPU.ActiveCfg = Build|Any CPU
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Debug|Any CPU.Build.0 = Build|Any CPU
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Release|Any CPU.ActiveCfg = Build|Any CPU
-		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Release|Any CPU.Build.0 = Build|Any CPU
+		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{35AEE226-1A0A-4008-AF68-39E9EC55173B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
