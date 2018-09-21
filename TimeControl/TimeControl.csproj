@@ -160,7 +160,7 @@ IF EXIST %25GameDataTarget%25 (
 )
 
 robocopy /E $(SolutionDir)\GameData\TimeControl "%25GameDataTarget%25"
-robocopy  /E "$(TargetPath)" "%25GameDataTarget%25"
+copy  "$(TargetPath)" "%25GameDataTarget%25"
 
 goto :exit
 
