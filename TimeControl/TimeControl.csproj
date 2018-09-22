@@ -152,7 +152,7 @@ goto :exit
 
 :debug
 
-SET KSPTest=D:\KSP\KSP_win64-1.4.5
+SET KSPTest=D:\KSP\KSP_win64_1.4.5_Test
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (

@@ -132,7 +132,7 @@ namespace TimeControl
 
         public static void floatTextBoxSliderPlusMinusWithButtonList(string comboLabel, float fbacking, float sliderMin, float sliderMax, float increment, Action<float> updateBackingField, List<float> immediateButtons, Func<float, float> modifyField = null, bool reverse = false)
         {
-            string backingStr = fbacking.ToString();
+            string backingStr = fbacking.MemoizedToString();
             float fvalue = fbacking;
             string fStr;
 

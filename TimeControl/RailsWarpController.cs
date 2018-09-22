@@ -960,7 +960,7 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Load );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                Log.Info( "Loading from Internal Config", logBlockName );
+                Log.Info( "Loading from Config Node", logBlockName );
                 this.LoadCustomWarpRates( gameNode );
                 this.LoadCustomAltitudeLimits( gameNode );
             }
