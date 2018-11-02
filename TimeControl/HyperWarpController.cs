@@ -576,6 +576,12 @@ namespace TimeControl
                     Log.Info( "Already hyper warping.", logBlockName );
                     return;
                 }
+
+                if (TimeController.Instance.IsTimeControlPaused)
+                {
+                    TimeController.Instance.Unpause();
+                }
+
                 SetCanRailsWarp( false );
                 isHyperWarping = true;
 

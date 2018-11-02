@@ -93,9 +93,6 @@
     <Compile Include="ModIntegration\BlizzyToolbar\BlizzyToolbarWrapper.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config" />
-  </ItemGroup>
-  <ItemGroup>
     <Content Include="AssemblyVersion.tt">
       <Generator>TextTemplatingFileGenerator</Generator>
       <LastGenOutput>AssemblyVersion.cs</LastGenOutput>
@@ -103,16 +100,16 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Assembly-CSharp.1.4.5\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\packages\Assembly-CSharp.1.5.1\lib\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System">
       <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnityEngine.1.4.5\lib\UnityEngine.dll</HintPath>
+      <HintPath>..\packages\UnityEngine.1.5.1\lib\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnityEngine.UI.1.4.5\lib\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\packages\UnityEngine.UI.1.5.1\lib\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -141,18 +138,21 @@
       <Visible>false</Visible>
     </T4ParameterValues>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
   <PropertyGroup>
-    <PostBuildEvent>if $(ConfigurationName) == Debug goto :debug
+    <PostBuildEvent>copy  "$(TargetPath)" $(SolutionDir)\GameData\TimeControl
+
+if $(ConfigurationName) == Debug goto :debug
 
 :release
-
-robocopy  /E "$(TargetPath)" $(SolutionDir)\GameData\TimeControl
 
 goto :exit
 
 :debug
 
-SET KSPTest=D:\KSP\KSP_win64_1.4.5_Test
+SET KSPTest=D:\KSP\KSP_win64_1.5.1_Test
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (

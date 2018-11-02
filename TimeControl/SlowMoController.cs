@@ -450,6 +450,12 @@ namespace TimeControl
                     Log.Warning( "Already in slow-motion.", logBlockName );
                     return;
                 }
+
+                if (TimeController.Instance.IsTimeControlPaused)
+                {
+                    TimeController.Instance.Unpause();
+                }
+
                 SetCanRailsWarp(false);
                 isSlowMo = true;
 

@@ -1442,6 +1442,11 @@ namespace TimeControl
                     return false;
                 }
 
+                if (TimeController.Instance.IsTimeControlPaused)
+                {
+                    TimeController.Instance.Unpause();
+                }
+
                 IsRailsWarpingToUT = true;
                 RailsWarpingToUT = warpTime;
                 
