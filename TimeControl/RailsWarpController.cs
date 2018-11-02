@@ -153,7 +153,9 @@ namespace TimeControl
             {
                 if (HighLogic.CurrentGame?.Parameters?.Flight != null)
                 {
-                    return (HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh) && Mathf.Approximately( TimeController.Instance?.TimeScale ?? 1f, 1f ) && TimeWarp.fetch != null;
+                    return (HighLogic.CurrentGame.Parameters.Flight.CanTimeWarpHigh) 
+                        && (Mathf.Approximately( TimeController.Instance?.TimeScale ?? 1f, 1f ) || TimeController.Instance.IsTimeControlPaused)
+                        && TimeWarp.fetch != null;
                 }
                 else
                 {
