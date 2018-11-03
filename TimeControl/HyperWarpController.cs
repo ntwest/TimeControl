@@ -353,7 +353,10 @@ namespace TimeControl
                 GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
 
                 FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
-                cam = cams[0];
+                if (cams.Length > 0)
+                {
+                    cam = cams[0];
+                }
 
                 this.maxAttemptedRate = GlobalSettings.Instance.HyperWarpMaxAttemptedRate;
                 this.physicsAccuracy = GlobalSettings.Instance.HyperWarpPhysicsAccuracy;
@@ -456,7 +459,10 @@ namespace TimeControl
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 FlightCamera[] cams = FlightCamera.FindObjectsOfType( typeof( FlightCamera ) ) as FlightCamera[];
-                cam = cams[0];
+                if (cams.Length > 0)
+                {
+                    cam = cams[0];
+                }
 
                 DeactivateHyper();
             }

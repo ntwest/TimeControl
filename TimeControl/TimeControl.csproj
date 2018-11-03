@@ -102,9 +102,7 @@
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\Assembly-CSharp.1.5.1\lib\Assembly-CSharp.dll</HintPath>
     </Reference>
-    <Reference Include="System">
-      <HintPath>R:\KSP_1.2.2_dev\KSP_x64_Data\Managed\System.dll</HintPath>
-    </Reference>
+    <Reference Include="System" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\UnityEngine.1.5.1\lib\UnityEngine.dll</HintPath>
     </Reference>
