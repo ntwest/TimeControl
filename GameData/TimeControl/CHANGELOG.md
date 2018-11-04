@@ -3,10 +3,10 @@ Version 2.9.5 (KSP 1.5.1)
 - Allow warp directly from PAUSE when paused via TimeControl
 - Fix IndexOutOfRange exception on scene changes
 
-Version 2.9.2 (KSP 1.4.5)
+Version 2.9.4 (KSP 1.4.5)
 - KSP 1.4.5 Recompile
 
-Version 2.9.2 (KSP 1.4.4)
+Version 2.9.3 (KSP 1.4.4)
 - KSP 1.4.4 Recompile
 
 Version 2.9.2 (KSP 1.4.3)
