@@ -5,12 +5,12 @@ using KSP.UI.Screens;
 
 namespace TimeControl
 {
-    [KSPAddon( KSPAddon.Startup.MainMenu, true )]
+    [KSPAddon( KSPAddon.Startup.Instantly, true )]
     internal sealed class Toolbars : MonoBehaviour
     {
         #region Singleton
-        private static Toolbars instance;
-        internal static Toolbars Instance { get { return instance; } }
+        internal static Toolbars Instance { get; private set; }
+        internal bool IsReady { get; private set; } = false;
         #endregion
 
         private ApplicationLauncher.AppScenes AppScenes = ApplicationLauncher.AppScenes.FLIGHT | ApplicationLauncher.AppScenes.MAPVIEW | ApplicationLauncher.AppScenes.SPACECENTER | ApplicationLauncher.AppScenes.TRACKSTATION;
@@ -28,13 +28,11 @@ namespace TimeControl
             get => ApplicationLauncher.Ready && ApplicationLauncher.Instance != null;
         }
 
-        internal bool IsReady { get; private set; } = false;
-
         #region MonoBehavior
         private void Awake()
         {
             DontDestroyOnLoad( this );
-            instance = this;
+            Instance = this;
         }
 
         private void Start()
@@ -49,18 +47,18 @@ namespace TimeControl
         /// Configures the Toolbars once the Settings are loaded
         /// </summary>
         public IEnumerator Configure()
-        {
+        {            
+            while (!GlobalSettings.IsReady || !TimeControlIMGUI.IsReady)
+            {
+                yield return new WaitForSeconds( 1f );
+            }
+
             buttonTexture = GameDatabase.Instance.GetTexture( PluginAssemblyUtilities.GameDatabasePathStockToolbarIcons + "/enabled", false );
 
             global::GameEvents.onGUIApplicationLauncherReady.Add( this.AppLauncherReady );
             global::GameEvents.onGUIApplicationLauncherDestroyed.Add( this.AppLauncherDestroyed );
             global::GameEvents.onLevelWasLoadedGUIReady.Add( this.AppLauncherDestroyed );
             global::GameEvents.OnGameSettingsApplied.Add( this.OnGameSettingsApplied );
-
-            while (!GlobalSettings.IsReady || !TimeControlIMGUI.IsReady)
-            {
-                yield return new WaitForSeconds( 1f );
-            }
 
             if (BlizzyToolbar.ToolbarManager.ToolbarAvailable)
             {
@@ -72,6 +70,8 @@ namespace TimeControl
             }
 
             IsReady = true;
+
+            Reset();
 
             yield break;
         }
@@ -217,3 +217,29 @@ namespace TimeControl
         }
     }
 }
+
+
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/

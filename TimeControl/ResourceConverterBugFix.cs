@@ -1,38 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Text;
 
 using UnityEngine;
-
-/*
-All code in this file Copyright(c) 2016 Nate West
-Rewritten from scratch. Portions of the logic in this file is derived from code in BetterTimeWarp Continued by linuxgurugamer
-https://github.com/linuxgurugamer/BetterTimeWarpContinued/blob/master/BetterTimeWarp/BetterTimeWarp.cs
-linuxgurugamer has provided permission for me to use this code.
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
 
 namespace ResourceConverterWarpFix
 {
@@ -40,9 +10,8 @@ namespace ResourceConverterWarpFix
     internal class ResourceConverterWarpFix : MonoBehaviour
     {
         #region Singleton
-        public static bool IsReady { get; private set; } = false;
-        private static ResourceConverterWarpFix instance;
-        public static ResourceConverterWarpFix Instance { get { return instance; } }
+        public static ResourceConverterWarpFix Instance { get; private set; }
+        public static bool IsReady { get; private set; } = false;        
         #endregion
 
         #region Private Fields
@@ -54,7 +23,7 @@ namespace ResourceConverterWarpFix
         private void Awake()
         {
             DontDestroyOnLoad( this );
-            instance = this;
+            Instance = this;
 
             resourceConverterParts = new List<Part>();
             lastWarpRateIdx = 0;
@@ -158,3 +127,32 @@ namespace ResourceConverterWarpFix
         #endregion Private Methods
     }
 }
+
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+Portions of the logic (but not the code) in this file is derived from code in BetterTimeWarp Continued by linuxgurugamer
+https://github.com/linuxgurugamer/BetterTimeWarpContinued/blob/master/BetterTimeWarp/BetterTimeWarp.cs
+linuxgurugamer has provided permission for me to use this code.
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+*/

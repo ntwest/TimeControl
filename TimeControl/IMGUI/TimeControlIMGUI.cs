@@ -1,45 +1,11 @@
-﻿/*
-All code in this file Copyright(c) 2016 Nate West
-Rewritten from scratch, but based on code Copyright(c) 2014 Xaiier using the same license as below
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
-using System.Linq;
 using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
 
 namespace TimeControl
 {
-    [KSPAddon(KSPAddon.Startup.MainMenu, true)]
+    [KSPAddon( KSPAddon.Startup.Instantly, true )]
     internal class TimeControlIMGUI : MonoBehaviour
     {
 
@@ -68,12 +34,12 @@ namespace TimeControl
 
         public void TempHideGUI(string lockedBy)
         {
-            tempGUIHidden.Add(lockedBy);
+            tempGUIHidden.Add( lockedBy );
         }
 
         public void TempUnHideGUI(string lockedBy)
         {
-            tempGUIHidden.RemoveAll(x => x == lockedBy);
+            tempGUIHidden.RemoveAll( x => x == lockedBy );
         }
 
         public void TempUnHideGUI()
@@ -84,7 +50,7 @@ namespace TimeControl
 
         private enum GUIMode
         {
-            RailsEditor = 1,            
+            RailsEditor = 1,
             HyperWarp = 2,
             SlowMotion = 3,
             RailsWarpTo = 4,
@@ -92,7 +58,7 @@ namespace TimeControl
             KeyBindingsEditor = 6,
             QuickWarp = 7
         }
-        
+
         #region Fields
         // Temp Hide/Show GUI Windows
         private List<string> tempGUIHidden = new List<string>();
@@ -109,18 +75,18 @@ namespace TimeControl
         //GUI Layout        
         private bool priorWindowVisible = false;
 
-        private static Rect mode0Button = new Rect(10, -1, 25, 20);
-        private static Rect mode1Button = new Rect(25, -1, 25, 20);
-        private static Rect mode2Button = new Rect(40, -1, 25, 20);
+        private static Rect mode0Button = new Rect( 10, -1, 25, 20 );
+        private static Rect mode1Button = new Rect( 25, -1, 25, 20 );
+        private static Rect mode2Button = new Rect( 40, -1, 25, 20 );
         private static Rect mode3Button = new Rect( 55, -1, 25, 20 );
         private static Rect mode4Button = new Rect( 70, -1, 25, 20 );
         private static Rect mode5Button = new Rect( 85, -1, 25, 20 );
         private static Rect mode6Button = new Rect( 100, -1, 25, 20 );
 
-        private Rect windowRect = new Rect(100, 100, 375, 0);
+        private Rect windowRect = new Rect( 100, 100, 375, 0 );
 
         private int tcsWindowHashCode = "Time Control IMGUI".GetHashCode();
-        
+
         private RailsEditorIMGUI railsEditorGUI;
         private HyperIMGUI hyperGUI;
         private DetailsIMGUI detailsGUI;
@@ -167,17 +133,17 @@ namespace TimeControl
         {
             get => HighLogic.CurrentGame?.Parameters?.CustomParams<TimeControlParameterNode>()?.SupressFlightResultsDialog ?? true;
         }
-        
+
         private double PhysicsTimeRatio
         {
-            get => ( PerformanceCountersOn ? PerformanceManager.Instance.PhysicsTimeRatio : 0.0);
+            get => (PerformanceCountersOn ? PerformanceManager.Instance.PhysicsTimeRatio : 0.0);
         }
 
         private double FramesPerSecond
         {
-            get => ( PerformanceCountersOn ? PerformanceManager.Instance.FramesPerSecond : 0.0);
+            get => (PerformanceCountersOn ? PerformanceManager.Instance.FramesPerSecond : 0.0);
         }
-        
+
         #region MonoBehavior and related private methods
         #region One-Time
         private void Awake()
@@ -283,7 +249,7 @@ namespace TimeControl
                 {
                     yield return null;
                 }
-                
+
                 OnTimeControlGlobalSettingsLoadedEvent = GameEvents.FindEvent<EventData<bool>>( nameof( TimeControlEvents.OnTimeControlGlobalSettingsChanged ) );
                 OnTimeControlGlobalSettingsLoadedEvent?.Add( OnTimeControlGlobalSettingsLoaded );
 
@@ -295,7 +261,7 @@ namespace TimeControl
                 keyBindingsGUI = new KeyBindingsEditorIMGUI();
                 quickWarpToGUI = new QuickWarpToIMGUI();
 
-                Log.Info( "TCGUI.Instance is Ready!", logBlockName );
+                Log.Info( nameof( TimeControlIMGUI ) + " is Ready!", logBlockName );
                 IsReady = true;
 
             }
@@ -317,7 +283,7 @@ namespace TimeControl
         {
             const string logBlockName = nameof( TimeControlIMGUI ) + "." + nameof( onLevelWasLoaded );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {                
+            {
                 if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
                 {
                     windowRect.x = spaceCenterWindow_x;
@@ -381,7 +347,7 @@ namespace TimeControl
             }
         }
         #endregion
-        
+
         #region GUI Methods
         private void OnGUI()
         {
@@ -423,7 +389,7 @@ namespace TimeControl
                 {
                     spaceCenterWindowIsDisplayed = WindowVisible;
                 }
-                if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)                    
+                if (HighLogic.LoadedScene == GameScenes.TRACKSTATION)
                 {
                     trackingStationWindowIsDisplayed = WindowVisible;
                 }
@@ -439,9 +405,9 @@ namespace TimeControl
 
         private void OnGUIWindow()
         {
-            windowRect = GUILayout.Window(tcsWindowHashCode, windowRect, MainGUI, "Time Control");
+            windowRect = GUILayout.Window( tcsWindowHashCode, windowRect, MainGUI, "Time Control" );
             windowRect.ClampToScreen();
-            
+
             if (HighLogic.LoadedScene == GameScenes.SPACECENTER)
             {
                 if (windowRect.x != spaceCenterWindow_x)
@@ -496,7 +462,7 @@ namespace TimeControl
 
         #region Main GUI
         private void MainGUI(int windowId)
-        {            
+        {
             GUIHeaderButtons();
 
             GUI.enabled = !FlightDriver.Pause;
@@ -507,7 +473,7 @@ namespace TimeControl
             {
                 WindowSelectedMode = GUIMode.RailsWarpTo;
             }
-            
+
             switch (WindowSelectedMode)
             {
                 case GUIMode.SlowMotion:
@@ -532,7 +498,7 @@ namespace TimeControl
                     quickWarpToGUI.WarpToGUI();
                     break;
             }
-            
+
             UnityEngine.GUI.enabled = true;
 
             if (Event.current.button > 0 && Event.current.type != EventType.Repaint && Event.current.type != EventType.Layout) //Ignore right & middle clicks
@@ -592,7 +558,7 @@ namespace TimeControl
             Color cc = UnityEngine.GUI.contentColor;
 
             UnityEngine.GUI.backgroundColor = Color.clear;
-            
+
             //Details mode
             {
                 if (WindowSelectedMode != GUIMode.Details)
@@ -632,7 +598,7 @@ namespace TimeControl
                 }
                 UnityEngine.GUI.contentColor = cc;
             }
-            
+
             //Rails Editor mode
             {
                 if (WindowSelectedMode != GUIMode.RailsEditor)
@@ -691,7 +657,7 @@ namespace TimeControl
                     }
                     UnityEngine.GUI.contentColor = cc;
                 }
-            }            
+            }
             UnityEngine.GUI.backgroundColor = bc;
         }
 
@@ -756,3 +722,27 @@ namespace TimeControl
         #endregion
     }
 }
+/*
+All code in this file Copyright(c) 2016 Nate West
+Rewritten from scratch, but based on code Copyright(c) 2014 Xaiier using the same license as below
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/

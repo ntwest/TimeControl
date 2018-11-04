@@ -1,4 +1,47 @@
-﻿/*
+﻿using System;
+using UnityEngine;
+
+namespace TimeControl
+{
+    internal class DetailsIMGUI
+    {
+        public DetailsIMGUI()
+        {
+        }
+
+        public void DetailsGUI()
+        {
+            GUILayout.BeginVertical();
+            {
+                PerformanceManager.Instance.PerformanceCountersOn = GUILayout.Toggle( PerformanceManager.Instance.PerformanceCountersOn, "Performance Counters" );
+
+                GUILayout.Label( "UT: " + Math.Round( Planetarium.GetUniversalTime(), 0 ) ); // Creates garbage, but not worth caching since it's monotonically increasing
+
+                GUILayout.Label( "Time Scale: ".MemoizedConcat( TimeController.Instance.TimeScale.MemoizedToString() ) );
+                GUILayout.Label( "Physics Delta: ".MemoizedConcat( TimeController.Instance.FixedDeltaTime.MemoizedToString() ) );
+
+                if ((PerformanceManager.Instance?.PerformanceCountersOn ?? false))
+                {
+                    GUILayout.Label( "UT passing per sec: ".MemoizedConcat( Math.Round( PerformanceManager.Instance.GametimeToRealtimeRatio, 2 ).MemoizedToString() ) );
+                    GUILayout.Label( "Physics Updates per sec: ".MemoizedConcat( Math.Round( PerformanceManager.Instance.PhysicsUpdatesPerSecond, 2 ).MemoizedToString() ) );
+                }
+                else
+                {
+                    GUILayout.Label( "UT passing per sec: N/A" );
+                    GUILayout.Label( "Physics Updates per sec: N/A" );
+                }
+
+                GUILayout.Label( "Current Max Delta Time: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTime.MemoizedToString() ) );
+                GUILayout.Label( "Max Delta Time Setting: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTimeSetting.MemoizedToString() ) );
+
+                TimeController.Instance.MaximumDeltaTimeSetting = GUILayout.HorizontalSlider( TimeController.Instance.MaximumDeltaTimeSetting, TimeController.MaximumDeltaTimeMax, TimeController.MaximumDeltaTimeMin );
+            }
+            GUILayout.EndVertical();
+        }
+    }
+}
+
+/*
 All code in this file Copyright(c) 2016 Nate West
 
 The MIT License (MIT)
@@ -22,57 +65,3 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 */
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
-using System.Linq;
-using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
-namespace TimeControl
-{
-    internal class DetailsIMGUI
-    {
-        public DetailsIMGUI()
-        {
-        }
-
-        bool showUT = false;
-
-        public void DetailsGUI()
-        {
-            GUILayout.BeginVertical();
-            {
-                PerformanceManager.Instance.PerformanceCountersOn = GUILayout.Toggle( PerformanceManager.Instance.PerformanceCountersOn, "Performance Counters" );
-
-                GUILayout.Label( "UT: " + Math.Round(Planetarium.GetUniversalTime(), 2) ); // Creates garbage, but not worth caching since it's monotonically increasing
-            
-                GUILayout.Label( "Time Scale: ".MemoizedConcat( TimeController.Instance.TimeScale.MemoizedToString() ) );
-                GUILayout.Label( "Physics Delta: ".MemoizedConcat( TimeController.Instance.FixedDeltaTime.MemoizedToString() ) );
-
-                if ((PerformanceManager.Instance?.PerformanceCountersOn ?? false))
-                {
-                    GUILayout.Label( "UT passing per sec: ".MemoizedConcat( Math.Round(PerformanceManager.Instance.GametimeToRealtimeRatio, 2).MemoizedToString() ) );
-                    GUILayout.Label( "Physics Updates per sec: ".MemoizedConcat( Math.Round(PerformanceManager.Instance.PhysicsUpdatesPerSecond, 2).MemoizedToString() ) );
-                }
-                else
-                {
-                    GUILayout.Label( "UT passing per sec: N/A" );
-                    GUILayout.Label( "Physics Updates per sec: N/A" );
-                }
-
-                GUILayout.Label( "Current Max Delta Time: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTime.MemoizedToString() ) );
-                GUILayout.Label( "Max Delta Time Setting: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTimeSetting.MemoizedToString() ) );
-                
-                TimeController.Instance.MaximumDeltaTimeSetting = GUILayout.HorizontalSlider( TimeController.Instance.MaximumDeltaTimeSetting, TimeController.MaximumDeltaTimeMax, TimeController.MaximumDeltaTimeMin);                
-            }
-            GUILayout.EndVertical();
-        }
-    }
-}

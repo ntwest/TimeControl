@@ -20,6 +20,7 @@
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG</DefineConstants>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
@@ -75,7 +76,6 @@
     <Compile Include="TimeControlEvents.cs" />
     <Compile Include="ExtensionMethods.cs" />
     <Compile Include="RailsWarpController.cs" />
-    <Compile Include="KSPPluginFramework\ExtensionMethods.cs" />
     <Compile Include="IMGUI\IMGUIExtensions.cs" />
     <Compile Include="Logging\EntryExitLogger.cs" />
     <Compile Include="Logging\Log.cs" />

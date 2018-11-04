@@ -10,7 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\Flags\TimeControl.png" />
-    <Content Include="$(MSBuildThisFileDirectory)TimeControl\LICENSE" />
+    <Content Include="$(MSBuildThisFileDirectory)TimeControl\LICENSE.md" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\BlizzyToolbarIcons\disabled.png" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\BlizzyToolbarIcons\enabled.png" />
     <Content Include="$(MSBuildThisFileDirectory)TimeControl\ToolbarIcons\StockToolbarIcons\disabled.png" />
@@ -18,6 +18,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)README.md" />
+    <None Include="$(MSBuildThisFileDirectory)TimeControl\CHANGELOG.md" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\README.md" />
     <None Include="$(MSBuildThisFileDirectory)TimeControl\TimeControl.version" />
   </ItemGroup>

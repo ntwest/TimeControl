@@ -1,36 +1,7 @@
-﻿/*
-All code in this file Copyright(c) 2016 Nate West
-Rewritten from scratch, but based on code Copyright(c) 2014 Xaiier
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
-
-using System;
-using System.Reflection;
+﻿using System;
 using UnityEngine;
-using KSPPluginFramework;
 using System.Collections;
 using System.Collections.Generic;
-using KSP.UI.Dialogs;
 using System.Linq;
 
 namespace TimeControl
@@ -38,7 +9,7 @@ namespace TimeControl
     /// <summary>
     /// Controls the extensions to the Rails Warp provided by Time Control. Custom warp rates and altitude limits, and 'time warp to UT' functionality
     /// </summary>
-    [KSPAddon( KSPAddon.Startup.MainMenu, true )]
+    [KSPAddon( KSPAddon.Startup.Instantly, true )]
     internal class RailsWarpController : MonoBehaviour
     {
         #region Singleton        
@@ -376,7 +347,7 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( Configure );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
-                while (!GlobalSettings.IsReady)
+                while (!GlobalSettings.IsReady || !IsValidScene())
                 {
                     yield return new WaitForSeconds( 1f );
                 }
@@ -388,7 +359,7 @@ namespace TimeControl
 
                 while (RailsWarpController.gameNode == null)
                 {
-                    Log.Info( "Waiting For Scenario Object", logBlockName );
+                    Log.Info( "Scenario Object has not loaded the necessary config node yet", logBlockName );
                     yield return new WaitForSeconds( 1f );
                 }
 
@@ -423,6 +394,7 @@ namespace TimeControl
                 
                 GameEvents.onTimeWarpRateChanged.Add( onTimeWarpRateChanged );
 
+                Log.Info( nameof( RailsWarpController ) + " is Ready!", logBlockName );
                 IsReady = true;
 
                 yield break;
@@ -1566,6 +1538,35 @@ namespace TimeControl
             }
         }
 
+        private bool IsValidScene()
+        {
+            return (HighLogic.LoadedScene == GameScenes.FLIGHT || HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION);
+        }
+
         #endregion
     }
 }
+
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/

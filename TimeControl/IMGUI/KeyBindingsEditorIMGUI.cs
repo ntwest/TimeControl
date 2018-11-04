@@ -1,40 +1,6 @@
-﻿/*
-All code in this file Copyright(c) 2016 Nate West
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
+﻿using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
 using TimeControl.KeyBindings;
 
 namespace TimeControl
@@ -72,7 +38,7 @@ namespace TimeControl
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoToggle() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoActivate() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new SlowMoDeactivate() { IsUserDefined = true } ) );
-            
+
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSetRate() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSlowDown() { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new HyperRateSpeedUp() { IsUserDefined = true } ) );
@@ -88,7 +54,7 @@ namespace TimeControl
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Hours ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Days ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNTimeIncrements( WarpForNTimeIncrements.TimeIncrement.Years ) { IsUserDefined = true } ) );
-            
+
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Ap ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.Pe ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.AN ) { IsUserDefined = true } ) );
@@ -104,7 +70,7 @@ namespace TimeControl
             if (keyBindings == null || refreshKBCache)
             {
                 keyBindings.Clear();
-                keyBindings.AddRange(KeyboardInputManager.Instance.GetActiveKeyBinds());
+                keyBindings.AddRange( KeyboardInputManager.Instance.GetActiveKeyBinds() );
                 refreshKBCache = false;
             }
         }
@@ -214,7 +180,7 @@ namespace TimeControl
 
             GUI.enabled = guiEditorEnabled;
             GUI.contentColor = guiPriorColor;
-            
+
             if (!addingNewKeyBinding)
             {
                 if (GUILayout.Button( "Reset Key Bindings" ))
@@ -228,7 +194,7 @@ namespace TimeControl
                     addingNewKeyBinding = true;
                     ResetUserDefinedKBAdd();
                 }
-            }            
+            }
 
             GUI.contentColor = guiPriorColor;
             GUI.enabled = guiPriorEnabled;
@@ -236,7 +202,7 @@ namespace TimeControl
 
         private void GUIAssignKey(string buttonDesc, TimeControlKeyBinding kb)
         {
-            const string logBlockName = nameof ( KeyBindingsEditorIMGUI ) + "." + nameof( KeyBindingsEditorIMGUI.GUIAssignKey );
+            const string logBlockName = nameof( KeyBindingsEditorIMGUI ) + "." + nameof( KeyBindingsEditorIMGUI.GUIAssignKey );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
                 // Left Mouse Button, Assign Key
@@ -245,7 +211,7 @@ namespace TimeControl
                     currentlyAssigningKey = true;
                     KeyboardInputManager.Instance.GetPressedKeyCombination( (lkc) =>
                     {
-                        const string logBlockName2 = nameof( KeyBindingsEditorIMGUI ) + "." + nameof( KeyBindingsEditorIMGUI.GUIAssignKey ) + " - " + nameof ( KeyboardInputManager.Instance.GetPressedKeyCombination ) + " Callback";
+                        const string logBlockName2 = nameof( KeyBindingsEditorIMGUI ) + "." + nameof( KeyBindingsEditorIMGUI.GUIAssignKey ) + " - " + nameof( KeyboardInputManager.Instance.GetPressedKeyCombination ) + " Callback";
                         using (EntryExitLogger.EntryExitLog( logBlockName2, EntryExitLoggerOptions.All ))
                         {
                             currentlyAssigningKey = false;
@@ -267,3 +233,27 @@ namespace TimeControl
         }
     }
 }
+
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/

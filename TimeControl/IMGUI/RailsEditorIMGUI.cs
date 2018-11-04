@@ -1,40 +1,7 @@
-﻿/*
-All code in this file Copyright(c) 2016 Nate West
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
-
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
 using System.Linq;
 using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
 
 namespace TimeControl
 {
@@ -68,7 +35,7 @@ namespace TimeControl
 
             altitudeHeight = GlobalSettings.Instance.ResetAltitudeToValue;
             sAltitudeHeight = altitudeHeight.ToString();
-            
+
             SubscribeEvents();
         }
 
@@ -89,7 +56,7 @@ namespace TimeControl
         }
 
 
-        private void OnTimeControlCustomWarpRatesChanged (bool d)
+        private void OnTimeControlCustomWarpRatesChanged(bool d)
         {
             const string logBlockName = nameof( RailsEditorIMGUI ) + "." + nameof( OnTimeControlCustomWarpRatesChanged );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
@@ -106,10 +73,10 @@ namespace TimeControl
                     selectedGUISOI = TimeController.Instance.CurrentGameSOI;
                     priorGUISOI = selectedGUISOI;
                 }
-                
+
                 if (!altitudeLimits.ContainsKey( selectedGUISOI ))
                 {
-                    altitudeLimits.Add( selectedGUISOI, null );                    
+                    altitudeLimits.Add( selectedGUISOI, null );
                 }
 
                 foreach (CelestialBody cb in altitudeLimits.Keys.ToList())
@@ -138,7 +105,7 @@ namespace TimeControl
             {
                 warpRates = RailsWarpController.Instance?.GetCustomWarpRates();
             }
-            
+
             if (!altitudeLimits.ContainsKey( selectedGUISOI ))
             {
                 altitudeLimits.Add( selectedGUISOI, null );
@@ -148,13 +115,13 @@ namespace TimeControl
             {
                 altitudeLimits[selectedGUISOI] = RailsWarpController.Instance?.GetCustomAltitudeLimitsForBody( selectedGUISOI );
             }
-            
+
             GUILayout.BeginVertical();
             {
                 GUIHeader();
 
                 GUI.enabled = guiPriorEnabled && !(RailsWarpController.Instance?.IsRailsWarping ?? true);
-                
+
                 GUIEditor();
 
                 GUILayout.Label( "", GUILayout.Height( 5 ) );
@@ -162,7 +129,7 @@ namespace TimeControl
                 GUIActions();
             }
             GUILayout.EndVertical();
-            
+
             GUI.enabled = guiPriorEnabled;
         }
 
@@ -178,17 +145,17 @@ namespace TimeControl
             GUILayout.EndHorizontal();
 
             GUILayout.Label( "", GUILayout.Height( 5 ) );
-            
+
             GUI.enabled = guiPriorEnabled;
         }
 
         private void GUIActions()
         {
             bool guiPriorEnabled = GUI.enabled;
-            
+
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Reset Warp Rates to Defaults"))
+                if (GUILayout.Button( "Reset Warp Rates to Defaults" ))
                 {
                     RailsWarpController.Instance.ResetWarpRates();
                 }
@@ -204,7 +171,7 @@ namespace TimeControl
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Warp Rates: Earth-Multiples") )
+                if (GUILayout.Button( "Warp Rates: Earth-Multiples" ))
                 {
                     RailsWarpController.Instance.SetWarpRatesToEarthTimeMultiples();
                 }
@@ -212,7 +179,7 @@ namespace TimeControl
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Reset ".MemoizedConcat( selectedGUISOI.name ).MemoizedConcat( " Altitude Limits" ) ) )
+                if (GUILayout.Button( "Reset ".MemoizedConcat( selectedGUISOI.name ).MemoizedConcat( " Altitude Limits" ) ))
                 {
                     RailsWarpController.Instance.ResetAltitudeLimits( selectedGUISOI );
                 }
@@ -220,7 +187,7 @@ namespace TimeControl
             GUILayout.EndHorizontal();
             GUILayout.BeginHorizontal();
             {
-                if (GUILayout.Button( "Reset All Altitude Limits") )
+                if (GUILayout.Button( "Reset All Altitude Limits" ))
                 {
                     RailsWarpController.Instance.ResetAltitudeLimits();
                 }
@@ -229,7 +196,7 @@ namespace TimeControl
 
             GUILayout.BeginHorizontal();
             {
-                GUILayout.Label( "Set ".MemoizedConcat(selectedGUISOI.name).MemoizedConcat( " Altitudes to Atmo or " ), GUILayout.Width( 200 ) );
+                GUILayout.Label( "Set ".MemoizedConcat( selectedGUISOI.name ).MemoizedConcat( " Altitudes to Atmo or " ), GUILayout.Width( 200 ) );
                 string curSAltitudeHeight = this.altitudeHeight.MemoizedToString();
                 this.sAltitudeHeight = GUILayout.TextField( this.sAltitudeHeight, GUILayout.Width( 60 ) );
                 if (this.sAltitudeHeight != curSAltitudeHeight)
@@ -252,8 +219,8 @@ namespace TimeControl
             GUILayout.EndHorizontal();
 
             GUILayout.BeginHorizontal();
-            {                
-                GUILayout.Label( "Set All Altitudes to Atmo or ", GUILayout.Width (200) );
+            {
+                GUILayout.Label( "Set All Altitudes to Atmo or ", GUILayout.Width( 200 ) );
                 string curSAltitudeHeight = this.altitudeHeight.MemoizedToString();
                 this.sAltitudeHeight = GUILayout.TextField( this.sAltitudeHeight, GUILayout.Width( 60 ) );
                 if (this.sAltitudeHeight != curSAltitudeHeight)
@@ -330,7 +297,7 @@ namespace TimeControl
                 GUILayout.EndHorizontal();
             }
             GUILayout.EndScrollView();
-            
+
             GUI.enabled = guiPriorEnabled;
         }
 
@@ -415,7 +382,7 @@ namespace TimeControl
             {
                 return;
             }
-            
+
             GUILayout.BeginVertical( GUILayout.Width( 145 ) );
             {
                 for (int i = 0; i < ALCount; i++)
@@ -434,7 +401,7 @@ namespace TimeControl
                         }
                         curAL = newAL;
                     }
-                }                
+                }
             }
             GUILayout.EndVertical();
 
@@ -472,3 +439,26 @@ namespace TimeControl
 
     }
 }
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/

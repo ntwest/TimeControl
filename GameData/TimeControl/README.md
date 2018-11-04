@@ -1,5 +1,11 @@
-
 TIME CONTROL
+
+Originally designed by Xaiier as an advanced successor to the popular Dynamic Warp mod, this mod gives you complete control of time in KSP by allowing you to slow down time to get those cool explosions on video(or find out why your rocket is blowing up on the pad), boost the rate of time to ridiculous levels without loss of precision to ease those long burns, set custom warp rates and per-planet custom altitude limits, utilize automatic warping, and monitor the physics engine and game performance.
+
+Now maintained and enhanced by westamastaflash.
+
+KSP Forum Thread:
+https://forum.kerbalspaceprogram.com/index.php?/topic/143763-145-time-control-294/
 
 
 

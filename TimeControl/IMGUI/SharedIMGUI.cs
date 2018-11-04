@@ -1,4 +1,46 @@
-﻿/*
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
+
+namespace TimeControl
+{
+    internal class SharedIMGUI
+    {
+        private List<float> throttleRateButtons = new List<float>() { 0, 50, 100 };
+
+        public SharedIMGUI()
+        {
+
+        }
+
+        bool throttleToggle = false;
+        float throttleSet = 0f;
+
+        internal void GUIThrottleControl()
+        {
+            throttleToggle = GUILayout.Toggle( throttleToggle, "Throttle Control: " + Mathf.Round( throttleSet * 100 ) + "%" );
+
+            Action<float> updateThrottle = delegate (float f)
+            {
+                throttleSet = f / 100.0f;
+            };
+
+            if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSet)
+            {
+                FlightInputHandler.state.mainThrottle = throttleSet;
+            }
+
+            // Force slider to select 1 decimal place values between min and max
+            Func<float, float> modifyFieldThrottle = delegate (float f)
+            {
+                return (Mathf.Floor( f ));
+            };
+
+            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( null, (throttleSet * 100f), 0.0f, 100.0f, 1f, updateThrottle, throttleRateButtons, modifyFieldThrottle );
+        }
+    }
+}
+/*
 All code in this file Copyright(c) 2016 Nate West
 
 The MIT License (MIT)
@@ -20,55 +62,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 */
-
-using System;
-using System.Collections;
-using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
-using System.Linq;
-using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
-namespace TimeControl
-{
-    internal class SharedIMGUI
-    {
-
-        private List<float> throttleRateButtons = new List<float>() { 0, 50, 100 };
-
-        public SharedIMGUI()
-        {
-
-        }
-
-        bool throttleToggle = false;
-        float throttleSet = 0f;
-
-        internal void GUIThrottleControl()
-        {
-            throttleToggle = GUILayout.Toggle( throttleToggle, "Throttle Control: " + Mathf.Round( throttleSet * 100 ) + "%" );
-
-            Action<float> updateThrottle = delegate (float f) {
-                throttleSet = f / 100.0f;
-            };
-
-            if (FlightInputHandler.state != null && throttleToggle && FlightInputHandler.state.mainThrottle != throttleSet)
-            {
-                FlightInputHandler.state.mainThrottle = throttleSet;
-            }
-
-            // Force slider to select 1 decimal place values between min and max
-            Func<float, float> modifyFieldThrottle = delegate (float f) {
-                return (Mathf.Floor( f ));
-            };
-
-            IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( null, (throttleSet * 100f), 0.0f, 100.0f, 1f, updateThrottle, throttleRateButtons, modifyFieldThrottle );
-        }
-    }
-}

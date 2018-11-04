@@ -1,40 +1,6 @@
-﻿/*
-All code in this file Copyright(c) 2016 Nate West
-
-The MIT License (MIT)
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-
-*/
-
-using System;
-using System.Collections;
+﻿using System;
 using System.Collections.Generic;
-using SC = System.ComponentModel;
-using System.Reflection;
-using System.Linq;
 using UnityEngine;
-using KSP.IO;
-using KSP.UI.Screens;
-using KSP.UI.Dialogs;
-using KSPPluginFramework;
-
 
 namespace TimeControl
 {
@@ -104,11 +70,12 @@ namespace TimeControl
                 hyperMinPhysLabel = hyperMinPhysLabel.MemoizedConcat( " !!! DANGER !!!" );
             }
 
-            Action<float> updatehyperMinPhys = delegate (float f) {
+            Action<float> updatehyperMinPhys = delegate (float f)
+            {
                 HyperWarpController.Instance.PhysicsAccuracy = f;
             };
-            
-            Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Round( f * (1f/physIncrement)) / (1f/physIncrement); };
+
+            Func<float, float> modifyFieldMinPhys = delegate (float f) { return Mathf.Round( f * (1f / physIncrement) ) / (1f / physIncrement); };
 
             IMGUIExtensions.floatTextBoxSliderPlusMinusWithButtonList( hyperMinPhysLabel, HyperWarpController.Instance.PhysicsAccuracy, HyperWarpController.PhysicsAccuracyMin, HyperWarpController.PhysicsAccuracyMax, physIncrement, updatehyperMinPhys, phyAccuracyButtons, modifyFieldMinPhys );
         }
@@ -121,7 +88,7 @@ namespace TimeControl
 
             if (HyperWarpController.Instance.MaximumDeltaTime > 0.12f)
             {
-                hyperMaxRateLabel = hyperMaxRateLabel.MemoizedConcat( " - Low FPS Likely");
+                hyperMaxRateLabel = hyperMaxRateLabel.MemoizedConcat( " - Low FPS Likely" );
             }
 
             Action<float> updateHyperMaxDelta = delegate (float f) { HyperWarpController.Instance.MaximumDeltaTime = f; };
@@ -186,3 +153,27 @@ namespace TimeControl
         }
     }
 }
+
+/*
+All code in this file Copyright(c) 2016 Nate West
+
+The MIT License (MIT)
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/

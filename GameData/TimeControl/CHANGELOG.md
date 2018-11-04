@@ -1,3 +1,42 @@
+Version 2.9.6 (KSP 1.5.1)
+- KSP 1.5.1 Recompile
+- Allow warp directly from PAUSE when paused via TimeControl
+- Fix IndexOutOfRange exception on scene changes
+
+Version 2.9.2 (KSP 1.4.5)
+- KSP 1.4.5 Recompile
+
+Version 2.9.2 (KSP 1.4.4)
+- KSP 1.4.4 Recompile
+
+Version 2.9.2 (KSP 1.4.3)
+- KSP 1.4.3 Recompile
+
+Version 2.9.1 (KSP 1.4.2)
+- KSP 1.4.2 Recompile
+
+Version 2.9 (KSP 1.4.1)
+- KSP 1.4.1 Compatibility
+- Removed MiniAVC (kept Version file)
+
+Version 2.8.3 (KSP 1.3.1)
+- Automatically reset maximumDeltaTime to the PHYSICS_FRAME_DT_LIMIT after physics warp bug enhancement
+- Fixed Physics Accuracy +/- not working correctly on slider
+- Fixed Hyper-Warp/Slow Mo Screen messages do not include stats when GUI is disabled (toggle performance stats on ? screen)
+- Hyper Warp now allows you to set very high MaximumDeltaTime values that only apply during hyper warp. This will reduce your frame rate but possibly speed up Hyper Warp a little bit so long as the engine is not physics-limited.
+
+Version 2.8.2 (KSP 1.3.1)
+- Massive Keybindings update for the Discerning Gamer.
+- Bind nearly every TimeControl action to a hotkey or key combination. Bind multiple actions to the same set of keys e.g. (activate hyper warp + set rate to 8). Key binds for quick warp to specific times / orbit locations.
+- Also includes a bug fix to resource converters at high time warps using code graciously provided by @linuxgurugamer.
+
+Version 2.8.1 (KSP 1.3.1)
+- Release for KSP 1.3.1. Fixed version file and compile issue with prior 2.8 release.
+
+Version 2.7 (KSP 1.3)
+- Major Refactoring. Updated GUI, Settings, added quickwarp and warp-to tabs.
+- KSP 1.3 compatibility.
+
 Version 2.5 (KSP 1.2.2)
 - Added back MiniAVC
 - Thanks to @linuxgurugamer who updated for KSP 1.2.2. Also fixed up the close button on the window so it closes instead of minimizing.
