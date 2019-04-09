@@ -1,3 +1,6 @@
+Version 2.9.6 (KSP 1.6.1)
+- KSP 1.6.1 Recompile
+
 Version 2.9.5 (KSP 1.5.1)
 - KSP 1.5.1 Recompile
 - Allow warp directly from PAUSE when paused via TimeControl

@@ -100,14 +100,14 @@
   </ItemGroup>
   <ItemGroup>
     <Reference Include="Assembly-CSharp, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Assembly-CSharp.1.5.1\lib\Assembly-CSharp.dll</HintPath>
+      <HintPath>..\packages\Assembly-CSharp.1.6.1\lib\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="UnityEngine, Version=0.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnityEngine.1.5.1\lib\UnityEngine.dll</HintPath>
+      <HintPath>..\packages\UnityEngine.1.6.1\lib\UnityEngine.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\UnityEngine.UI.1.5.1\lib\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\packages\UnityEngine.UI.1.6.1\lib\UnityEngine.UI.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -150,7 +150,7 @@ goto :exit
 
 :debug
 
-SET KSPTest=D:\KSP\KSP_win64_1.5.1_Test
+SET KSPTest=D:\KSP\ksp-win64-1.6.1-test
 
 SET GameDataTarget=%25KSPTest%25\GameData\TimeControl
 IF EXIST %25GameDataTarget%25 (
