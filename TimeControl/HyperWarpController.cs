@@ -364,6 +364,27 @@ namespace TimeControl
             UpdateScreenMessage();
         }
 
+        private void FixedUpdate()
+        {
+            //            if (isHyperWarping && !isGamePaused)
+            //{
+            if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null)
+            { 
+                //var pos = FlightGlobals.ActiveVessel.orbit.pos;
+                //var vel = FlightGlobals.ActiveVessel.orbit.vel;
+                Log.Trace( String.Format( "{0},{1},{2}", Planetarium.GetUniversalTime().ToString(), FlightGlobals.ActiveVessel.orbit.orbitalEnergy, FlightGlobals.ActiveVessel.orbit.semiMajorAxis ) );
+            }
+            //}
+            //if (isHyperWarping && !isGamePaused)
+            //{
+                //var ptr = Convert.ToSingle(this.PhysicsTimeRatio);
+                //Planetarium.TimeScale = ptr;
+                //var prop = TimeWarp.fetch.GetType().GetField( "tgt_rate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
+                //prop.SetValue( TimeWarp.fetch, ptr );
+            //}
+        }
+
+
         private void UpdateScreenMessage()
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( UpdateScreenMessage );

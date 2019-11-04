@@ -265,10 +265,10 @@ namespace TimeControl
         }
 
         /// <summary>
-        /// Returns a copy of the default altitude limits for a specific celestial body
+        /// Returns a copy of the custom altitude limits for a specific celestial body
         /// </summary>
         /// <exception cref="ArgumentNullException"><paramref name="cb"/> is null</exception>
-        /// <exception cref="InvalidOperationException">Thrown when default altitude limits are not currently cached or <paramref name="cb"/> doesn't exist in the list</exception>
+        /// <exception cref="InvalidOperationException">Thrown when custom altitude limits are not currently cached or <paramref name="cb"/> doesn't exist in the list</exception>
         public List<float> GetCustomAltitudeLimitsForBody(CelestialBody cb)
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( GetCustomAltitudeLimitsForBody );
@@ -1213,11 +1213,36 @@ namespace TimeControl
             }
         }
 
+        public void ActivateMaxRails()
+        {
+            const string logBlockName = nameof( RailsWarpController ) + "." + nameof( ActivateMaxRails );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                ThrowExceptionIfNotReady( logBlockName );
+
+                DeactivateRails();
+
+                if (HighLogic.LoadedSceneIsFlight)
+                {
+                    Log.Info( "Setting warp rate to current max for vessel altitude limit over this celestial body.", logBlockName );
+                    
+                }
+                else
+                {
+                    Log.Info( "Setting warp rate to max.", logBlockName );
+                }
+
+                TimeWarp.SetRate( 0, true, false );                
+            }
+        }
+
         public bool RailsWarpForXOrbits(double orbitCount, Vessel v)
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForXOrbits );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 if (v == null)
                 {
                     Log.Error( "Vessel parameter cannot be null!", logBlockName );
@@ -1245,6 +1270,8 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpToSOITransistion );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 if (v == null)
                 {
                     Log.Error( "Vessel parameter cannot be null!", logBlockName );
@@ -1272,6 +1299,8 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpToNextManuverNode );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 if (v == null)
                 {
                     Log.Error( "Vessel parameter cannot be null!", logBlockName );
@@ -1318,6 +1347,8 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForXOrbits );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 if (v == null)
                 {
                     Log.Error( "Vessel parameter cannot be null!", logBlockName );
@@ -1345,6 +1376,8 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForXOrbits );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 if (v == null)
                 {
                     Log.Error( "Vessel parameter cannot be null!", logBlockName );
@@ -1371,7 +1404,9 @@ namespace TimeControl
         {
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForDuration );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
-            {                
+            {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 double totalSeconds = 0f;
                 if (useKerbinDaysYears)
                 {
@@ -1392,6 +1427,8 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpForSeconds );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+                ThrowExceptionIfNotReady( logBlockName );
+
                 Log.Info( "Trying to Rails Warp for " + seconds.ToString() + " seconds", logBlockName );
                 double UT = CurrentUT + seconds;
                 return RailsWarpToUT( UT );
@@ -1403,6 +1440,9 @@ namespace TimeControl
             const string logBlockName = nameof( RailsWarpController ) + "." + nameof( RailsWarpToUT );
             using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
             {
+
+                ThrowExceptionIfNotReady( logBlockName );
+
                 Log.Info( "Trying to Rails Warp to UT " + warpTime.ToString(), logBlockName );                
                 if (!CanRailsWarp)
                 {

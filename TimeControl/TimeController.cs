@@ -70,7 +70,7 @@ namespace TimeControl
             {
                 if (Time.timeScale != value)
                 {
-                    Time.timeScale = value;
+                    Time.timeScale = value;                    
                     TimeControlEvents.OnTimeControlTimeScaleChanged?.Fire( Time.timeScale );
                 }
             }
@@ -94,6 +94,7 @@ namespace TimeControl
                     {
                         Planetarium.fetch.fixedDeltaTime = Time.fixedDeltaTime;
                     }
+
                     TimeControlEvents.OnTimeControlFixedDeltaTimeChanged?.Fire( Time.fixedDeltaTime );
                 }
             }

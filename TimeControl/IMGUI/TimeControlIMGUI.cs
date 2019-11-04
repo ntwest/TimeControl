@@ -451,7 +451,7 @@ namespace TimeControl
 
         private void OnGUIMouseEvents()
         {
-            if (Event.current.type == EventType.mouseUp && Event.current.button == 0)
+            if (Event.current.type == EventType.MouseUp && Event.current.button == 0)
             {
                 if (windowLocationSettingsNeedUpdate)
                 {
