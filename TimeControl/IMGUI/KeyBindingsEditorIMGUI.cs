@@ -65,6 +65,7 @@ namespace TimeControl
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.DN ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.SOI ) { IsUserDefined = true } ) );
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.ManuverNode ) { IsUserDefined = true } ) );
+            userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpToVesselOrbitLocation( WarpToVesselOrbitLocation.VesselOrbitLocation.ManuverNodeStartBurn ) { IsUserDefined = true } ) );
 
             userDefinedKBAdd.Add( new KeyBindingsAddIMGUI( new WarpForNOrbits() { IsUserDefined = true } ) );
         }

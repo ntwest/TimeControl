@@ -15,7 +15,8 @@ namespace TimeControl.KeyBindings
             AN = 3,
             DN = 4,
             SOI = 5,
-            ManuverNode = 6
+            ManuverNode = 6,
+            ManuverNodeStartBurn = 7
         }
 
         
@@ -182,6 +183,14 @@ namespace TimeControl.KeyBindings
                     if ((mn != null))
                     {
                         double TargetUT = mn.UT - V;
+                        RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                    }
+                    break;
+                case VesselOrbitLocation.ManuverNodeStartBurn:
+                    var mn2 = vsl?.FirstUpcomingManuverNode( this.CurrentUT );
+                    if ((mn2 != null))
+                    {
+                        double TargetUT = (CurrentUT + mn2.startBurnIn) - V;
                         RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                     }
                     break;

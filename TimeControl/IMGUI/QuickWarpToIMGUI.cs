@@ -307,7 +307,6 @@ namespace TimeControl
             }
             GUILayout.EndHorizontal();
 
-            GUIBreak();
         }
 
         /// <summary>
@@ -341,8 +340,6 @@ namespace TimeControl
             }
             GUILayout.EndHorizontal();
             GUI.enabled = priorEnabled;
-
-            GUIBreak();
 
             GUILayout.BeginHorizontal();
             {
@@ -415,16 +412,65 @@ namespace TimeControl
                     RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
                 GUI.enabled = priorEnabled;
+            }
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            {
+                GUI.enabled = priorEnabled && v != null;
+                GUILayout.Label( "Manuver", GUILayout.Width( labelWidth ) );
+                GUI.enabled = priorEnabled;
 
                 var mn = v?.FirstUpcomingManuverNode( this.CurrentUT );
+
                 GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
-                if (GUILayout.Button( "Mnv", GUILayout.Width( buttonWidth ) ))
+                if (GUILayout.Button( "Burn", GUILayout.Width( buttonWidth ) ))
+                {
+                    TargetUT = (CurrentUT + mn.startBurnIn);
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                }
+                GUI.enabled = priorEnabled;
+
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "B-10", GUILayout.Width( buttonWidth ) ))
+                {
+                    TargetUT = (CurrentUT + mn.startBurnIn) - 10;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                }
+                GUI.enabled = priorEnabled;
+
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "B-30", GUILayout.Width( buttonWidth ) ))
+                {
+                    TargetUT = (CurrentUT + mn.startBurnIn) - 30;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                }
+                GUI.enabled = priorEnabled;
+
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "Node", GUILayout.Width( buttonWidth ) ))
                 {
                     TargetUT = mn.UT;
                     RailsWarpController.Instance.RailsWarpToUT( TargetUT );
                 }
                 GUI.enabled = priorEnabled;
-            }
+
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "N-10", GUILayout.Width( buttonWidth ) ))
+                {
+                    TargetUT = mn.UT - 10;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                }
+                GUI.enabled = priorEnabled;
+
+                GUI.enabled = priorEnabled && vesselHasOrbit && (mn != null);
+                if (GUILayout.Button( "N-30", GUILayout.Width( buttonWidth ) ))
+                {
+                    TargetUT = mn.UT - 30;
+                    RailsWarpController.Instance.RailsWarpToUT( TargetUT );
+                }
+                GUI.enabled = priorEnabled;
+            }       
             GUILayout.EndHorizontal();
 
             GUIBreak();
