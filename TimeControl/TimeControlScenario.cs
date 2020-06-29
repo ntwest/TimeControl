@@ -13,6 +13,12 @@
             {
                 RailsWarpController.Instance.Load( gameNode );
             }
+
+            HyperWarpController.gameNode = gameNode;
+            if (HyperWarpController.IsReady)
+            {
+                HyperWarpController.Instance.Load( gameNode );
+            }
         }
 
         public override void OnSave(ConfigNode gameNode)
@@ -22,6 +28,11 @@
             if (RailsWarpController.IsReady)
             {
                 RailsWarpController.Instance.Save( gameNode );
+            }
+
+            if (HyperWarpController.IsReady)
+            {
+                HyperWarpController.Instance.Save( gameNode );
             }
         }
     }

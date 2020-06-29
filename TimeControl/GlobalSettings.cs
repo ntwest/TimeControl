@@ -952,6 +952,8 @@ namespace TimeControl
                 activeKeyBinds.Add( new WarpForNTimeIncrements(WarpForNTimeIncrements.TimeIncrement.Seconds) { V = 30f } );
                 activeKeyBinds.Add( new HyperRateSlowDown() { V = 1f } );
                 activeKeyBinds.Add( new HyperRateSpeedUp() { V = 1f } );
+                activeKeyBinds.Add( new HyperRateChangeToLowerRate() );
+                activeKeyBinds.Add( new HyperRateChangeToHigherRate() );
                 activeKeyBinds.Add( new HyperPhysicsAccuracyDown() { V = 0.5f } );
                 activeKeyBinds.Add( new HyperPhysicsAccuracyUp() { V = 0.5f } );
                 activeKeyBinds.Add( new SlowMoSlowDown() { V = 0.05f } );

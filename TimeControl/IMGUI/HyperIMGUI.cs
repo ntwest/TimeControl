@@ -34,6 +34,7 @@ namespace TimeControl
             {
                 GUILayout.BeginVertical();
                 {
+                    GUIRateButtons();
                     GUIMaxRate();
                     GUIMinPhys();
                     GUIMaxDelta();
@@ -46,6 +47,25 @@ namespace TimeControl
                 GUILayout.EndVertical();
             }
             GUI.enabled = priorGUIEnabled;
+        }
+
+        private void GUIRateButtons()
+        {
+            GUILayout.BeginHorizontal();
+            {
+                GUILayout.Label( "Predefined Rates" );
+
+                if (GUILayout.Button( "-" , GUILayout.Width( 20 ) ) )
+                {
+                    HyperWarpController.Instance.ChangeToLowerRate();
+                }
+            
+                if (GUILayout.Button( "+", GUILayout.Width( 20 ) ) )
+                { 
+                    HyperWarpController.Instance.ChangeToHigherRate();
+                }                
+            }
+            GUILayout.EndHorizontal();
         }
 
         private void GUIMaxRate()

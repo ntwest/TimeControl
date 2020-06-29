@@ -33,6 +33,7 @@ namespace TimeControl
 
                 GUILayout.Label( "Current Max Delta Time: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTime.MemoizedToString() ) );
                 GUILayout.Label( "Max Delta Time Setting: ".MemoizedConcat( TimeController.Instance.MaximumDeltaTimeSetting.MemoizedToString() ) );
+                
 
                 TimeController.Instance.MaximumDeltaTimeSetting = GUILayout.HorizontalSlider( TimeController.Instance.MaximumDeltaTimeSetting, TimeController.MaximumDeltaTimeMax, TimeController.MaximumDeltaTimeMin );
             }

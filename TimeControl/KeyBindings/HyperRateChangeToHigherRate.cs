@@ -1,44 +1,36 @@
-﻿namespace TimeControl.KeyBindings
+﻿using System;
+using UnityEngine;
+
+namespace TimeControl.KeyBindings
 {
-    public enum TimeControlKeyAction
+    public class HyperRateChangeToHigherRate : TimeControlKeyBinding
     {
-        GUIToggle = 1,
-        Realtime = 2,
-        PauseToggle = 3,
-        TimeStep = 4,
+        public HyperRateChangeToHigherRate()
+        {
+            TimeControlKeyActionName = TimeControlKeyAction.HyperRateChangeToHigherRate;
+            SetDescription = Description = "Hyper-Warp Rate Step Increase";
+        }
         
-        HyperToggle = 5,
-        HyperActivate = 6,
-        HyperDeactivate = 7,
-        HyperRateSetRate = 8,
-        HyperRateSpeedUp = 9,
-        HyperRateSlowDown = 10,
-        HyperPhysicsAccuracySet = 11,
-        HyperPhysicsAccuracyUp = 12,
-        HyperPhysicsAccuracyDown = 13,
-
-        SlowMoToggle = 14,
-        SlowMoActivate = 15,
-        SlowMoDeactivate = 16,
-        SlowMoSetRate = 17,
-        SlowMoSpeedUp = 18,
-        SlowMoSlowDown = 19,
-        
-        WarpToNextKACAlarm = 20,
-        WarpForNOrbits = 21,
-
-        WarpToVesselOrbitLocation = 22,
-        WarpForNTimeIncrements = 23,
-
-        HyperRateChangeToLowerRate = 24,
-        HyperRateChangeToHigherRate = 25,
-
-        HyperAndSloMoSlowDownTime = 26,
-        HyperAndSloMoSpeedUpTime = 27
+        public override void Press()
+        {
+            if (HyperWarpController.IsReady)
+            {
+                if (!HyperWarpController.Instance.IsHyperWarping)
+                {
+                    HyperWarpController.Instance.MaxAttemptedRate = 1;
+                    HyperWarpController.Instance.ChangeToHigherRate();
+                    HyperWarpController.Instance.ActivateHyper();
+                }
+                else
+                {
+                    HyperWarpController.Instance.ChangeToHigherRate();
+                }
+            }
+        }
     }
 }
 /*
-All code in this file Copyright(c) 2016 Nate West
+All code in this file Copyright(c) 2020 Nate West
 
 The MIT License (MIT)
 

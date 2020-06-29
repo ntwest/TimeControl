@@ -43,7 +43,16 @@ namespace TimeControl
             get => 100f;
         }
 
+        public static ConfigNode gameNode;
+
         #region Private Fields
+
+        private const string customHyperWarpRatesNodeName = "customHyperWarpRates";
+        private const string customHyperWarpRateNodeName = "customHyperWarpRate";
+        private const string customHyperWarpPhysicsAccuracyRatesNodeName = "customHyperWarpPhysicsAccuracyRates";
+        private const string customHyperWarpPhysicsAccuracyRateNodeName = "customHyperWarpPhysicsAccuracyRate";
+
+        private bool RatesNeedUpdatedAndSaved { get; set; } = false;
 
         private EventData<float> OnTimeControlHyperWarpMaximumDeltaTimeChangedEvent;
         private EventData<float> OnTimeControlHyperWarpMaxAttemptedRateChangedEvent;
@@ -54,8 +63,21 @@ namespace TimeControl
 
         private double hyperWarpingToUT = Mathf.Infinity;
         private bool isHyperWarpingToUT = false;
-        
-        
+
+        private List<float> defaultCustomHyperWarpRates = new List<float>()
+        {
+            1.0f, 2.0f, 3.0f, 4.0f, 6.0f, 8.0f, 10.0f, 15.0f, 20.0f, 50.0f
+        };
+
+        private List<float> customHyperWarpRates = new List<float>();
+
+        private List<float> defaultCustomHyperWarpPhysicsAccuracyRates = new List<float>()
+        {
+            1.0f, 1.0f, 1.0f, 1.5f, 1.5f, 2.0f, 2.0f, 2.0f, 3.0f, 3.0f
+        };
+
+        private List<float> customHyperWarpPhysicsAccuracyRates = new List<float>();
+
         //private bool isHyperWarpPaused = false;
 
         private ScreenMessage currentScreenMessage;
@@ -290,6 +312,18 @@ namespace TimeControl
                     yield return new WaitForSeconds( 1f );
                 }
 
+                while (HyperWarpController.gameNode == null)
+                {
+                    Log.Info( "Scenario Object has not loaded the necessary config node yet", logBlockName );
+                    yield return new WaitForSeconds( 1f );
+                }
+
+                Log.Info( "Setting Custom Hyper Warp Rates and Physics Accuracy to Defaults", logBlockName );
+                customHyperWarpRates = defaultCustomHyperWarpRates;
+                customHyperWarpPhysicsAccuracyRates = defaultCustomHyperWarpPhysicsAccuracyRates;
+
+                Load();
+
                 OnTimeControlDefaultFixedDeltaTimeChangedEvent = GameEvents.FindEvent<EventData<float>>( nameof( TimeControlEvents.OnTimeControlDefaultFixedDeltaTimeChanged ) );
                 OnTimeControlDefaultFixedDeltaTimeChangedEvent?.Add( OnTimeControlDefaultFixedDeltaTimeChanged );
 
@@ -362,10 +396,17 @@ namespace TimeControl
             }
 
             UpdateScreenMessage();
+
+            if (RatesNeedUpdatedAndSaved)
+            {
+                SaveWarpRatesSettings();
+            }
         }
 
+        /*
         private void FixedUpdate()
         {
+            
             //            if (isHyperWarping && !isGamePaused)
             //{
             if (HighLogic.LoadedScene == GameScenes.FLIGHT && FlightGlobals.ActiveVessel != null)
@@ -382,7 +423,9 @@ namespace TimeControl
                 //var prop = TimeWarp.fetch.GetType().GetField( "tgt_rate", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance );
                 //prop.SetValue( TimeWarp.fetch, ptr );
             //}
-        }
+            
+    }
+    */
 
 
         private void UpdateScreenMessage()
@@ -656,6 +699,72 @@ namespace TimeControl
             }
         }
 
+        private void SetPhysicsRateFromList()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SetPhysicsRateFromList );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                int newRateIndex = customHyperWarpRates.FindIndex( x => Mathf.Approximately( x, MaxAttemptedRate ) );
+                float newPhysRate = customHyperWarpPhysicsAccuracyRates[newRateIndex];
+
+                Log.Info( String.Format( "Trying to set Physics Rate to {0}.", newPhysRate ), logBlockName );
+                PhysicsAccuracy = newPhysRate;
+            }
+        }
+
+        public void ChangeToLowerRate()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( ChangeToLowerRate );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                float currentMaxAttemptedRate = MaxAttemptedRate;
+                float newRate = customHyperWarpRates.FindLast( x => x < currentMaxAttemptedRate );
+                if (Mathf.Approximately(newRate, 0.0f))
+                {
+                    // Do nothing, rate is already lowest it can go
+                    return;
+                }
+
+                Log.Info( String.Format( "Trying to set Hyper Warp Rate to {0}.", newRate ), logBlockName );
+                MaxAttemptedRate = newRate;
+
+                SetPhysicsRateFromList();
+            }
+        }
+
+        public void ChangeToHigherRate()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( ChangeToHigherRate );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                float currentMaxAttemptedRate = MaxAttemptedRate;
+                float newRate = customHyperWarpRates.Find( x => x > currentMaxAttemptedRate );
+                if (Mathf.Approximately( newRate, 0.0f ))
+                {
+                    Log.Info( "Maximum Hyper Warp Rate in List Reached.", logBlockName );
+                    return;
+                }
+                Log.Info( String.Format( "Trying to set Hyper Warp Rate to {0}.", newRate ), logBlockName );
+                MaxAttemptedRate = newRate;
+
+                SetPhysicsRateFromList();
+            }
+        }
+
+        public List<float> GetCustomHyperWarpRates()
+        {
+            var v = new List<float>();
+            v.AddRange( customHyperWarpRates );
+            return v;
+        }
+
+        public List<float> GetCustomHyperWarpPhysicsAccuracyRates()
+        {
+            var v = new List<float>();
+            v.AddRange( customHyperWarpPhysicsAccuracyRates );
+            return v;
+        }
+
         public void DecreasePhysicsAccuracy(float step = 0.5f)
         {
             const string logBlockName = nameof( HyperWarpController ) + "." + nameof( DecreasePhysicsAccuracy );
@@ -708,9 +817,72 @@ namespace TimeControl
                 return true;
             }
         }
-        
+
+        /// <summary>
+        /// Updates the custom hyper warp rate list
+        ///  </summary>
+        /// <param name="wr">Must have between 2 and 99 elements</param>
+        /// <param name="ar">Must have same # of elements as <paramref name="wr"/></param>
+        /// <exception cref="ArgumentNullException">Thrown when parameter <paramref name="wr"/> is null</exception>
+        /// <exception cref="ArgumentException">Thrown when parameter <paramref name="wr"/> has too few or too many elements</exception>
+        public void SetCustomHyperWarpRates(List<float> wr, List<float> ar)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SetCustomHyperWarpRates );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (wr == null)
+                {
+                    const string message = "New Custom Hyper Warp Rate List cannot be null";
+                    Log.Error( message, logBlockName );
+                    throw new ArgumentNullException( "wr", message );
+                }
+                if (ar == null)
+                {
+                    const string message = "New Custom Hyper Warp Physics Accuracy List cannot be null";
+                    Log.Error( message, logBlockName );
+                    throw new ArgumentNullException( "wr", message );
+                }
+                if (wr.Count < 2)
+                {
+                    const string message = "New Custom Hyper Warp Rate List must have at least 2 warp rates (one of which is 1.0f)";
+                    Log.Error( message, logBlockName );
+                    throw new ArgumentException( message, "wr" );
+                }
+                if (wr.Count > 99)
+                {
+                    const string message = "New Custom Hyper Warp Rate List can only have max of 99 warp rates";
+                    Log.Error( message, logBlockName );
+                    throw new ArgumentException( message, "wr" );
+                }
+                if (ar.Count != wr.Count)
+                {
+                    const string message = "Custom Hyper Warp Rate List and Custom Hyper Warp Physics Accuracy List must have the same number of elements";
+                    Log.Error( message, logBlockName );
+                    throw new ArgumentException( message, "wr" );
+                }
+
+                customHyperWarpRates = new List<float>();
+                customHyperWarpRates.AddRange( wr );
+
+                customHyperWarpPhysicsAccuracyRates = new List<float>();
+                customHyperWarpPhysicsAccuracyRates.AddRange( ar );
+                
+                RatesNeedUpdatedAndSaved = true;
+                Log.Info( "New Custom Hyper Warp Rates Set", logBlockName );
+            }
+        }
+
+        public void ResetHyperWarpRates()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SetCustomHyperWarpRates );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                this.SetCustomHyperWarpRatesToDefault();
+            }
+        }
+
         #region Private Methods
-        
+
         /// <summary>
         /// Create a cache of screen message objects in-memory from 0.0x to 200.0x so we aren't creating and destroying screenmessage objects on the fly as physics updates
         /// </summary>
@@ -861,6 +1033,254 @@ namespace TimeControl
 
 
         #endregion
+
+        #endregion
+
+
+        #region Saving/Loading to ConfigNode
+        public void Load()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Load );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Loading from Internal Config", logBlockName );
+                this.LoadCustomHyperWarpRates( gameNode );
+            }
+        }
+
+        public void Load(ConfigNode gameNode)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Load );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Loading from Config Node", logBlockName );
+                this.LoadCustomHyperWarpRates( gameNode );
+            }
+        }
+
+        private void SetCustomHyperWarpRatesToDefault()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SetCustomHyperWarpRatesToDefault );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                customHyperWarpRates = new List<float>();
+                customHyperWarpRates.AddRange( defaultCustomHyperWarpRates );
+
+                customHyperWarpPhysicsAccuracyRates = new List<float>();
+                customHyperWarpPhysicsAccuracyRates.AddRange( defaultCustomHyperWarpPhysicsAccuracyRates );
+            }
+        }
+
+        /// <summary>
+        /// Load custom warp rates (and physics accuracy rates) into this object from a config node
+        /// </summary>
+        /// <param name="cn"></param>
+        private void LoadCustomHyperWarpRates(ConfigNode cn)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( LoadCustomHyperWarpRates );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn == null)
+                {
+                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
+                    return;
+                }
+
+                // Rates List
+                if (!cn.HasNode( customHyperWarpRatesNodeName ))
+                {
+                    const string message = "No custom hyper warp rates node in config. Using defaults.";
+                    Log.Warning( message, logBlockName );
+                    SetCustomHyperWarpRatesToDefault();
+                    return;
+                }
+
+                ConfigNode customHyperWarpRatesNode = cn.GetNode( customHyperWarpRatesNodeName );
+                List<float> ltcwr = new List<float>();
+
+                bool hyperWarpRatesParseError = false;
+                foreach (string s in customHyperWarpRatesNode.GetValuesStartsWith( customHyperWarpRateNodeName ))
+                {
+                    float num;
+                    if (!(float.TryParse( s, out num )))
+                    {
+                        string message = "A custom hyper warp rate is not defined as a number (value in the config was " + s + ").";
+                        Log.Warning( message, logBlockName );
+                        hyperWarpRatesParseError = true;
+                        ltcwr = null;
+                        break;
+                    }
+                    ltcwr.Add( num );
+                }
+
+                if (hyperWarpRatesParseError)
+                {
+                    string message = "Error loading custom hyper warp rates from config. Using defaults.";
+                    Log.Warning( message, logBlockName );
+                    SetCustomHyperWarpRatesToDefault();
+                    return;
+                }
+
+                try
+                {
+                    customHyperWarpRates = new List<float>();
+                    customHyperWarpRates.AddRange( ltcwr );
+                }
+                catch (Exception ex)
+                {
+                    if (ex is ArgumentException || ex is ArgumentNullException)
+                    {
+                        string message = "Argument Exception when setting custom warp rates. Using defaults.";
+                        Log.Warning( message, logBlockName );
+                        SetCustomHyperWarpRatesToDefault();
+                    }
+                    else
+                        throw;
+                }
+
+                // Physics Accuracy Rates List
+                if (!cn.HasNode( customHyperWarpPhysicsAccuracyRatesNodeName ))
+                {
+                    const string message = "No custom hyper warp physics accuracy rates node in config. Using defaults.";
+                    Log.Warning( message, logBlockName );
+                    SetCustomHyperWarpRatesToDefault();
+                    return;
+                }
+
+                ConfigNode customHyperWarpPhysicsAccuracyRatesNode = cn.GetNode( customHyperWarpPhysicsAccuracyRatesNodeName );
+                List<float> ltcar = new List<float>();
+
+                bool hyperWarpPhysicsAccuracyRatesParseError = false;
+                foreach (string s in customHyperWarpPhysicsAccuracyRatesNode.GetValuesStartsWith( customHyperWarpPhysicsAccuracyRatesNodeName ))
+                {
+                    float num;
+                    if (!(float.TryParse( s, out num )))
+                    {
+                        string message = "A custom hyper warp physics accuracy rate is not defined as a number (value in the config was " + s + ").";
+                        Log.Warning( message, logBlockName );
+                        hyperWarpPhysicsAccuracyRatesParseError = true;
+                        ltcar = null;
+                        break;
+                    }
+                    ltcar.Add( num );
+                }
+
+                if (hyperWarpPhysicsAccuracyRatesParseError)
+                {
+                    string message = "Error loading custom hyper warp physics accuracy rates from config. Using defaults.";
+                    Log.Warning( message, logBlockName );
+                    SetCustomHyperWarpRatesToDefault();
+                    return;
+                }
+
+                try
+                {
+                    customHyperWarpPhysicsAccuracyRates  = new List<float>();
+                    customHyperWarpPhysicsAccuracyRates.AddRange( ltcar );
+                }
+                catch (Exception ex)
+                {
+                    if (ex is ArgumentException || ex is ArgumentNullException)
+                    {
+                        string message = "Argument Exception when setting custom hyper warp physics accuracy rates. Using defaults.";
+                        Log.Warning( message, logBlockName );
+                        SetCustomHyperWarpRatesToDefault();
+                    }
+                    else
+                        throw;
+                }
+
+                if (customHyperWarpPhysicsAccuracyRates.Count != customHyperWarpRates.Count || customHyperWarpRates.Count < 2)
+                {
+                    string message = "Problem using rates in config node. Switching to defaults.";
+                    Log.Warning( message, logBlockName );
+                    SetCustomHyperWarpRatesToDefault();
+                }
+            }
+        }
+
+        public void Save(ConfigNode gameNode)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( Save );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                Log.Info( "Saving to Config", logBlockName );
+                this.SaveCustomHyperWarpRates( gameNode );
+            }
+        }
+
+        /// <summary>
+        /// Save custom warp rates
+        /// </summary>
+        private void SaveCustomHyperWarpRates(ConfigNode cn)
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SaveCustomHyperWarpRates );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                if (cn == null)
+                {
+                    Log.Error( "ConfigNode " + nameof( cn ) + " is NULL, and cannot find existing settings config node.", logBlockName );
+                    return;
+                }
+
+                // Rate List
+
+                // Rebuild the node
+                if (cn.HasNode( customHyperWarpRatesNodeName ))
+                {
+                    cn.RemoveNode( customHyperWarpRatesNodeName );
+                }
+                ConfigNode customHyperWarpRatesNode = cn.AddNode( customHyperWarpRatesNodeName );
+
+                if (customHyperWarpRates == null)
+                {
+                    Log.Error( "No custom hyper warp rates defined. Cannot save", logBlockName );
+                    return;
+                }
+
+                Log.Trace( "creating custom hyper warp rates node", logBlockName );
+                for (int i = 0; i < customHyperWarpRates.Count; i++)
+                {
+                    customHyperWarpRatesNode.AddValue( customHyperWarpRateNodeName + i, customHyperWarpRates[i] );
+                }
+
+                // Physics Accuracy List
+
+                // Rebuild the node
+                if (cn.HasNode( customHyperWarpPhysicsAccuracyRatesNodeName ))
+                {
+                    cn.RemoveNode( customHyperWarpPhysicsAccuracyRatesNodeName );
+                }
+                ConfigNode customHyperWarpPhysicsAccuracyRatesNode = cn.AddNode( customHyperWarpPhysicsAccuracyRatesNodeName );
+
+                if (customHyperWarpPhysicsAccuracyRates == null)
+                {
+                    Log.Error( "No custom hyper warp physics accuracy rates defined. Cannot save", logBlockName );
+                    return;
+                }
+
+                Log.Trace( "creating custom hyper warp physics accuracy node", logBlockName );
+                for (int i = 0; i < customHyperWarpPhysicsAccuracyRates.Count; i++)
+                {
+                    customHyperWarpPhysicsAccuracyRatesNode.AddValue( customHyperWarpPhysicsAccuracyRatesNodeName + i, customHyperWarpPhysicsAccuracyRates[i] );
+                }
+            }
+        }
+
+        /// <summary>
+        /// Update the warp rates and physics settings in the arrays
+        /// </summary>
+        private void SaveWarpRatesSettings()
+        {
+            const string logBlockName = nameof( HyperWarpController ) + "." + nameof( SaveWarpRatesSettings );
+            using (EntryExitLogger.EntryExitLog( logBlockName, EntryExitLoggerOptions.All ))
+            {
+                // Force a game settings save
+                GameSettings.SaveSettings();
+                RatesNeedUpdatedAndSaved = false;
+                TimeControlEvents.OnTimeControlCustomHyperWarpRatesChanged.Fire( true );
+            }
+        }
 
         #endregion
 

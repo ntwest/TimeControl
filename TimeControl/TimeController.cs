@@ -260,6 +260,12 @@ namespace TimeControl
                     }
                 }
 
+                // Reset 'Can Rails Warp' if SlowMo/Hyper messed it up
+                if (RailsWarpController.Instance != null)
+                {
+                    RailsWarpController.Instance.CanRailsWarp = true;
+                }
+
                 TimeControlEvents.OnTimeControlTimeUnpaused?.Fire( true );
             }
         }

@@ -128,7 +128,11 @@ namespace TimeControl
                         && (Mathf.Approximately( TimeController.Instance?.TimeScale ?? 1f, 1f ) || TimeController.Instance.IsTimeControlPaused)
                         && TimeWarp.fetch != null;
                 }
-                else
+                //else if (HighLogic.LoadedScene == GameScenes.SPACECENTER || HighLogic.LoadedScene == GameScenes.TRACKSTATION)
+                //{
+                //    return (Mathf.Approximately( TimeController.Instance?.TimeScale ?? 1f, 1f ) || TimeController.Instance.IsTimeControlPaused)
+                //        && TimeWarp.fetch != null;
+                //}
                 {
                     return false;
                 }
@@ -391,7 +395,9 @@ namespace TimeControl
                 Load();
 
                 ExecRateUpdateAndSave();
-                
+
+                CanRailsWarp = true;
+
                 GameEvents.onTimeWarpRateChanged.Add( onTimeWarpRateChanged );
 
                 Log.Info( nameof( RailsWarpController ) + " is Ready!", logBlockName );

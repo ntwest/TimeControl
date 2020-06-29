@@ -141,6 +141,10 @@ namespace TimeControl.KeyBindings
                         return new HyperPhysicsAccuracyDown();
                     case TimeControlKeyAction.HyperPhysicsAccuracyUp:
                         return new HyperPhysicsAccuracyUp();
+                    case TimeControlKeyAction.HyperRateChangeToLowerRate:
+                        return new HyperRateChangeToLowerRate();
+                    case TimeControlKeyAction.HyperRateChangeToHigherRate:
+                        return new HyperRateChangeToHigherRate();
                     case TimeControlKeyAction.SlowMoSetRate:
                         return new SlowMoSetRate();
                     case TimeControlKeyAction.SlowMoSlowDown:

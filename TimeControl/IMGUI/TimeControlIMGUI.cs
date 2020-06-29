@@ -56,7 +56,8 @@ namespace TimeControl
             RailsWarpTo = 4,
             Details = 5,
             KeyBindingsEditor = 6,
-            QuickWarp = 7
+            QuickWarp = 7,
+            HyperWarpEditor = 8
         }
 
         #region Fields
@@ -82,6 +83,7 @@ namespace TimeControl
         private static Rect mode4Button = new Rect( 70, -1, 25, 20 );
         private static Rect mode5Button = new Rect( 85, -1, 25, 20 );
         private static Rect mode6Button = new Rect( 100, -1, 25, 20 );
+        private static Rect mode7Button = new Rect( 115, -1, 25, 20 );
 
         private Rect windowRect = new Rect( 100, 100, 375, 0 );
 
@@ -94,6 +96,7 @@ namespace TimeControl
         private RailsWarpToIMGUI railsWarpToGUI;
         private KeyBindingsEditorIMGUI keyBindingsGUI;
         private QuickWarpToIMGUI quickWarpToGUI;
+        private HyperEditorIMGUI hyperEditorGUI;
 
         private float flightModeWindow_x = 100;
         private float flightModeWindow_y = 100;
@@ -260,6 +263,7 @@ namespace TimeControl
                 detailsGUI = new DetailsIMGUI();
                 keyBindingsGUI = new KeyBindingsEditorIMGUI();
                 quickWarpToGUI = new QuickWarpToIMGUI();
+                hyperEditorGUI = new HyperEditorIMGUI();
 
                 Log.Info( nameof( TimeControlIMGUI ) + " is Ready!", logBlockName );
                 IsReady = true;
@@ -497,6 +501,9 @@ namespace TimeControl
                 case GUIMode.QuickWarp:
                     quickWarpToGUI.WarpToGUI();
                     break;
+                case GUIMode.HyperWarpEditor:
+                    hyperEditorGUI.HyperEditorGUI();
+                    break;
             }
 
             UnityEngine.GUI.enabled = true;
@@ -627,6 +634,20 @@ namespace TimeControl
                 UnityEngine.GUI.contentColor = cc;
             }
 
+            //Hyper Warp Editor mode
+            {
+                if (WindowSelectedMode != GUIMode.HyperWarpEditor)
+                {
+                    UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
+                }
+                if (UnityEngine.GUI.Button( mode5Button, "E" ))
+                {
+                    WindowSelectedMode = GUIMode.HyperWarpEditor;
+                    windowRect.height = 0;
+                }
+                UnityEngine.GUI.contentColor = cc;
+            }
+
             // Only allow hyper warp and slow motion when in flight
             if (HighLogic.LoadedSceneIsFlight)
             {
@@ -636,7 +657,7 @@ namespace TimeControl
                     {
                         UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                     }
-                    if (UnityEngine.GUI.Button( mode5Button, "S" ))
+                    if (UnityEngine.GUI.Button( mode6Button, "S" ))
                     {
                         WindowSelectedMode = GUIMode.SlowMotion;
                         windowRect.height = 0;
@@ -650,7 +671,7 @@ namespace TimeControl
                     {
                         UnityEngine.GUI.contentColor = new Color( 0.5f, 0.5f, 0.5f );
                     }
-                    if (UnityEngine.GUI.Button( mode6Button, "H" ))
+                    if (UnityEngine.GUI.Button( mode7Button, "H" ))
                     {
                         WindowSelectedMode = GUIMode.HyperWarp;
                         windowRect.height = 0;
