@@ -2,6 +2,8 @@ Version 2.9.9 (KSP 1.9.1)
 - Added new Hyper Warping feature - list of editable custom hyper warp rates and physics settings (like stock rails warp)
 - Added buttons to increse/decrease by these settings
 - Added key bindings to increase/decrease by these settings
+- Added buttons on quick and rails warp to 'start burn time' of the next manuver node (also 10 and 30 sec prior)
+- Added key binding for warping to start burn time - X seconds
 
 Version 2.9.8 (KSP 1.9.1)
 - KSP 1.9.1 Recompile
