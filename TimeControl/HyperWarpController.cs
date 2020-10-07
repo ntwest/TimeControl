@@ -440,7 +440,7 @@ namespace TimeControl
             ScreenMessage s;
             if (PerformanceCountersOn)
             {
-                string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString() ).MemoizedConcat( "x" );
+                string msg = "HYPER-WARP ".MemoizedConcat( (Math.Round( this.PhysicsTimeRatio, 1 )).MemoizedToString("0.0") ).MemoizedConcat( "x" );
                 if (msg != (this.currentScreenMessage?.message ?? ""))
                 {
                     s = new ScreenMessage( msg, Mathf.Infinity, ScreenMessageStyle.UPPER_CENTER );
