@@ -1,3 +1,6 @@
+Version 2.10 (KSP 1.10.1)
+- Recompile for KSP 1.10.1
+
 Version 2.9.9 (KSP 1.9.1)
 - Added new Hyper Warping feature - list of editable custom hyper warp rates and physics settings (like stock rails warp)
 - Added buttons to increse/decrease by these settings

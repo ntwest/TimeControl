@@ -16,13 +16,13 @@ The pause button freezes physics, and allows you to step forward one physics fra
 DETAILS (?)
 Displays some detailed statistics about the current game state. Also allows you to change the max delta time slider.
 
-QUICK WARP
+QUICK WARP (Q)
 A selection of buttons to immediately warp for a specific amount of seconds/minutes/hours/days/years/orbits, or to a vessel's Ap/Pe/AN/DN/SOI/Manuver Node and then stop.
 
-WARP-TO UT
+WARP-TO UT (W)
 Has a similar selection of buttons to Quick Warp, but these add/subtract from a Target UT value, to allow you to specify exactly the time. Left click adds to the target UT, Right click subtracts (like the PreciseNode mod does). The Vessel buttons reset the Target UT directly to that point. Also has fields where a user can enter an exact amount of years, days, hours, minutes, and seconds
 
-RAILS EDITOR
+RAILS EDITOR (R)
 The rails editor gives you complete control over every part of rails warping. You can fully customize the warp rates available, as well as add more if you like, as well as set the altitude limits for each warp level for each celestial body. There are several buttons that set these to defaults which make time warping a breese. Warp Rates and Altitude limits are now set per savegame, not globally.
 
 Buttons that setup warp rates:
@@ -30,7 +30,7 @@ Kerbin Time: 5s/s 15s/s, 45s/s, 60s/s, 1m/s, 5m/s, 15m/s, 45m/s, 1hr/s, 3hr/s, 1
 (Note that Kerbin-Days are 21650.8s, And Kerbin-Years are 9203544.6s, but since rate is stored as a 32bit floating point value, I use 9203544x for the 1yr/s rate.
 Earth Time: 5s/s 15s/s, 45s/s, 60s/s, 1m/s, 5m/s, 15m/s, 45m/s, 1hr/s, 3hr/s, 12hr/s, 1d/s, 5d/s, 15d/s, 30d/s, 90d/s, 180d/s, 1yr/s
 
-KEY BINDINGS
+KEY BINDINGS (K)
 Assign a binding by left clicking the button, then pressing the key combination. Clear a binding by right clicking the button. You can bind a key combination to a key binding instead of a single key. Note that for most bindings the final key pressed 'down' is what triggers the key. If you bind keys that are also used by KSP, you will be triggering both your stuff and the KSP keys. This should support joystick buttons but I have no joystick to test with.
 
 Toggle GUI - toggles the GUI window(s)
@@ -41,11 +41,14 @@ Speed Up / Slow Down - If in Slow-Motion, functions to slow down or speed up tim
 Slow Motion - Toggles Slow Motion on/off
 Hyper Warp - Toggles Hyper Warp on/off
 
-HYPER-WARP
+HYPER-WARP (H)
 The hyper warp menu gives you the ability to speed up time without sacrificing physics accuracy like phys-warp does. This has a myriad of uses, like speeding up launches or burns (especially with lower TWR craft), flying planes around the world, running Kerbals long distances, etc. The first slider sets the maximum attempted speed - note that it is unlikely that you will be able to attain that speed unless you have a very powerful computer or a very small craft. The second slider sets the minimum accuracy, from 1 to 1/6. If you know your ship can hold together in phys-warp, you can reduce the accuracy to attain better speeds and FPS. You can either manually control when hyper warp is active, or you can set it to warp for a period of time, which is particularly useful for long burns with ION or Nuclear engines. If you like, have it pause when it finishes so you can AFK while it goes and not worry about missing anything. Also provided in the hyper warp window is a throttle slider, so you can precisely control your throttle even when the standard throttle response is sped up.
 
+HYPER-WARP RATES SETTINGS (E)
+Much like rails warp settings, this allows you to configure the rates set by stepping up and down through the hyper warp rate with keyboard commands. You will need to 
 
-SLOW-MOTION
+
+SLOW-MOTION (S)
 The slow motion menu gives you the ability to slow down time, or completely pause time and step forward frame by frame. By default, the slider slows down both the game speed and the physics delta, resulting in a smooth slow motion. Note that this will change how the physics of your vessel behaves, joints will stiffen and become more rigid (the opposite of what happens in phys-warp). This can sometimes cause problems with launch clamps or clipped parts, so beware. If you flip on the "lock physics delta" option, time will slow down, but the physics calculations won't change, so parts will appear to stutter and motion will be choppy. This allows you to see how your ship behaves at a much slower pace, so you can determine what might be going wrong. It is also very useful because even with high part counts where your computer is struggling with physics calculations, your frame-rate will NOT be slowed, so you can maintain full control of your camera, parts on your ship, and anything else.  Also provided in the slow-motion window is a throttle slider, so you can precisely control your throttle even when the standard throttle response is slowed.
 
 
